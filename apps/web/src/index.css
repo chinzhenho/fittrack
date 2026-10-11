@@ -1,0 +1,21 @@
+@import 'tailwindcss';
+
+/* Design tokens from spec section 4: deep navy, emerald, light grey. Red is reserved for errors. */
+@theme {
+  --color-navy: #0f172a;
+  --color-emerald: #10b981;
+  --color-emerald-strong: #047857;
+  --color-mist: #f1f5f9;
+  --font-sans:
+    system-ui, -apple-system, 'Segoe UI', Roboto, 'PingFang TC', 'Microsoft JhengHei',
+    'Noto Sans TC', sans-serif;
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    @apply bg-mist text-navy antialiased dark:bg-navy dark:text-slate-100;
+  }
+}
