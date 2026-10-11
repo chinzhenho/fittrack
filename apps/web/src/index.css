@@ -16,6 +16,6 @@
     -webkit-text-size-adjust: 100%;
   }
   body {
-    @apply bg-mist text-navy antialiased dark:bg-navy dark:text-slate-100;
+    @apply bg-mist text-navy antialiased dark:bg-slate-950 dark:text-slate-100;
   }
 }

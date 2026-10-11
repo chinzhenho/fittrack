@@ -6,8 +6,9 @@ import type {
   PlanWarning,
   RejectReason,
 } from '@fittrack/engine';
+import type { DietTag, LifestyleMode } from '../data/types';
 
-// Traditional Chinese copy for the phase 0 demo. Moves to packages/i18n in phase 1.
+// Traditional Chinese copy. Moves to packages/i18n when English and Simplified Chinese are added.
 // Tone rules: spec 18.4 (friendly, specific, no shaming, estimates labelled).
 
 export const SEX_LABELS: Record<FormulaSex, string> = {
@@ -29,6 +30,21 @@ export const ACTIVITY_LABELS: Record<ActivityLevel, { name: string; hint: string
   moderate: { name: '中度', hint: '每週運動 3–5 天，或大量走動的工作' },
   very: { name: '高度', hint: '每週運動 6–7 天，或體力勞動工作' },
   extra: { name: '極高', hint: '體力勞動工作，加上每天訓練' },
+};
+
+export const MODE_LABELS: Record<LifestyleMode, { name: string; hint: string }> = {
+  nutrition_first: { name: '暫時不運動', hint: '先從飲食和生活習慣開始' },
+  home: { name: '在家運動', hint: '不需要器材' },
+  gym: { name: '去 Gym', hint: '使用健身器材' },
+  outdoor: { name: '戶外活動', hint: '走路、跑步或騎腳車' },
+  mixed: { name: '混合模式', hint: '每天按時間靈活安排' },
+};
+
+export const DIET_LABELS: Record<DietTag, string> = {
+  halal: 'Halal',
+  vegetarian: '素食',
+  no_beef: '不吃牛肉',
+  no_pork: '不吃豬肉',
 };
 
 export function clampMessage(clamp: PlanClamp, floorKcal: number): string {
