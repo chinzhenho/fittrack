@@ -1,3 +1,8 @@
 packages:
   - 'apps/*'
   - 'packages/*'
+
+# Install scripts are blocked by default; allow only these well-known build tools.
+onlyBuiltDependencies:
+  - esbuild
+  - workerd
