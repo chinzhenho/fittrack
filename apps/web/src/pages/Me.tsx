@@ -20,6 +20,8 @@ import {
   Segmented,
 } from '../components/ui';
 import { saveProfile, setHideNumbers } from '../data/actions';
+import { useAuth } from '../data/auth';
+import { deleteCloudData, signOut, useSync, type SyncStatus } from '../data/sync';
 import { getState, isPersistent, newId, replaceState, update, useAppState } from '../data/store';
 import { emptyState, type DietTag, type LifestyleMode, type Profile } from '../data/types';
 import { localToday } from '../lib/dates';
@@ -42,6 +44,14 @@ const RATE_OPTIONS: Record<Goal, number[]> = {
   weight_gain: [0.25, 0.5],
 };
 
+const SYNC_TEXT: Record<SyncStatus, string> = {
+  off: '',
+  syncing: '同步中…',
+  synced: '✓ 所有記錄已同步到你的帳號',
+  offline: '目前離線：記錄先保存在這部裝置，恢復網路後會自動同步。',
+  error: '同步失敗，稍後會自動重試。',
+};
+
 export function Me() {
   const s = useAppState();
   const toast = useToast();
@@ -51,7 +61,11 @@ export function Me() {
   const [draft, setDraft] = useState<Profile | null>(profile);
   const [heightText, setHeightText] = useState(String(profile?.heightCm ?? ''));
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const auth = useAuth();
+  const sync = useSync();
   if (!profile || !draft) return null;
+  const signedIn = auth.status === 'signedIn';
 
   const weight = latestWeight(s.weights)?.weightKg ?? 0;
   const target = targetOn(s.targets, today);
@@ -108,6 +122,57 @@ export function Me() {
   return (
     <div className="space-y-4">
       <PageTitle>我</PageTitle>
+
+      <Card className="space-y-3">
+        <CardTitle>帳號</CardTitle>
+        {signedIn ? (
+          <>
+            <p className="text-sm">
+              已登入：<span className="font-medium">{auth.user.email}</span>
+            </p>
+            <p className="text-sm text-slate-600 dark:text-slate-400">{SYNC_TEXT[sync.status]}</p>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                variant="secondary"
+                disabled={busy}
+                onClick={async () => {
+                  setBusy(true);
+                  await signOut();
+                  navigate('/welcome', { replace: true });
+                }}
+              >
+                登出
+              </Button>
+              <Link
+                to="/update-password"
+                className="inline-flex min-h-11 items-center rounded-xl px-4 text-sm text-emerald-strong hover:bg-emerald/10 dark:text-emerald"
+              >
+                更改密碼
+              </Link>
+            </div>
+          </>
+        ) : (
+          <>
+            <p className="text-sm text-slate-600 dark:text-slate-400">
+              你沒有登入：資料只保存在這部裝置。註冊後，現有的記錄會自動上傳到你的帳號，換手機也不會遺失。
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <Link
+                to="/signup"
+                className="inline-flex min-h-11 items-center rounded-xl bg-emerald px-4 text-sm font-semibold text-navy"
+              >
+                註冊並備份
+              </Link>
+              <Link
+                to="/login"
+                className="inline-flex min-h-11 items-center rounded-xl border border-slate-300 px-4 text-sm dark:border-slate-600"
+              >
+                登入
+              </Link>
+            </div>
+          </>
+        )}
+      </Card>
 
       <Card className="space-y-5">
         <CardTitle>目標與生活方式</CardTitle>
@@ -267,9 +332,11 @@ export function Me() {
       <Card className="space-y-3">
         <CardTitle>你的資料</CardTitle>
         <p className="text-sm text-slate-600 dark:text-slate-400">
-          {isPersistent()
-            ? '所有資料只保存在這部裝置的瀏覽器中。清除瀏覽器資料或換手機會令資料消失，建議定期匯出備份。'
-            : '這個瀏覽器目前無法保存資料。'}
+          {signedIn
+            ? '資料保存在你的帳號（伺服器在新加坡），這部裝置也有一份副本供離線使用。'
+            : isPersistent()
+              ? '所有資料只保存在這部裝置的瀏覽器中。清除瀏覽器資料或換手機會令資料消失，建議註冊或定期匯出備份。'
+              : '這個瀏覽器目前無法保存資料。'}
         </p>
         <Button variant="secondary" onClick={exportData}>
           匯出全部資料（JSON）
@@ -280,13 +347,24 @@ export function Me() {
           </Button>
         ) : (
           <Notice tone="warn" title="確定刪除？">
-            所有飲食、體重、訓練記錄和設定都會被永久刪除，無法復原。建議先匯出備份。
+            {signedIn
+              ? '你帳號裡的所有飲食、體重、訓練記錄和設定都會從雲端和這部裝置永久刪除，無法復原，然後自動登出。建議先匯出備份。'
+              : '所有飲食、體重、訓練記錄和設定都會被永久刪除，無法復原。建議先匯出備份。'}
             <div className="mt-3 flex gap-2">
               <Button
                 variant="danger"
-                onClick={() => {
+                disabled={busy}
+                onClick={async () => {
+                  if (signedIn) {
+                    setBusy(true);
+                    const err = await deleteCloudData();
+                    setBusy(false);
+                    if (err) return toast({ text: err });
+                    navigate('/welcome', { replace: true });
+                    return;
+                  }
                   replaceState(emptyState);
-                  navigate('/onboarding', { replace: true });
+                  navigate('/welcome', { replace: true });
                 }}
               >
                 確定刪除

@@ -24,9 +24,30 @@ beforeEach(() => replaceState(emptyState));
 afterEach(cleanup);
 
 describe('app flow', () => {
-  it('sends new users to onboarding', () => {
+  it('sends new visitors to the welcome page with sign-up, log-in and guest options', async () => {
     renderAt('/today');
-    expect(screen.getByRole('heading', { name: '開始' })).toBeTruthy();
+    expect(await screen.findByRole('heading', { name: '歡迎使用 FitTrack' })).toBeTruthy();
+    expect(screen.getByRole('link', { name: '註冊帳號' })).toBeTruthy();
+    expect(screen.getByRole('link', { name: '已有帳號，登入' })).toBeTruthy();
+    expect(screen.getByRole('link', { name: '先不登入，直接試用' })).toBeTruthy();
+  });
+
+  it('validates the sign-up form before contacting the server', async () => {
+    renderAt('/signup');
+    const submit = (await screen.findByRole('button', { name: '註冊' })) as HTMLButtonElement;
+    change('Email', 'not-an-email');
+    change('密碼', 'short');
+    expect(screen.getByText('請輸入有效的 Email。')).toBeTruthy();
+    expect(screen.getByText('密碼至少要 8 個字元。')).toBeTruthy();
+    expect(submit.disabled).toBe(true);
+    change('Email', 'a@example.com');
+    change('密碼', 'longenough1');
+    change('再輸入一次密碼', 'different1');
+    expect(screen.getByText('兩次輸入的密碼不一樣。')).toBeTruthy();
+    change('再輸入一次密碼', 'longenough1');
+    expect(submit.disabled).toBe(true); // consent not given yet
+    fireEvent.click(screen.getByLabelText(/我同意把我的身體/));
+    expect(submit.disabled).toBe(false);
   });
 
   it('requires consent before continuing', () => {

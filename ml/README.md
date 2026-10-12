@@ -14,11 +14,11 @@ ml\.venv\Scripts\python -c "import torch; print(torch.cuda.is_available())"   # 
 
 ## 三個步驟
 
-| 步驟 | 指令 | 輸出 |
-| --- | --- | --- |
-| 1. 訓練 | `ml\.venv\Scripts\python -I ml\train.py --data-dir ml\data\my_food --epochs 15` | `ml\runs\<名稱>\best.pt` |
-| 2. 評估 | `ml\.venv\Scripts\python -I ml\evaluate.py --run <名稱>` | 準確度、最差類別、最常搞混的菜 |
-| 3. 匯出 | `ml\.venv\Scripts\python -I ml\export_onnx.py --run <名稱> --int8` | `ml\runs\<名稱>\web\model.onnx` + `meta.json` |
+| 步驟    | 指令                                                                            | 輸出                                          |
+| ------- | ------------------------------------------------------------------------------- | --------------------------------------------- |
+| 1. 訓練 | `ml\.venv\Scripts\python -I ml\train.py --data-dir ml\data\my_food --epochs 15` | `ml\runs\<名稱>\best.pt`                      |
+| 2. 評估 | `ml\.venv\Scripts\python -I ml\evaluate.py --run <名稱>`                        | 準確度、最差類別、最常搞混的菜                |
+| 3. 匯出 | `ml\.venv\Scripts\python -I ml\export_onnx.py --run <名稱> --int8`              | `ml\runs\<名稱>\web\model.onnx` + `meta.json` |
 
 用 Food-101 測試流程：第 1 步改成 `--dataset food101 --download --epochs 10`（第一次會下載約 4.7 GB）。
 **Food-101 只限研究用途，訓練出的模型不能用在正式產品。**

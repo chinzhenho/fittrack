@@ -9,6 +9,7 @@ import { useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { Button, Card, Check, Field, inputClass, Notice, Segmented } from '../components/ui';
 import { completeOnboarding } from '../data/actions';
+import { useAuth } from '../data/auth';
 import { newId, update } from '../data/store';
 import type { DietTag, Experience, LifestyleMode, Profile } from '../data/types';
 import { localToday } from '../lib/dates';
@@ -107,6 +108,7 @@ export function Onboarding() {
   const [step, setStep] = useState(0);
   const [d, setD] = useState<Draft>(initial);
   const navigate = useNavigate();
+  const signedIn = useAuth().status === 'signedIn';
   const today = useMemo(() => localToday(), []);
   const set = <K extends keyof Draft>(k: K, v: Draft[K]) => setD((x) => ({ ...x, [k]: v }));
 
@@ -199,7 +201,9 @@ export function Onboarding() {
                 也可以開始。
               </p>
               <Notice>
-                你的資料目前只保存在這部裝置的瀏覽器中，不會上傳。之後加入帳號同步時會先徵求你的同意。
+                {signedIn
+                  ? '你已登入：資料會經加密連線保存到你的帳號（伺服器在新加坡），換裝置登入也看得到，只有你能存取。'
+                  : '你沒有登入：資料只保存在這部裝置的瀏覽器中。之後可以在「我」頁面註冊，把資料備份到帳號。'}
               </Notice>
               <div className="space-y-1">
                 <Check checked={d.adult} onChange={(v) => set('adult', v)}>

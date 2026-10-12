@@ -115,6 +115,10 @@ export interface ActivityLog {
 
 export interface AppState {
   schemaVersion: 1;
+  /** ISO time of the last local change; decides which copy is newer when syncing. */
+  updatedAt: string;
+  /** Supabase user id this data belongs to; null for a guest (not signed in). */
+  ownerId: string | null;
   profile: Profile | null;
   targets: TargetVersion[];
   customFoods: Food[];
@@ -129,6 +133,8 @@ export interface AppState {
 
 export const emptyState: AppState = {
   schemaVersion: 1,
+  updatedAt: '',
+  ownerId: null,
   profile: null,
   targets: [],
   customFoods: [],
