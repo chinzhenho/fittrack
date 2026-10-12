@@ -107,6 +107,9 @@ export function Progress() {
               <span className="ml-1 text-base font-medium">kg</span>
             </p>
             <p className="text-sm text-slate-600 dark:text-slate-300">
+              趨勢體重{entries[0] && ` · 最新記錄 ${fmt1(entries[0].weightKg)} kg`}
+            </p>
+            <p className="text-sm text-slate-600 dark:text-slate-300">
               {weekly !== null
                 ? `過去 7 天 ${weekly > 0 ? '+' : ''}${fmt1(weekly)}%`
                 : '記錄滿一週後顯示每週變化'}

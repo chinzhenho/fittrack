@@ -92,7 +92,8 @@ export function Today() {
   const todayMeals = mealsOn(s.meals, today);
   const latest = latestWeight(s.weights);
   const first = [...s.weights].sort((a, b) => a.measuredAt.localeCompare(b.measuredAt))[0];
-  const current = trend ?? latest?.weightKg ?? null;
+  // The card shows what the user actually weighed; the smoothed trend is a side note.
+  const current = latest?.weightKg ?? null;
   const goalKg = profile.targetWeightKg;
   const change = current !== null && first ? current - first.weightKg : null;
   const toGoal =
@@ -356,6 +357,11 @@ export function Today() {
                   {current !== null ? fmt1(current) : '—'}
                   <span className="ml-1 text-base font-medium">kg</span>
                 </p>
+                {trend !== null && current !== null && Math.abs(trend - current) >= 0.05 && (
+                  <p className="text-xs text-slate-600 dark:text-slate-300">
+                    平滑趨勢 {fmt1(trend)} kg（減少每天水分起伏的影響）
+                  </p>
+                )}
               </div>
               {change !== null && first && first.date !== today && (
                 <p
