@@ -184,17 +184,14 @@ export function AddFood() {
       ) : (
         <>
           <PhotoCard foods={BUILT_IN_FOODS} onPick={pick} />
-          <Field label="搜尋食物" hint="可輸入中文、英文或馬來文，例如：雞蛋、tauhu、rice">
-            {(p) => (
-              <input
-                {...p}
-                type="search"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                className={inputClass}
-              />
-            )}
-          </Field>
+          <input
+            type="search"
+            aria-label="搜尋食物"
+            placeholder="🔍 搜尋食物，例如：雞蛋、tauhu、rice"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            className={`${inputClass} mt-0 bg-white dark:bg-slate-800`}
+          />
           {!query && recent.length > 0 && (
             <FoodList title="最近吃過" foods={recent} onPick={pick} />
           )}
