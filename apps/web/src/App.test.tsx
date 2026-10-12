@@ -29,6 +29,7 @@ function renderAt(path: string) {
 }
 
 const next = () => fireEvent.click(screen.getByRole('button', { name: '下一步' }));
+const tap = (name: string | RegExp) => fireEvent.click(screen.getByRole('button', { name }));
 const change = (label: string, value: string) =>
   fireEvent.change(screen.getByLabelText(label), { target: { value } });
 
@@ -78,19 +79,20 @@ describe('app flow', () => {
     fireEvent.click(screen.getByLabelText(/我已閱讀並接受/));
     fireEvent.click(screen.getByLabelText(/我同意 FitTrack 使用/));
     next();
-    fireEvent.click(screen.getByLabelText('減脂'));
-    next();
-    fireEvent.click(screen.getByLabelText(/在家運動/));
-    next();
-    fireEvent.click(screen.getByLabelText('男性公式'));
+    tap(/減脂/);
+    tap(/在家運動/);
+    tap('10–15 分鐘');
+    tap(/初學者/);
+    tap('男性公式');
     change('出生日期', '1996-01-01');
     change('身高（cm）', '175');
     change('體重（kg）', '75');
-    fireEvent.click(screen.getByLabelText(/^輕度/));
-    next(); // -> health
-    next(); // -> rate (default 0.5%)
-    next(); // -> diet
-    next(); // -> plan
+    next();
+    tap(/^輕度/);
+    tap('以上都沒有');
+    tap(/每週 0.5% 體重/);
+    tap('跳過'); // target weight
+    tap('沒有特別限制');
     expect(screen.getAllByText(/1,920/).length).toBeGreaterThan(0);
     fireEvent.click(screen.getByRole('button', { name: '開始使用' }));
 
@@ -135,16 +137,20 @@ describe('app flow', () => {
     fireEvent.click(screen.getByLabelText(/我已閱讀並接受/));
     fireEvent.click(screen.getByLabelText(/我同意 FitTrack 使用/));
     next();
-    fireEvent.click(screen.getByLabelText('減脂'));
-    next();
-    next();
+    tap(/減脂/);
+    tap(/暫時不運動/);
+    tap('不一定');
+    tap(/初學者/);
+    tap('女性公式');
     change('出生日期', '2000-05-05');
     change('身高（cm）', '169.6');
     change('體重（kg）', '51.5');
-    next(); // -> health
-    next(); // -> rate
-    next(); // -> diet
-    next(); // -> plan
+    next();
+    tap(/^久坐/);
+    tap('以上都沒有');
+    tap(/每週 0.5% 體重/);
+    tap('跳過');
+    tap('沒有特別限制');
     expect(screen.getByText('目前不建議減脂')).toBeTruthy();
     expect((screen.getByRole('button', { name: '開始使用' }) as HTMLButtonElement).disabled).toBe(
       true,
