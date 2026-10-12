@@ -85,7 +85,7 @@ export function AddFood() {
         <Card className="space-y-4">
           <div>
             <p className="font-semibold">{selected.nameZh}</p>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
+            <p className="text-xs text-slate-600 dark:text-slate-300">
               {selected.source === 'usda'
                 ? `來源：${selected.sourceRef}（已驗證）`
                 : selected.source === 'sgfoodid'
@@ -93,7 +93,7 @@ export function AddFood() {
                   : '來源：你自己輸入的包裝標籤'}
             </p>
             {selected.description && (
-              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+              <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">
                 {selected.description}
               </p>
             )}
@@ -114,7 +114,7 @@ export function AddFood() {
                   </Button>
                 ))}
               </div>
-              <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+              <p className="mt-2 text-xs text-slate-600 dark:text-slate-300">
                 份量比標準多或少時，請按實際情況調整克數。
               </p>
             </div>
@@ -235,7 +235,9 @@ function PhotoCard({ foods, onPick }: { foods: Food[]; onPick: (f: Food) => void
   };
 
   const fileButton = (label: string, capture: boolean) => (
-    <label className="inline-flex min-h-11 cursor-pointer items-center justify-center rounded-xl border border-slate-300 bg-white px-4 text-sm text-navy has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-emerald dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100">
+    <label
+      className={`inline-flex min-h-12 flex-1 cursor-pointer items-center justify-center gap-2 rounded-2xl px-4 text-sm font-semibold has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-emerald ${capture ? 'bg-emerald-strong text-white shadow-sm hover:bg-emerald-800 dark:bg-emerald dark:text-slate-950' : 'border border-emerald-200 bg-white text-emerald-900 hover:bg-emerald-50 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100'}`}
+    >
       {label}
       <input
         type="file"
@@ -255,16 +257,35 @@ function PhotoCard({ foods, onPick }: { foods: Food[]; onPick: (f: Food) => void
   const top = state.status === 'done' ? state.predictions[0] : undefined;
 
   return (
-    <Card className="space-y-3">
-      <div>
-        <h2 className="text-sm font-semibold">📷 拍照辨識（測試版）</h2>
-        <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-          目前可辨識 10 種本地菜式：{Object.values(DISH_LABELS).join('、')}
-          。照片只在你的裝置上分析，不會上傳。第一次使用需下載約 30 MB。
-        </p>
+    <section className="space-y-3 rounded-3xl bg-gradient-to-br from-emerald-50 to-teal-50 p-5 ring-1 ring-emerald-200 dark:from-emerald-950 dark:to-slate-800 dark:ring-emerald/30">
+      <div className="flex items-start gap-3">
+        <span
+          aria-hidden="true"
+          className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-white text-2xl shadow-sm dark:bg-slate-700"
+        >
+          📷
+        </span>
+        <div>
+          <h2 className="text-lg font-semibold">
+            拍照算熱量
+            <span className="ml-2 rounded-full bg-amber-100 px-2 py-0.5 align-middle text-xs font-medium text-amber-900 dark:bg-amber-500/20 dark:text-amber-100">
+              測試版
+            </span>
+          </h2>
+          <p className="text-sm text-slate-700 dark:text-slate-300">
+            拍一張食物照片，自動認出菜式，再選份量就會算進今天的熱量。
+          </p>
+        </div>
       </div>
-      <div className="flex flex-wrap gap-2">
-        {fileButton('拍照', true)}
+      <details className="text-xs text-slate-600 dark:text-slate-300">
+        <summary className="cursor-pointer py-1">目前支援 10 種本地菜式・照片不會上傳</summary>
+        <p className="mt-1">
+          {Object.values(DISH_LABELS).join('、')}
+          。照片只在你的裝置上分析，不會上傳或保存。第一次使用需下載約 30 MB。
+        </p>
+      </details>
+      <div className="flex gap-2">
+        {fileButton('📸 拍照', true)}
         {fileButton('從相簿選擇', false)}
       </div>
 
@@ -309,28 +330,28 @@ function PhotoCard({ foods, onPick }: { foods: Food[]; onPick: (f: Food) => void
           <FoodList title="選擇最接近的一種（之後可調整份量）" foods={variants} onPick={onPick} />
         </div>
       )}
-    </Card>
+    </section>
   );
 }
 
 function NutrientLine({ food, grams }: { food: Food; grams: number }) {
   const n = nutrientsFor(food.per100g, grams);
   return (
-    <div className="grid grid-cols-4 gap-2 rounded-xl bg-mist p-3 text-center text-sm dark:bg-slate-800">
+    <div className="grid grid-cols-4 gap-2 rounded-xl bg-mist p-3 text-center text-sm dark:bg-slate-700">
       <div>
-        <p className="text-xs text-slate-500 dark:text-slate-400">熱量</p>
+        <p className="text-xs text-slate-600 dark:text-slate-300">熱量</p>
         <p className="font-semibold">{fmtInt(n.kcal)} kcal</p>
       </div>
       <div>
-        <p className="text-xs text-slate-500 dark:text-slate-400">蛋白質</p>
+        <p className="text-xs text-slate-600 dark:text-slate-300">蛋白質</p>
         <p className="font-semibold">{fmt1(n.proteinG)} g</p>
       </div>
       <div>
-        <p className="text-xs text-slate-500 dark:text-slate-400">碳水</p>
+        <p className="text-xs text-slate-600 dark:text-slate-300">碳水</p>
         <p className="font-semibold">{fmt1(n.carbsG)} g</p>
       </div>
       <div>
-        <p className="text-xs text-slate-500 dark:text-slate-400">脂肪</p>
+        <p className="text-xs text-slate-600 dark:text-slate-300">脂肪</p>
         <p className="font-semibold">{fmt1(n.fatG)} g</p>
       </div>
     </div>
@@ -350,9 +371,9 @@ function FoodList({
     <Card>
       <h2 className="mb-2 text-sm font-semibold">{title}</h2>
       {foods.length === 0 ? (
-        <p className="text-sm text-slate-500 dark:text-slate-400">沒有符合的食物。</p>
+        <p className="text-sm text-slate-600 dark:text-slate-300">沒有符合的食物。</p>
       ) : (
-        <ul className="divide-y divide-slate-100 dark:divide-slate-800">
+        <ul className="divide-y divide-slate-100 dark:divide-slate-700">
           {foods.map((f) => (
             <li key={f.id}>
               <button
@@ -362,7 +383,7 @@ function FoodList({
               >
                 <span className="min-w-0">
                   <span className="block truncate text-sm font-medium">{f.nameZh}</span>
-                  <span className="block text-xs text-slate-500 dark:text-slate-400">
+                  <span className="block text-xs text-slate-600 dark:text-slate-300">
                     {servingText(f)} · {SOURCE_LABEL[f.source]}
                   </span>
                 </span>
@@ -411,7 +432,7 @@ function CustomFoodForm({ onSave, onCancel }: { onSave: (f: Food) => void; onCan
     <Card className="space-y-4">
       <div>
         <h2 className="font-semibold">新增自訂食物</h2>
-        <p className="text-xs text-slate-500 dark:text-slate-400">
+        <p className="text-xs text-slate-600 dark:text-slate-300">
           請按包裝營養標籤上「每 100 g」的數值輸入。這個食物只有你看得到。
         </p>
       </div>

@@ -26,6 +26,7 @@ import { getState, isPersistent, newId, replaceState, update, useAppState } from
 import { emptyState, type DietTag, type LifestyleMode, type Profile } from '../data/types';
 import { localToday } from '../lib/dates';
 import { fmtInt } from '../lib/format';
+import { setTheme, useTheme, type Theme } from '../lib/theme';
 import {
   ACTIVITY_LABELS,
   DIET_LABELS,
@@ -56,6 +57,7 @@ export function Me() {
   const s = useAppState();
   const toast = useToast();
   const navigate = useNavigate();
+  const theme = useTheme();
   const today = useMemo(() => localToday(), []);
   const profile = s.profile;
   const [draft, setDraft] = useState<Profile | null>(profile);
@@ -130,7 +132,7 @@ export function Me() {
             <p className="text-sm">
               已登入：<span className="font-medium">{auth.user.email}</span>
             </p>
-            <p className="text-sm text-slate-600 dark:text-slate-400">{SYNC_TEXT[sync.status]}</p>
+            <p className="text-sm text-slate-600 dark:text-slate-300">{SYNC_TEXT[sync.status]}</p>
             <div className="flex flex-wrap gap-2">
               <Button
                 variant="secondary"
@@ -153,7 +155,7 @@ export function Me() {
           </>
         ) : (
           <>
-            <p className="text-sm text-slate-600 dark:text-slate-400">
+            <p className="text-sm text-slate-600 dark:text-slate-300">
               你沒有登入：資料只保存在這部裝置。註冊後，現有的記錄會自動上傳到你的帳號，換手機也不會遺失。
             </p>
             <div className="flex flex-wrap gap-2">
@@ -165,7 +167,7 @@ export function Me() {
               </Link>
               <Link
                 to="/login"
-                className="inline-flex min-h-11 items-center rounded-xl border border-slate-300 px-4 text-sm dark:border-slate-600"
+                className="inline-flex min-h-11 items-center rounded-xl border border-slate-300 px-4 text-sm dark:border-slate-500"
               >
                 登入
               </Link>
@@ -251,7 +253,7 @@ export function Me() {
             )}
           </Field>
         </div>
-        <p className="text-xs text-slate-500 dark:text-slate-400">
+        <p className="text-xs text-slate-600 dark:text-slate-300">
           體重請在「進度」頁面記錄，計算會使用最新的體重（{weight} kg）。
         </p>
         <Segmented
@@ -324,6 +326,16 @@ export function Me() {
 
       <Card className="space-y-3">
         <CardTitle>顯示</CardTitle>
+        <Segmented<Theme>
+          label="外觀"
+          value={theme}
+          options={[
+            { value: 'light', label: '☀️ 淺色' },
+            { value: 'dark', label: '🌙 深色' },
+            { value: 'system', label: '跟隨手機設定' },
+          ]}
+          onChange={setTheme}
+        />
         <Check checked={profile.hideNumbers} onChange={(v) => update((x) => setHideNumbers(x, v))}>
           隱藏熱量和體重數字（只顯示習慣和食物）
         </Check>
@@ -331,7 +343,7 @@ export function Me() {
 
       <Card className="space-y-3">
         <CardTitle>你的資料</CardTitle>
-        <p className="text-sm text-slate-600 dark:text-slate-400">
+        <p className="text-sm text-slate-600 dark:text-slate-300">
           {signedIn
             ? '資料保存在你的帳號（伺服器在新加坡），這部裝置也有一份副本供離線使用。'
             : isPersistent()

@@ -15,7 +15,7 @@ function AuthLayout({ title, children }: { title: string; children: ReactNode })
       </header>
       <main className="mx-auto max-w-md px-4 py-8">
         <h1 className="mb-6 text-2xl font-semibold">{title}</h1>
-        <div className="space-y-5 rounded-2xl bg-white p-6 shadow-sm dark:bg-slate-900">
+        <div className="space-y-5 rounded-2xl bg-white p-6 shadow-sm dark:bg-slate-800">
           {children}
         </div>
       </main>
@@ -40,18 +40,18 @@ export function Welcome() {
         </Link>
         <Link
           to="/login"
-          className="flex min-h-11 items-center justify-center rounded-xl border border-slate-300 px-4 text-sm dark:border-slate-600"
+          className="flex min-h-11 items-center justify-center rounded-xl border border-slate-300 px-4 text-sm dark:border-slate-500"
         >
           已有帳號，登入
         </Link>
         <Link
           to="/onboarding"
-          className="flex min-h-11 items-center justify-center rounded-xl px-4 text-sm text-slate-600 dark:text-slate-400"
+          className="flex min-h-11 items-center justify-center rounded-xl px-4 text-sm text-slate-600 dark:text-slate-300"
         >
           先不登入，直接試用
         </Link>
       </div>
-      <p className="text-xs leading-relaxed text-slate-500 dark:text-slate-400">
+      <p className="text-xs leading-relaxed text-slate-600 dark:text-slate-300">
         有帳號：換手機或電腦登入，記錄都還在。不登入：資料只存在這部裝置，之後可以隨時註冊並上傳。
       </p>
     </AuthLayout>
@@ -174,7 +174,7 @@ export function Signup() {
         <Notice title="確認信已寄出">
           我們寄了一封確認信到 <strong>{sentTo}</strong>。請打開信件並點擊連結，就會自動登入。
         </Notice>
-        <p className="text-sm text-slate-600 dark:text-slate-400">
+        <p className="text-sm text-slate-600 dark:text-slate-300">
           沒收到？看看垃圾郵件匣，或幾分鐘後再試一次。
         </p>
       </AuthLayout>
@@ -380,7 +380,7 @@ export function UpdatePassword() {
 export function Loading() {
   return (
     <div className="flex min-h-dvh items-center justify-center" role="status">
-      <p className="text-sm text-slate-500 dark:text-slate-400">載入你的資料中…</p>
+      <p className="text-sm text-slate-600 dark:text-slate-300">載入你的資料中…</p>
     </div>
   );
 }

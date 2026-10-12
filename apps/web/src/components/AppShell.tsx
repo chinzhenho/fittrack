@@ -35,11 +35,11 @@ export function AppShell() {
     <div className="min-h-dvh lg:flex">
       <nav
         aria-label="主選單"
-        className="hidden w-56 shrink-0 bg-navy px-3 py-6 text-slate-200 lg:block"
+        className="sticky top-0 hidden h-dvh w-60 shrink-0 border-r border-slate-200 bg-white px-3 py-6 lg:block dark:border-slate-700 dark:bg-slate-800"
       >
         <div className="mb-8 flex items-center gap-2 px-3">
           <img src="/favicon.svg" alt="" className="size-8" />
-          <span className="text-lg font-semibold text-white">FitTrack</span>
+          <span className="text-xl font-bold text-emerald-strong dark:text-emerald">FitTrack</span>
         </div>
         <ul className="space-y-1">
           {NAV.map((n) => (
@@ -47,7 +47,7 @@ export function AppShell() {
               <NavLink
                 to={n.to}
                 className={({ isActive }) =>
-                  `flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm ${isActive ? 'bg-white/10 font-semibold text-white' : 'hover:bg-white/5'}`
+                  `flex min-h-12 items-center gap-3 rounded-2xl px-4 text-base ${isActive ? 'bg-emerald-50 font-semibold text-emerald-900 dark:bg-emerald/15 dark:text-emerald-100' : 'text-slate-600 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-700'}`
                 }
               >
                 <Icon d={n.icon} />
@@ -71,7 +71,7 @@ export function AppShell() {
 
       <nav
         aria-label="主選單"
-        className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden dark:border-slate-800 dark:bg-slate-900/95"
+        className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 pb-[env(safe-area-inset-bottom)] shadow-[0_-4px_16px_rgba(15,23,42,0.06)] backdrop-blur lg:hidden dark:border-slate-700 dark:bg-slate-800/95"
       >
         <ul className="grid grid-cols-5">
           {NAV.map((n) => (
@@ -79,10 +79,12 @@ export function AppShell() {
               <NavLink
                 to={n.to}
                 className={({ isActive }) =>
-                  `flex min-h-14 flex-col items-center justify-center gap-0.5 text-xs ${isActive ? 'font-semibold text-emerald-strong dark:text-emerald' : 'text-slate-500 dark:text-slate-400'}`
+                  `group flex min-h-16 flex-col items-center justify-center gap-1 text-xs ${isActive ? 'active font-semibold text-emerald-900 dark:text-emerald-100' : 'text-slate-600 dark:text-slate-300'}`
                 }
               >
-                <Icon d={n.icon} />
+                <span className="flex h-8 w-14 items-center justify-center rounded-full transition group-[.active]:bg-emerald-100 dark:group-[.active]:bg-emerald/20">
+                  <Icon d={n.icon} />
+                </span>
                 {n.label}
               </NavLink>
             </li>

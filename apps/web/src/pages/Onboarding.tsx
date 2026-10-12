@@ -353,7 +353,7 @@ export function Onboarding() {
 
           {step === 4 && (
             <>
-              <p className="text-sm text-slate-600 dark:text-slate-400">
+              <p className="text-sm text-slate-600 dark:text-slate-300">
                 這些問題只用於安全檢查，讓建議不會對你造成風險。
               </p>
               <div className="space-y-1">

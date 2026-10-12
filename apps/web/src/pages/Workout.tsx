@@ -82,15 +82,15 @@ export function Workout() {
       <Card>
         <CardTitle>最近記錄</CardTitle>
         {finished.length === 0 && activities.length === 0 ? (
-          <p className="text-sm text-slate-500 dark:text-slate-400">
+          <p className="text-sm text-slate-600 dark:text-slate-300">
             還沒有訓練記錄。從一個 5 分鐘的活動開始吧。
           </p>
         ) : (
-          <ul className="divide-y divide-slate-100 text-sm dark:divide-slate-800">
+          <ul className="divide-y divide-slate-100 text-sm dark:divide-slate-700">
             {finished.slice(0, 10).map((x) => (
               <li key={x.id} className="flex justify-between gap-3 py-2">
                 <span>{templateById(x.templateId)?.name}</span>
-                <span className="text-slate-500 dark:text-slate-400">
+                <span className="text-slate-600 dark:text-slate-300">
                   {formatDateZh(x.date, today)} · {x.sets.filter((t) => t.done).length} 組
                 </span>
               </li>
@@ -100,7 +100,7 @@ export function Workout() {
                 <span>
                   {{ walk: '走路', run: '跑步', cycle: '騎腳車', other: '其他活動' }[a.type]}
                 </span>
-                <span className="text-slate-500 dark:text-slate-400">
+                <span className="text-slate-600 dark:text-slate-300">
                   {formatDateZh(a.date, today)} · {a.minutes} 分鐘
                 </span>
               </li>
@@ -120,12 +120,12 @@ function TemplateList({
   onStart: (id: string) => void;
 }) {
   return (
-    <ul className="divide-y divide-slate-100 dark:divide-slate-800">
+    <ul className="divide-y divide-slate-100 dark:divide-slate-700">
       {templates.map((t) => (
         <li key={t.id} className="flex items-center justify-between gap-3 py-3">
           <div className="min-w-0">
             <p className="font-medium">{t.name}</p>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
+            <p className="text-xs text-slate-600 dark:text-slate-300">
               約 {t.minutes} 分鐘 · {t.note}
             </p>
           </div>

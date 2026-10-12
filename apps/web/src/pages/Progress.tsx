@@ -63,9 +63,9 @@ export function Progress() {
       <Card>
         <div className="mb-3 flex items-end justify-between gap-3">
           <div>
-            <p className="text-xs text-slate-500 dark:text-slate-400">趨勢體重</p>
+            <p className="text-xs text-slate-600 dark:text-slate-300">趨勢體重</p>
             <p className="text-3xl font-semibold">{trend !== null ? `${fmt1(trend)} kg` : '—'}</p>
-            <p className="text-sm text-slate-600 dark:text-slate-400">
+            <p className="text-sm text-slate-600 dark:text-slate-300">
               {weekly !== null
                 ? `過去 7 天 ${weekly > 0 ? '+' : ''}${fmt1(weekly)}%`
                 : '需要一週的記錄'}
@@ -83,7 +83,7 @@ export function Progress() {
           />
         </div>
         <WeightChart points={points} end={today} days={Number(range)} />
-        <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+        <p className="mt-2 text-xs text-slate-600 dark:text-slate-300">
           灰點是每天的記錄，綠線是趨勢。
         </p>
       </Card>
@@ -138,7 +138,7 @@ export function Progress() {
             儲存
           </Button>
         </form>
-        <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+        <p className="mt-2 text-xs text-slate-600 dark:text-slate-300">
           每天只用第一筆記錄計算趨勢；建議早上如廁後、進食前量。
         </p>
       </Card>
@@ -212,9 +212,9 @@ export function Progress() {
       <Card>
         <CardTitle>體重記錄</CardTitle>
         {entries.length === 0 ? (
-          <p className="text-sm text-slate-500 dark:text-slate-400">還沒有記錄。</p>
+          <p className="text-sm text-slate-600 dark:text-slate-300">還沒有記錄。</p>
         ) : (
-          <ul className="divide-y divide-slate-100 dark:divide-slate-800">
+          <ul className="divide-y divide-slate-100 dark:divide-slate-700">
             {entries.slice(0, 60).map((e) => (
               <li key={e.id} className="flex items-center justify-between gap-3 py-2 text-sm">
                 <span>{formatDateZh(e.date, today)}</span>
@@ -241,7 +241,7 @@ export function Progress() {
           {[...s.targets].reverse().map((t) => (
             <li key={t.id} className="flex justify-between gap-3">
               <span>{t.effectiveFrom}</span>
-              <span className="text-slate-600 dark:text-slate-400">
+              <span className="text-slate-600 dark:text-slate-300">
                 {{ initial: '初始', profile_change: '資料更新', adaptive: '動態調整' }[t.reason]}
               </span>
               <span className="font-medium">{fmtInt(t.caloriesKcal)} kcal</span>

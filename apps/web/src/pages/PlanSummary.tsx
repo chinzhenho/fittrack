@@ -29,7 +29,7 @@ export function PlanSummary({ plan, goal }: { plan: Plan; goal: Goal }) {
 
   return (
     <div className="space-y-4">
-      <div className="rounded-2xl bg-navy p-5 text-white dark:bg-slate-800 dark:ring-1 dark:ring-emerald/40">
+      <div className="rounded-2xl bg-navy p-5 text-white dark:bg-slate-700 dark:ring-1 dark:ring-emerald/40">
         <p className="text-sm text-slate-300">{GOAL_LABELS[goal]} · 每日熱量目標（估算）</p>
         <p className="mt-1 text-5xl font-semibold tracking-tight">
           {fmtInt(caloriesKcal)}
@@ -50,7 +50,7 @@ export function PlanSummary({ plan, goal }: { plan: Plan; goal: Goal }) {
               <span>{r.name}</span>
               <span>
                 <span className="font-semibold">{r.g} g</span>
-                <span className="text-slate-500 dark:text-slate-400">
+                <span className="text-slate-600 dark:text-slate-300">
                   {' '}
                   · {Math.round((r.kcal / caloriesKcal) * 100)}%
                 </span>
@@ -60,7 +60,7 @@ export function PlanSummary({ plan, goal }: { plan: Plan; goal: Goal }) {
           </li>
         ))}
       </ul>
-      <p className="text-xs text-slate-500 dark:text-slate-400">
+      <p className="text-xs text-slate-600 dark:text-slate-300">
         蛋白質按 {macros.proteinGPerKg} g/kg × {fmt1(macros.referenceWeightKg)} kg 參考體重計算。BMR
         約 {fmtInt(plan.bmrKcal)} kcal，TDEE 約 {fmtInt(plan.tdeeKcal)} kcal。
         <Link to="/how-we-calculate" className="underline">

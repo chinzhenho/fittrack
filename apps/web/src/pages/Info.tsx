@@ -22,7 +22,7 @@ function InfoPage({
         ‹ 返回
       </Link>
       <h1 className="text-2xl font-semibold">{title}</h1>
-      {updated && <p className="text-xs text-slate-500 dark:text-slate-400">最後更新：{updated}</p>}
+      {updated && <p className="text-xs text-slate-600 dark:text-slate-300">最後更新：{updated}</p>}
       <Card className="space-y-4 text-sm leading-relaxed [&_h2]:text-base [&_h2]:font-semibold [&_ul]:list-disc [&_ul]:space-y-1 [&_ul]:pl-5">
         {children}
       </Card>

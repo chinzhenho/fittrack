@@ -8,7 +8,7 @@ import { newId, update, useAppState } from '../data/store';
 import { formatDateZh, localToday } from '../lib/dates';
 import { fmt1, fmtInt } from '../lib/format';
 import { GOAL_LABELS, MODE_LABELS } from '../lib/messages';
-import { mealsOn, sumNutrients } from '../logic/nutrition';
+import { mealForHour, mealsOn, sumNutrients } from '../logic/nutrition';
 import {
   latestWeight,
   needsRecompute,
@@ -93,48 +93,58 @@ export function Today() {
       )}
 
       {!hide ? (
-        <Card>
+        <section className="rounded-3xl bg-gradient-to-br from-emerald-700 to-teal-800 p-5 text-white shadow-md">
           <div className="flex items-center gap-5">
             <div className="relative">
               <Ring
                 value={eaten.kcal}
                 max={target.caloriesKcal}
                 label={`已攝取 ${fmtInt(eaten.kcal)} / ${fmtInt(target.caloriesKcal)} kcal`}
+                trackClass="stroke-white/20"
+                barClass={remaining >= 0 ? 'stroke-white' : 'stroke-amber-300'}
               />
               <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className="text-2xl font-semibold">{fmtInt(eaten.kcal)}</span>
-                <span className="text-xs text-slate-500 dark:text-slate-400">
-                  / {fmtInt(target.caloriesKcal)} kcal
+                <span className="text-xs text-emerald-50">
+                  {remaining >= 0 ? '還可攝取' : '超出目標'}
                 </span>
+                <span className="text-3xl font-bold">{fmtInt(Math.abs(remaining))}</span>
+                <span className="text-xs text-emerald-50">kcal</span>
               </div>
             </div>
             <div className="min-w-0 flex-1 space-y-3 text-sm">
-              <p className="font-medium">
-                {remaining >= 0
-                  ? `還可攝取約 ${fmtInt(remaining)} kcal`
-                  : `比目標多約 ${fmtInt(-remaining)} kcal`}
+              <p className="text-emerald-50">
+                已吃 <span className="font-semibold text-white">{fmtInt(eaten.kcal)}</span> /{' '}
+                {fmtInt(target.caloriesKcal)} kcal
               </p>
               {[
-                { n: '蛋白質', v: eaten.proteinG, t: target.proteinG, c: 'bg-emerald' },
-                { n: '碳水', v: eaten.carbsG, t: target.carbsG, c: 'bg-sky-500' },
-                { n: '脂肪', v: eaten.fatG, t: target.fatG, c: 'bg-amber-500' },
+                { n: '蛋白質', v: eaten.proteinG, t: target.proteinG, c: 'bg-rose-300' },
+                { n: '碳水', v: eaten.carbsG, t: target.carbsG, c: 'bg-sky-300' },
+                { n: '脂肪', v: eaten.fatG, t: target.fatG, c: 'bg-amber-300' },
               ].map((m) => (
                 <div key={m.n}>
                   <div className="flex justify-between">
-                    <span>{m.n}</span>
-                    <span className="text-slate-600 dark:text-slate-400">
+                    <span className="font-medium">{m.n}</span>
+                    <span className="text-emerald-50">
                       {fmtInt(m.v)} / {m.t} g
                     </span>
                   </div>
-                  <Bar value={m.v} max={m.t} color={m.c} />
+                  <Bar value={m.v} max={m.t} color={m.c} track="bg-white/20" />
                 </div>
               ))}
             </div>
           </div>
-          <p className="mt-3 text-xs text-slate-500 dark:text-slate-400">
-            「剩餘」只是和目標的差距，不等於實際熱量赤字。
-          </p>
-        </Card>
+          <div className="mt-4 flex items-center justify-between gap-3">
+            <p className="text-xs text-emerald-50">
+              「剩餘」只是和目標的差距，不等於實際熱量赤字。
+            </p>
+            <Link
+              to={`/diary/add?meal=${mealForHour(new Date().getHours())}`}
+              className="inline-flex min-h-11 shrink-0 items-center rounded-2xl bg-white px-4 text-sm font-semibold text-emerald-900 shadow-sm hover:bg-emerald-50"
+            >
+              ＋ 記錄飲食
+            </Link>
+          </div>
+        </section>
       ) : (
         <Card>
           <CardTitle>今天的飲食</CardTitle>
@@ -146,12 +156,12 @@ export function Today() {
 
       <Card>
         <CardTitle>今天的小目標</CardTitle>
-        <ul className="divide-y divide-slate-100 dark:divide-slate-800">
+        <ul className="divide-y divide-slate-100 dark:divide-slate-700">
           {tasks.map((t) => (
             <li key={t.id} className="flex items-center gap-3 py-2">
               <span
                 aria-hidden="true"
-                className={`flex size-6 shrink-0 items-center justify-center rounded-full border-2 ${t.done ? 'border-emerald bg-emerald text-navy' : 'border-slate-300 dark:border-slate-600'}`}
+                className={`flex size-7 shrink-0 items-center justify-center rounded-full border-2 text-sm font-bold ${t.done ? 'border-emerald-strong bg-emerald-strong text-white dark:border-emerald dark:bg-emerald dark:text-slate-950' : 'border-slate-300 dark:border-slate-500'}`}
               >
                 {t.done ? '✓' : ''}
               </span>
@@ -160,12 +170,12 @@ export function Today() {
                   {t.link ? <Link to={t.link}>{t.title}</Link> : t.title}
                   <span className="sr-only">{t.done ? '（已完成）' : '（未完成）'}</span>
                 </p>
-                <p className="text-xs text-slate-500 dark:text-slate-400">{t.hint}</p>
+                <p className="text-xs text-slate-600 dark:text-slate-300">{t.hint}</p>
               </div>
               {!t.done && (
                 <button
                   type="button"
-                  className="min-h-11 px-2 text-xs text-slate-500 dark:text-slate-400"
+                  className="min-h-11 px-2 text-xs text-slate-600 dark:text-slate-300"
                   onClick={() => update((x) => skipTask(x, today, t.id, !t.skipped))}
                 >
                   {t.skipped ? '恢復' : '今天跳過'}
@@ -174,7 +184,7 @@ export function Today() {
             </li>
           ))}
         </ul>
-        <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+        <p className="mt-2 text-xs text-slate-600 dark:text-slate-300">
           完成 {tasks.filter((t) => t.done).length} / {tasks.length}。跳過不算失敗。
         </p>
       </Card>
@@ -191,7 +201,7 @@ export function Today() {
             體重趨勢
           </CardTitle>
           <p className="text-3xl font-semibold">{trend !== null ? `${fmt1(trend)} kg` : '—'}</p>
-          <p className="text-sm text-slate-600 dark:text-slate-400">
+          <p className="text-sm text-slate-600 dark:text-slate-300">
             {weekly !== null
               ? `過去 7 天 ${weekly > 0 ? '+' : ''}${fmt1(weekly)}%`
               : '記錄一週後會顯示每週變化'}
@@ -216,7 +226,7 @@ export function Today() {
               placeholder="今天的體重 kg"
               value={weightInput}
               onChange={(e) => setWeightInput(e.target.value)}
-              className="min-h-11 w-full rounded-xl border border-slate-300 bg-white px-3 text-base dark:border-slate-600 dark:bg-slate-800"
+              className="min-h-11 w-full rounded-xl border border-slate-300 bg-white px-3 text-base dark:border-slate-500 dark:bg-slate-700"
             />
             <Button
               type="submit"
@@ -253,7 +263,7 @@ export function Today() {
               <div className="flex items-center justify-between gap-3">
                 <div>
                   <p className="font-medium">{suggested.name}</p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">{suggested.note}</p>
+                  <p className="text-xs text-slate-600 dark:text-slate-300">{suggested.note}</p>
                 </div>
                 <Button onClick={() => navigate(`/workout/start/${suggested.id}`)}>開始</Button>
               </div>

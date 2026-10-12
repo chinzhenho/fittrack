@@ -1,20 +1,25 @@
 import { addDays, daysBetween } from '@fittrack/engine';
 import type { TrendPoint } from '@fittrack/engine';
 
-export function Ring({ value, max, label }: { value: number; max: number; label: string }) {
+export function Ring({
+  value,
+  max,
+  label,
+  trackClass = 'stroke-slate-100 dark:stroke-slate-700',
+  barClass = 'stroke-emerald',
+}: {
+  value: number;
+  max: number;
+  label: string;
+  trackClass?: string;
+  barClass?: string;
+}) {
   const r = 52;
   const c = 2 * Math.PI * r;
   const pct = max > 0 ? Math.min(1, value / max) : 0;
   return (
     <svg viewBox="0 0 120 120" className="size-32 shrink-0" role="img" aria-label={label}>
-      <circle
-        cx="60"
-        cy="60"
-        r={r}
-        fill="none"
-        strokeWidth="12"
-        className="stroke-slate-100 dark:stroke-slate-800"
-      />
+      <circle cx="60" cy="60" r={r} fill="none" strokeWidth="12" className={trackClass} />
       {pct > 0 && (
         <circle
           cx="60"
@@ -25,7 +30,7 @@ export function Ring({ value, max, label }: { value: number; max: number; label:
           strokeLinecap="round"
           strokeDasharray={`${pct * c} ${c}`}
           transform="rotate(-90 60 60)"
-          className="stroke-emerald"
+          className={barClass}
         />
       )}
     </svg>
@@ -46,7 +51,7 @@ export function WeightChart({
   const inRange = points.filter((p) => p.date >= start && p.date <= end);
   if (inRange.length === 0) {
     return (
-      <p className="py-8 text-center text-sm text-slate-500 dark:text-slate-400">
+      <p className="py-8 text-center text-sm text-slate-600 dark:text-slate-300">
         這段期間還沒有體重記錄。
       </p>
     );

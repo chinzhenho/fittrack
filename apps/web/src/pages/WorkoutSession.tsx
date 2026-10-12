@@ -121,7 +121,7 @@ function SetLogger({ template }: { template: WorkoutTemplate }) {
             <div className="flex items-start justify-between gap-3">
               <div>
                 <h2 className="font-semibold">{ex.name}</h2>
-                <p className="text-sm text-slate-600 dark:text-slate-400">{ex.cue}</p>
+                <p className="text-sm text-slate-600 dark:text-slate-300">{ex.cue}</p>
               </div>
               {!pain && (
                 <button
@@ -146,7 +146,7 @@ function SetLogger({ template }: { template: WorkoutTemplate }) {
                 {session.sets.map((set, i) =>
                   set.exerciseId !== id ? null : (
                     <li key={i} className="flex items-end gap-2">
-                      <span className="w-12 shrink-0 whitespace-nowrap pb-3 text-sm text-slate-500 dark:text-slate-400">
+                      <span className="w-12 shrink-0 whitespace-nowrap pb-3 text-sm text-slate-600 dark:text-slate-300">
                         第 {session.sets.slice(0, i + 1).filter((x) => x.exerciseId === id).length}{' '}
                         組
                       </span>
