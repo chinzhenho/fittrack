@@ -17,13 +17,19 @@ import { newId, update, useAppState } from '../data/store';
 import { formatDateZh, localToday } from '../lib/dates';
 import { fmt1, fmtInt } from '../lib/format';
 import { progressSummary } from '../logic/achievements';
-import { adaptiveFor, macrosForAdaptive, targetOn, trendPoints } from '../logic/targets';
+import {
+  adaptiveFor,
+  macrosForAdaptive,
+  startWeightKg,
+  targetOn,
+  trendPoints,
+} from '../logic/targets';
 
 const REFUSAL_TEXT: Record<string, string> = {
-  window_too_short: '目標開始後的頭 14 天體重變化主要是水分，之後才會評估。',
-  not_enough_complete_logs: '最近 3 週需要至少八成日子標記「飲食已完整記錄」。',
-  not_enough_weigh_ins: '最近 3 週需要至少 10 次體重記錄。',
-  no_trend_at_window_start: '評估期開始前需要有體重記錄。',
+  window_too_short: '目标开始后的头 14 天体重变化主要是水分，之后才会评估。',
+  not_enough_complete_logs: '最近 3 周需要至少八成日子标记“饮食已完整记录”。',
+  not_enough_weigh_ins: '最近 3 周需要至少 10 次体重记录。',
+  no_trend_at_window_start: '评估期开始前需要有体重记录。',
 };
 
 export function Progress() {
@@ -55,8 +61,8 @@ export function Progress() {
   if (profile?.hideNumbers) {
     return (
       <div className="space-y-4">
-        <PageTitle>進度</PageTitle>
-        <Notice>你已選擇隱藏熱量和體重數字。可以在「我」頁面重新打開。</Notice>
+        <PageTitle>进度</PageTitle>
+        <Notice>你已选择隐藏热量和体重数字。可以在“我”页面重新打开。</Notice>
       </div>
     );
   }
@@ -79,27 +85,27 @@ export function Progress() {
   const next = summary.badges
     .filter((b) => !b.unlocked)
     .sort((a, b) => b.progress.value / b.progress.max - a.progress.value / a.progress.max)[0];
-  const goalWord = profile?.goal === 'fat_loss' ? '已減' : '已增';
+  const goalWord = profile?.goal === 'fat_loss' ? '已减' : '已增';
 
   return (
     <div className="space-y-4">
-      <PageTitle>進度</PageTitle>
+      <PageTitle>进度</PageTitle>
 
       <section className="grid grid-cols-3 gap-2 rounded-3xl bg-gradient-to-br from-emerald-700 to-teal-800 p-4 text-center text-white shadow-md">
         <div>
           <p className="text-2xl font-bold">🔥 {summary.streak}</p>
-          <p className="text-xs text-emerald-50">連續記錄（天）</p>
+          <p className="text-xs text-emerald-50">连续记录（天）</p>
         </div>
         <div>
           <p className="text-2xl font-bold">{summary.daysLogged}</p>
-          <p className="text-xs text-emerald-50">總共記錄（天）</p>
+          <p className="text-xs text-emerald-50">总共记录（天）</p>
         </div>
         <div>
           <p className="text-2xl font-bold">
             {summary.towardGoalKg !== null ? fmt1(Math.max(0, summary.towardGoalKg)) : '—'}
           </p>
           <p className="text-xs text-emerald-50">
-            {summary.towardGoalKg !== null ? `${goalWord}（kg）` : '維持體重中'}
+            {summary.towardGoalKg !== null ? `${goalWord}（kg）` : '维持体重中'}
           </p>
         </div>
       </section>
@@ -110,7 +116,7 @@ export function Progress() {
             <div
               className="flex gap-1 rounded-full bg-slate-100 p-1 dark:bg-slate-700"
               role="group"
-              aria-label="期間"
+              aria-label="期间"
             >
               {(['7', '30', '90'] as const).map((r) => (
                 <button
@@ -126,7 +132,7 @@ export function Progress() {
             </div>
           }
         >
-          體重趨勢
+          体重趋势
         </CardTitle>
         <div className="mb-3 flex items-end justify-between gap-3">
           <div>
@@ -135,23 +141,29 @@ export function Progress() {
               <span className="ml-1 text-base font-medium">kg</span>
             </p>
             <p className="text-sm text-slate-600 dark:text-slate-300">
-              趨勢體重{entries[0] && ` · 最新記錄 ${fmt1(entries[0].weightKg)} kg`}
+              趋势体重{entries[0] && ` · 最新记录 ${fmt1(entries[0].weightKg)} kg`}
             </p>
             <p className="text-sm text-slate-600 dark:text-slate-300">
               {weekly !== null
-                ? `過去 7 天 ${weekly > 0 ? '+' : ''}${fmt1(weekly)}%`
-                : '記錄滿一週後顯示每週變化'}
+                ? `过去 7 天 ${weekly > 0 ? '+' : ''}${fmt1(weekly)}%`
+                : '记录满一周后显示每周变化'}
             </p>
           </div>
           {goalKg !== undefined && (
             <p className="shrink-0 rounded-full bg-emerald-50 whitespace-nowrap px-3 py-1 text-sm font-medium text-emerald-900 dark:bg-emerald/15 dark:text-emerald-100">
-              🎯 目標 {fmt1(goalKg)} kg
+              🎯 目标 {fmt1(goalKg)} kg
             </p>
           )}
         </div>
-        <WeightChart points={points} end={today} days={Number(range)} />
+        <WeightChart
+          points={points}
+          end={today}
+          days={Number(range)}
+          startKg={startWeightKg(s)}
+          goalKg={goalKg}
+        />
         <p className="mt-2 text-xs text-slate-600 dark:text-slate-300">
-          灰點是每天的體重，綠線是趨勢。每天會因水分、鹽分上下起伏，看綠線就好。
+          灰点是每天的体重，绿线是趋势，虚线是起点和目标。每天会因水分、盐分上下起伏，看绿线就好。
         </p>
       </Card>
 
@@ -168,7 +180,7 @@ export function Progress() {
         {next && (
           <div className="mb-3 rounded-2xl bg-emerald-50 px-4 py-3 text-sm dark:bg-emerald/15">
             <p>
-              下一個：
+              下一个：
               <strong>
                 {next.icon} {next.title}
               </strong>{' '}
@@ -181,7 +193,7 @@ export function Progress() {
         )}
         {summary.longest > summary.streak && (
           <p className="mb-3 text-sm text-slate-600 dark:text-slate-300">
-            最長連續記錄：{summary.longest} 天
+            最长连续记录：{summary.longest} 天
           </p>
         )}
         <ul className="grid grid-cols-2 gap-2 sm:grid-cols-3">
@@ -198,10 +210,10 @@ export function Progress() {
               </p>
               <p className="mt-1 text-sm font-semibold">
                 {b.title}
-                <span className="sr-only">{b.unlocked ? '（已獲得）' : '（未獲得）'}</span>
+                <span className="sr-only">{b.unlocked ? '（已获得）' : '（未获得）'}</span>
               </p>
               <p className="text-xs text-slate-600 dark:text-slate-300">
-                {b.unlocked ? '✓ 已獲得' : b.need}
+                {b.unlocked ? '✓ 已获得' : b.need}
               </p>
               {!b.unlocked && b.progress.max > 1 && (
                 <>
@@ -218,23 +230,23 @@ export function Progress() {
 
       {target && (
         <Card>
-          <CardTitle>目標調整建議</CardTitle>
+          <CardTitle>目标调整建议</CardTitle>
           {adaptiveCooldown ? (
-            <p className="text-sm">上一次調整在 {lastAdaptive?.effectiveFrom}，14 天後再評估。</p>
+            <p className="text-sm">上一次调整在 {lastAdaptive?.effectiveFrom}，14 天后再评估。</p>
           ) : adaptive?.ok ? (
             <div className="space-y-3 text-sm">
               <p>
-                過去 {adaptive.windowDays} 天平均攝取 {fmtInt(adaptive.meanIntakeKcal)}{' '}
-                kcal，趨勢體重變化 {adaptive.trendChangeKg > 0 ? '+' : ''}
-                {fmt1(adaptive.trendChangeKg)} kg，推算實際消耗約{' '}
+                过去 {adaptive.windowDays} 天平均摄取 {fmtInt(adaptive.meanIntakeKcal)}{' '}
+                kcal，趋势体重变化 {adaptive.trendChangeKg > 0 ? '+' : ''}
+                {fmt1(adaptive.trendChangeKg)} kg，推算实际消耗约{' '}
                 {fmtInt(adaptive.observedTdeeKcal)} kcal。
               </p>
               {adaptive.proposedTargetKcal === target.caloriesKcal ? (
-                <p className="font-medium">目前的目標合適，不需要調整。</p>
+                <p className="font-medium">目前的目标合适，不需要调整。</p>
               ) : (
                 <>
                   <p className="font-medium">
-                    建議把每日目標從 {fmtInt(target.caloriesKcal)} 調整為{' '}
+                    建议把每日目标从 {fmtInt(target.caloriesKcal)} 调整为{' '}
                     {fmtInt(adaptive.proposedTargetKcal)} kcal。
                   </p>
                   <Button
@@ -261,17 +273,17 @@ export function Progress() {
                           clamps: m.clamps,
                         }),
                       );
-                      toast({ text: '已更新每日目標' });
+                      toast({ text: '已更新每日目标' });
                     }}
                   >
-                    接受建議
+                    接受建议
                   </Button>
                 </>
               )}
             </div>
           ) : (
             <div className="space-y-2 text-sm">
-              <p>還沒有足夠的資料。需要：</p>
+              <p>还没有足够的资料。需要：</p>
               <ul className="list-disc space-y-1 pl-5">
                 {(adaptive && !adaptive.ok ? adaptive.reasons : []).map((r) => (
                   <li key={r}>{REFUSAL_TEXT[r]}</li>
@@ -283,7 +295,7 @@ export function Progress() {
       )}
 
       <Card className="space-y-4">
-        <CardTitle>{editingId ? '修改體重記錄' : '記錄體重'}</CardTitle>
+        <CardTitle>{editingId ? '修改体重记录' : '记录体重'}</CardTitle>
         <form
           className="space-y-3"
           onSubmit={(e) => {
@@ -302,7 +314,7 @@ export function Progress() {
               ...(waist.trim() !== '' && { waistCm }),
             };
             update((x) => setWeightOn(old ? removeWeight(x, old.id) : x, entry));
-            toast({ text: editingId ? '已更新' : `已記錄 ${formatDateZh(wDate, today)} 的體重` });
+            toast({ text: editingId ? '已更新' : `已记录 ${formatDateZh(wDate, today)} 的体重` });
             resetForm();
           }}
         >
@@ -319,7 +331,7 @@ export function Progress() {
             )}
           </Field>
           <div className="grid grid-cols-2 gap-3">
-            <Field label="體重（kg）">
+            <Field label="体重（kg）">
               {(p) => (
                 <input
                   {...p}
@@ -332,7 +344,7 @@ export function Progress() {
                 />
               )}
             </Field>
-            <Field label="腰圍（cm，選填）">
+            <Field label="腰围（cm，选填）">
               {(p) => (
                 <input
                   {...p}
@@ -348,7 +360,7 @@ export function Progress() {
           </div>
           {!editingId && s.weights.some((x) => x.date === wDate) && (
             <p className="text-xs text-amber-800 dark:text-amber-300">
-              這一天已經有記錄，儲存後會取代它。
+              这一天已经有记录，保存后会取代它。
             </p>
           )}
           <div className="flex gap-2">
@@ -358,7 +370,7 @@ export function Progress() {
               </Button>
             )}
             <Button type="submit" className="flex-1" disabled={!valid}>
-              {editingId ? '儲存修改' : '儲存'}
+              {editingId ? '保存修改' : '保存'}
             </Button>
           </div>
         </form>
@@ -373,7 +385,7 @@ export function Progress() {
                     {e.waistCm !== undefined && (
                       <span className="font-normal text-slate-600 dark:text-slate-300">
                         {' '}
-                        · 腰圍 {fmt1(e.waistCm)} cm
+                        · 腰围 {fmt1(e.waistCm)} cm
                       </span>
                     )}
                   </span>
@@ -384,7 +396,7 @@ export function Progress() {
                 <Button
                   variant="ghost"
                   className="min-h-9 px-3"
-                  aria-label={`修改 ${e.date} 的體重`}
+                  aria-label={`修改 ${e.date} 的体重`}
                   onClick={() => {
                     setEditingId(e.id);
                     setWDate(e.date);
@@ -397,13 +409,13 @@ export function Progress() {
                 </Button>
                 <button
                   type="button"
-                  aria-label={`刪除 ${e.date} 的體重記錄`}
+                  aria-label={`删除 ${e.date} 的体重记录`}
                   className="flex size-10 items-center justify-center rounded-2xl text-slate-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950"
                   onClick={() => {
                     update((x) => removeWeight(x, e.id));
                     toast({
-                      text: `已刪除 ${formatDateZh(e.date, today)} 的體重`,
-                      actionLabel: '復原',
+                      text: `已删除 ${formatDateZh(e.date, today)} 的体重`,
+                      actionLabel: '撤销',
                       onAction: () => update((x) => setWeightOn(x, e)),
                     });
                   }}
@@ -416,7 +428,7 @@ export function Progress() {
         )}
         {entries.length > 7 && (
           <Button variant="ghost" className="w-full" onClick={() => setShowAll((v) => !v)}>
-            {showAll ? '收起' : `顯示全部 ${entries.length} 筆`}
+            {showAll ? '收起' : `显示全部 ${entries.length} 笔`}
           </Button>
         )}
       </Card>
@@ -424,8 +436,8 @@ export function Progress() {
       <Card>
         <details>
           <summary className="flex min-h-11 cursor-pointer items-center justify-between text-lg font-semibold">
-            每日目標歷史
-            <span className="text-sm font-normal text-slate-600 dark:text-slate-300">展開</span>
+            每日目标历史
+            <span className="text-sm font-normal text-slate-600 dark:text-slate-300">展开</span>
           </summary>
           <div className="mt-3">
             <ul className="space-y-1 text-sm">
@@ -434,7 +446,7 @@ export function Progress() {
                   <span>{t.effectiveFrom}</span>
                   <span className="text-slate-600 dark:text-slate-300">
                     {
-                      { initial: '初始', profile_change: '資料更新', adaptive: '動態調整' }[
+                      { initial: '初始', profile_change: '资料更新', adaptive: '动态调整' }[
                         t.reason
                       ]
                     }

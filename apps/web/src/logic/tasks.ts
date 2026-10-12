@@ -32,22 +32,22 @@ export interface Task {
 }
 
 const COPY: Record<TaskId, { title: string; hint: string; link?: string }> = {
-  log_meal: { title: '記錄一餐', hint: '先從一餐開始就好', link: '/diary' },
-  log_three: { title: '記錄三餐', hint: '早餐、午餐、晚餐都記一下', link: '/diary' },
-  protein_meal: { title: '一餐含 20 g 蛋白質', hint: '例如雞蛋、豆腐、魚或雞肉', link: '/diary' },
-  protein_target: { title: '蛋白質吃夠', hint: '雞蛋、豆腐、魚、雞肉都是好選擇', link: '/diary' },
+  log_meal: { title: '记录一餐', hint: '先从一餐开始就好', link: '/diary' },
+  log_three: { title: '记录三餐', hint: '早餐、午餐、晚餐都记一下', link: '/diary' },
+  protein_meal: { title: '一餐含 20 g 蛋白质', hint: '例如鸡蛋、豆腐、鱼或鸡肉', link: '/diary' },
+  protein_target: { title: '蛋白质吃够', hint: '鸡蛋、豆腐、鱼、鸡肉都是好选择', link: '/diary' },
   kcal_within: {
-    title: '熱量不超過目標',
-    hint: '記錄晚餐後才會計算',
+    title: '热量不超过目标',
+    hint: '记录晚餐后才会计算',
     link: '/diary',
   },
-  mark_complete: { title: '確認今天全部記錄了', hint: '完整的日子會讓建議更準確' },
-  log_weight: { title: '記錄今天的體重', hint: '早上如廁後、吃東西前量最準' },
-  walk_10: { title: '散步 10 分鐘', hint: '走路也算數', link: '/workout' },
-  walk_20: { title: '快走 20 分鐘', hint: '能說話但不能唱歌的節奏', link: '/workout' },
-  home_short: { title: '完成 5 或 10 分鐘訓練', hint: '在家就能做', link: '/workout' },
-  planned_workout: { title: '完成今天的訓練', hint: '記錄重量和次數', link: '/workout' },
-  stretch: { title: '伸展 10 分鐘', hint: '休息日也可以照顧身體', link: '/workout' },
+  mark_complete: { title: '确认今天全部记录了', hint: '完整的日子会让建议更准确' },
+  log_weight: { title: '记录今天的体重', hint: '早上如厕后、吃东西前量最准' },
+  walk_10: { title: '散步 10 分钟', hint: '走路也算数', link: '/workout' },
+  walk_20: { title: '快走 20 分钟', hint: '能说话但不能唱歌的节奏', link: '/workout' },
+  home_short: { title: '完成 5 或 10 分钟训练', hint: '在家就能做', link: '/workout' },
+  planned_workout: { title: '完成今天的训练', hint: '记录重量和次数', link: '/workout' },
+  stretch: { title: '伸展 10 分钟', hint: '休息日也可以照顾身体', link: '/workout' },
 };
 
 function isDone(id: TaskId, s: AppState, date: string): boolean {
@@ -180,7 +180,7 @@ function progressFor(id: TaskId, s: AppState, date: string): Pick<Task, 'progres
     case 'walk_10':
     case 'walk_20': {
       const max = id === 'walk_10' ? 10 : 20;
-      return { progress: { value: minutes, max, text: `${minutes} / ${max} 分鐘` } };
+      return { progress: { value: minutes, max, text: `${minutes} / ${max} 分钟` } };
     }
     default:
       return {};

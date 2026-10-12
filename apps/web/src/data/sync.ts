@@ -177,10 +177,10 @@ export async function signOut(): Promise<void> {
 
 /** Deletes the cloud copy of this user's data, then signs out and clears this browser. */
 export async function deleteCloudData(): Promise<string | null> {
-  if (!userId) return '尚未登入。';
+  if (!userId) return '尚未登录。';
   clearTimeout(timer);
   const { error } = await supabase.from('user_state').delete().eq('user_id', userId);
-  if (error) return '刪除失敗，請檢查網路後再試。';
+  if (error) return '删除失败，请检查网络后再试。';
   await supabase.auth.signOut();
   replaceState(emptyState);
   try {

@@ -1,4 +1,5 @@
 import { useId, type ButtonHTMLAttributes, type ReactNode } from 'react';
+import { useNavigate } from 'react-router';
 
 export function Card({ children, className = '' }: { children: ReactNode; className?: string }) {
   return (
@@ -41,7 +42,7 @@ export function Button({
     <button
       type="button"
       {...props}
-      className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl px-4 text-sm transition focus-visible:outline-2 focus-visible:outline-emerald disabled:cursor-not-allowed disabled:opacity-50 ${variants[variant]} ${className}`}
+      className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl px-4 text-sm whitespace-nowrap transition focus-visible:outline-2 focus-visible:outline-emerald disabled:cursor-not-allowed disabled:opacity-50 ${variants[variant]} ${className}`}
     />
   );
 }
@@ -199,5 +200,19 @@ export function Bar({
     <div className={`mt-1.5 h-2.5 rounded-full ${track}`} aria-hidden="true">
       <div className={`h-2.5 rounded-full ${color}`} style={{ width: `${pct}%` }} />
     </div>
+  );
+}
+
+/** "‹ 返回" to the previous page, or `fallback` when the page was opened directly. */
+export function BackButton({ fallback = '/today' }: { fallback?: string }) {
+  const navigate = useNavigate();
+  return (
+    <button
+      type="button"
+      onClick={() => (window.history.length > 1 ? navigate(-1) : navigate(fallback))}
+      className="-ml-2 inline-flex min-h-11 items-center rounded-2xl px-2 text-sm font-medium text-emerald-strong hover:bg-emerald-50 dark:text-emerald dark:hover:bg-emerald/10"
+    >
+      ‹ 返回
+    </button>
   );
 }

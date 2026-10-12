@@ -95,7 +95,7 @@ function loadImage(file: Blob): Promise<HTMLImageElement> {
     };
     img.onerror = () => {
       URL.revokeObjectURL(url);
-      reject(new Error('無法讀取這張圖片'));
+      reject(new Error('无法读取这张图片'));
     };
     img.src = url; // browsers apply EXIF orientation when decoding <img>
   });
@@ -111,7 +111,7 @@ export async function recognizeFood(file: Blob): Promise<Prediction[]> {
   canvas.width = size;
   canvas.height = size;
   const ctx = canvas.getContext('2d', { willReadFrequently: true });
-  if (!ctx) throw new Error('瀏覽器不支援圖片處理');
+  if (!ctx) throw new Error('浏览器不支持图片处理');
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = 'high';
   ctx.drawImage(img, sx, sy, sw, sh, 0, 0, size, size);
@@ -119,6 +119,6 @@ export async function recognizeFood(file: Blob): Promise<Prediction[]> {
   const input = new ort.Tensor('float32', data, [1, 3, size, size]);
   const result = await session.run({ [name]: input });
   const logits = result[meta.output]?.data as Float32Array | undefined;
-  if (!logits) throw new Error('模型沒有輸出結果');
+  if (!logits) throw new Error('模型没有输出结果');
   return topK(softmax(logits), meta.labels, 3);
 }

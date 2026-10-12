@@ -121,7 +121,7 @@ export function Today() {
     <div className="space-y-4">
       <div className="mb-2">
         <p className="text-sm text-slate-600 dark:text-slate-300">
-          {new Date().toLocaleDateString('zh-TW', {
+          {new Date().toLocaleDateString('zh-CN', {
             month: 'long',
             day: 'numeric',
             weekday: 'long',
@@ -139,10 +139,10 @@ export function Today() {
       </div>
 
       {needsRecompute(s, today) && (
-        <Notice title="體重趨勢已變化 2 kg 以上">
-          可以按最新的趨勢體重重新計算每日目標。
+        <Notice title="体重趋势已变化 2 kg 以上">
+          可以按最新的趋势体重重新计算每日目标。
           <div className="mt-3">
-            <Button onClick={recompute}>重新計算目標</Button>
+            <Button onClick={recompute}>重新计算目标</Button>
           </div>
         </Notice>
       )}
@@ -155,13 +155,13 @@ export function Today() {
                 <Ring
                   value={eaten.kcal}
                   max={target.caloriesKcal}
-                  label={`已攝取 ${fmtInt(eaten.kcal)} / ${fmtInt(target.caloriesKcal)} kcal`}
+                  label={`已摄取 ${fmtInt(eaten.kcal)} / ${fmtInt(target.caloriesKcal)} kcal`}
                   trackClass="stroke-white/20"
                   barClass={remaining >= 0 ? 'stroke-white' : 'stroke-amber-300'}
                 />
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
                   <span className="text-xs text-emerald-50">
-                    {remaining >= 0 ? '還可以吃' : '超出目標'}
+                    {remaining >= 0 ? '还可以吃' : '超出目标'}
                   </span>
                   <span className="text-3xl font-bold">{fmtInt(Math.abs(remaining))}</span>
                   <span className="text-xs text-emerald-50">kcal</span>
@@ -173,7 +173,7 @@ export function Today() {
                   {fmtInt(target.caloriesKcal)} kcal
                 </p>
                 {[
-                  { n: '蛋白質', v: eaten.proteinG, t: target.proteinG, c: 'bg-rose-300' },
+                  { n: '蛋白质', v: eaten.proteinG, t: target.proteinG, c: 'bg-rose-300' },
                   { n: '碳水', v: eaten.carbsG, t: target.carbsG, c: 'bg-sky-300' },
                   { n: '脂肪', v: eaten.fatG, t: target.fatG, c: 'bg-amber-300' },
                 ].map((m) => (
@@ -192,15 +192,15 @@ export function Today() {
           </section>
         ) : (
           <Card>
-            <CardTitle>今天的飲食</CardTitle>
+            <CardTitle>今天的饮食</CardTitle>
             <p className="text-sm">
-              今天記錄了 {todayMeals.length} 項食物。數字已隱藏，可在「我」頁面打開。
+              今天记录了 {todayMeals.length} 项食物。数字已隐藏，可在“我”页面打开。
             </p>
           </Card>
         )}
 
         <Card>
-          <CardTitle>今天吃了什麼</CardTitle>
+          <CardTitle>今天吃了什么</CardTitle>
           <ul className="space-y-1">
             {MEAL_TYPES.map((meal) => {
               const list = todayMeals.filter((i) => i.meal === meal);
@@ -222,7 +222,7 @@ export function Today() {
                       <span className="block font-medium">{MEAL_LABELS[meal]}</span>
                       <span className="block truncate text-xs text-slate-600 dark:text-slate-300">
                         {list.length === 0
-                          ? '還沒有記錄'
+                          ? '还没有记录'
                           : list
                               .map((i) => (i.label ? `${i.label}：${i.name}` : i.name))
                               .join('、')}
@@ -252,7 +252,7 @@ export function Today() {
               </span>
             }
           >
-            今天的小目標
+            今天的小目标
           </CardTitle>
           <ul className="divide-y divide-slate-100 dark:divide-slate-700">
             {tasks.map((t) => (
@@ -308,7 +308,7 @@ export function Today() {
                       input?.focus({ preventScroll: true });
                     }}
                   >
-                    記錄
+                    记录
                   </Button>
                 ) : t.id === 'mark_complete' ? (
                   <Button
@@ -316,7 +316,7 @@ export function Today() {
                     className="min-h-9 shrink-0 px-3"
                     onClick={() => update((x) => setDayComplete(x, today, !t.done))}
                   >
-                    {t.done ? '取消' : '確認'}
+                    {t.done ? '取消' : '确认'}
                   </Button>
                 ) : (
                   !t.done && (
@@ -325,7 +325,7 @@ export function Today() {
                       className="min-h-11 shrink-0 px-1 text-xs text-slate-500 dark:text-slate-400"
                       onClick={() => update((x) => skipTask(x, today, t.id, !t.skipped))}
                     >
-                      {t.skipped ? '恢復' : '跳過'}
+                      {t.skipped ? '恢复' : '跳过'}
                     </button>
                   )
                 )}
@@ -333,7 +333,7 @@ export function Today() {
             ))}
           </ul>
           <p className="mt-2 text-xs text-slate-600 dark:text-slate-300">
-            {doneCount === tasks.length ? '🎉 今天全部完成了！' : '跳過不算失敗，做到一個也很好。'}
+            {doneCount === tasks.length ? '🎉 今天全部完成了！' : '跳过不算失败，做到一个也很好。'}
           </p>
         </Card>
 
@@ -345,22 +345,22 @@ export function Today() {
                   to="/progress"
                   className="text-sm font-medium text-emerald-strong dark:text-emerald"
                 >
-                  看圖表 ›
+                  看图表 ›
                 </Link>
               }
             >
-              體重
+              体重
             </CardTitle>
             <div className="flex items-end justify-between gap-3">
               <div>
-                <p className="text-sm text-slate-600 dark:text-slate-300">目前體重</p>
+                <p className="text-sm text-slate-600 dark:text-slate-300">目前体重</p>
                 <p className="text-3xl font-bold">
                   {current !== null ? fmt1(current) : '—'}
                   <span className="ml-1 text-base font-medium">kg</span>
                 </p>
                 {trend !== null && current !== null && Math.abs(trend - current) >= 0.05 && (
                   <p className="text-xs text-slate-600 dark:text-slate-300">
-                    平滑趨勢 {fmt1(trend)} kg（減少每天水分起伏的影響）
+                    平滑趋势 {fmt1(trend)} kg（减少每天水分起伏的影响）
                   </p>
                 )}
               </div>
@@ -370,61 +370,61 @@ export function Today() {
                 >
                   {change > 0 ? '+' : ''}
                   {fmt1(change)} kg
-                  <span className="ml-1 font-normal">比起點</span>
+                  <span className="ml-1 font-normal">比起点</span>
                 </p>
               )}
             </div>
             {goalKg !== undefined && toGoal !== null && current !== null && startKg !== null && (
               <div className="mt-4 text-sm">
                 {reached ? (
-                  <p className="font-medium">🎉 已達到目標 {fmt1(goalKg)} kg！</p>
+                  <p className="font-medium">🎉 已达到目标 {fmt1(goalKg)} kg！</p>
                 ) : change === null || Math.abs(change) < 0.05 ? (
                   <div className="flex items-center gap-2 rounded-2xl bg-slate-50 px-4 py-3 dark:bg-slate-700">
                     <span>
-                      起點 <strong>{fmt1(startKg)}</strong>
+                      起点 <strong>{fmt1(startKg)}</strong>
                     </span>
                     <span aria-hidden="true" className="text-slate-400">
                       →
                     </span>
                     <span>
-                      目標 <strong>{fmt1(goalKg)}</strong> kg
+                      目标 <strong>{fmt1(goalKg)}</strong> kg
                     </span>
                     <span className="ml-auto text-xs text-slate-600 dark:text-slate-300">
-                      {losing ? '要減' : '要增'} {fmt1(Math.abs(current - goalKg))} kg
+                      {losing ? '要减' : '要增'} {fmt1(Math.abs(current - goalKg))} kg
                     </span>
                   </div>
                 ) : (
                   <>
                     <p className="font-medium">
-                      還要{losing ? '減' : '增'} {fmt1(Math.abs(current - goalKg))} kg 到目標{' '}
+                      还要{losing ? '减' : '增'} {fmt1(Math.abs(current - goalKg))} kg 到目标{' '}
                       {fmt1(goalKg)} kg
                     </p>
                     <Bar value={toGoal} max={1} color="bg-emerald" />
                     <div className="mt-1 flex justify-between text-xs text-slate-600 dark:text-slate-300">
-                      <span>起點 {fmt1(startKg)}</span>
+                      <span>起点 {fmt1(startKg)}</span>
                       <span>已完成 {Math.round(toGoal * 100)}%</span>
-                      <span>目標 {fmt1(goalKg)}</span>
+                      <span>目标 {fmt1(goalKg)}</span>
                     </div>
                   </>
                 )}
                 {!reached && weeksLeft !== null && (
                   <p className="mt-2 text-xs text-slate-600 dark:text-slate-300">
-                    按你選的速度（每週約 {fmt1(weeklyKg)} kg），大約 {weeksLeft}{' '}
-                    週後到達。這只是估算。
+                    按你选的速度（每周约 {fmt1(weeklyKg)} kg），大约 {weeksLeft}{' '}
+                    周后到达。这只是估算。
                   </p>
                 )}
               </div>
             )}
             <p className="mt-3 text-xs text-slate-600 dark:text-slate-300">
               {prev && todayWeight
-                ? `比上次（${prev.date.slice(5).replace('-', '/')}）${todayWeight.weightKg - prev.weightKg > 0 ? '+' : ''}${fmt1(todayWeight.weightKg - prev.weightKg)} kg。每天會因水分起伏，看長期趨勢就好。`
+                ? `比上次（${prev.date.slice(5).replace('-', '/')}）${todayWeight.weightKg - prev.weightKg > 0 ? '+' : ''}${fmt1(todayWeight.weightKg - prev.weightKg)} kg。每天会因水分起伏，看长期趋势就好。`
                 : weekly !== null
-                  ? `過去 7 天 ${weekly > 0 ? '+' : ''}${fmt1(weekly)}%`
-                  : '明天起每天量一次，這裡會顯示和上次的差別。'}
+                  ? `过去 7 天 ${weekly > 0 ? '+' : ''}${fmt1(weekly)}%`
+                  : '明天起每天量一次，这里会显示和上次的差别。'}
             </p>
             {todayWeight && !editingWeight ? (
               <div className="mt-3 flex items-center justify-between gap-3 rounded-2xl bg-emerald-50 py-1 pr-1 pl-4 text-sm text-emerald-900 dark:bg-emerald/15 dark:text-emerald-100">
-                <span>✓ 今天已記錄 {fmt1(todayWeight.weightKg)} kg</span>
+                <span>✓ 今天已记录 {fmt1(todayWeight.weightKg)} kg</span>
                 <Button
                   variant="ghost"
                   className="shrink-0"
@@ -445,7 +445,7 @@ export function Today() {
                 }}
               >
                 <label className="sr-only" htmlFor="quick-weight">
-                  今天的體重（kg）
+                  今天的体重（kg）
                 </label>
                 <input
                   id="quick-weight"
@@ -454,7 +454,7 @@ export function Today() {
                   step="0.1"
                   min={30}
                   max={300}
-                  placeholder="輸入今天的體重 kg"
+                  placeholder="输入今天的体重 kg"
                   value={weightInput}
                   onChange={(e) => setWeightInput(e.target.value)}
                   className="min-h-11 min-w-0 flex-1 rounded-2xl border border-slate-200 bg-slate-50 px-4 text-base dark:border-slate-600 dark:bg-slate-900"
@@ -464,7 +464,7 @@ export function Today() {
                   className="shrink-0 whitespace-nowrap"
                   disabled={!(Number(weightInput) >= 30 && Number(weightInput) <= 300)}
                 >
-                  記錄
+                  记录
                 </Button>
               </form>
             )}
@@ -502,18 +502,18 @@ function ActivityCard({
 }) {
   return (
     <Card>
-      <CardTitle>今天的活動</CardTitle>
+      <CardTitle>今天的活动</CardTitle>
       {caution && (
         <p className="mb-3 text-sm text-amber-800 dark:text-amber-300">
-          你曾表示需要限制運動：開始前請先諮詢醫生，並選擇低衝擊的活動。
+          你曾表示需要限制运动：开始前请先咨询医生，并选择低冲击的活动。
         </p>
       )}
       {isRest ? (
         <div className="space-y-3 text-sm">
-          <p>今天是休息日，休息也是計劃的一部分。想動一動的話，可以做 10 分鐘伸展。</p>
+          <p>今天是休息日，休息也是计划的一部分。想动一动的话，可以做 10 分钟伸展。</p>
           <div className="flex flex-wrap gap-2">
             <Button variant="secondary" onClick={() => navigate('/workout/start/stretch-10')}>
-              伸展 10 分鐘
+              伸展 10 分钟
             </Button>
             <Button variant="ghost" onClick={() => update((x) => setRestDay(x, today, false))}>
               取消休息日
@@ -528,7 +528,7 @@ function ActivityCard({
                 <p className="font-medium">{suggested.name}</p>
                 <p className="text-xs text-slate-600 dark:text-slate-300">{suggested.note}</p>
               </div>
-              <Button onClick={() => navigate(`/workout/start/${suggested.id}`)}>開始</Button>
+              <Button onClick={() => navigate(`/workout/start/${suggested.id}`)}>开始</Button>
             </div>
           )}
           <Button
@@ -537,7 +537,7 @@ function ActivityCard({
             onClick={() => setShowNoWorkout((v) => !v)}
             aria-expanded={showNoWorkout}
           >
-            我現在不想運動
+            我现在不想运动
           </Button>
           {showNoWorkout && (
             <ul className="grid gap-2 text-sm">
@@ -547,7 +547,7 @@ function ActivityCard({
                   className="w-full justify-start"
                   onClick={() => navigate('/workout/start/home-5')}
                 >
-                  我只有 5 分鐘
+                  我只有 5 分钟
                 </Button>
               </li>
               <li>
@@ -556,7 +556,7 @@ function ActivityCard({
                   className="w-full justify-start"
                   onClick={() => navigate('/workout/start/home-15-low')}
                 >
-                  我想在家輕鬆活動
+                  我想在家轻松活动
                 </Button>
               </li>
               <li>
@@ -583,7 +583,7 @@ function ActivityCard({
                   className="w-full justify-start"
                   onClick={() => navigate('/workout')}
                 >
-                  我想換一個訓練
+                  我想换一个训练
                 </Button>
               </li>
             </ul>
@@ -595,13 +595,13 @@ function ActivityCard({
 }
 
 const TIPS = [
-  '飲料換成無糖（kosong）或少糖（siew dai），是最容易減少熱量的方法之一。',
-  '炒飯、炒麵通常用油較多；想吃得輕一點，可以選湯麵或白飯配菜。',
-  '每餐先有一份蛋白質（雞蛋、豆腐、魚、雞肉），比較容易吃飽。',
-  '打包時咖喱汁、醬汁可以另外裝，自己決定要加多少。',
-  '外食時多點一份青菜，份量多了，熱量卻增加不多。',
-  '晚上嘴饞時，先喝一杯水或無糖茶，等 10 分鐘再決定要不要吃。',
-  '體重每天會因為水分和食物而上下起伏，看趨勢比看單日更準。',
+  '饮料换成无糖（kosong）或少糖（siew dai），是最容易减少热量的方法之一。',
+  '炒饭、炒面通常用油较多；想吃得轻一点，可以选汤面或白饭配菜。',
+  '每餐先有一份蛋白质（鸡蛋、豆腐、鱼、鸡肉），比较容易吃饱。',
+  '打包时咖喱汁、酱汁可以另外装，自己决定要加多少。',
+  '外食时多点一份青菜，份量多了，热量却增加不多。',
+  '晚上嘴馋时，先喝一杯水或无糖茶，等 10 分钟再决定要不要吃。',
+  '体重每天会因为水分和食物而上下起伏，看趋势比看单日更准。',
 ];
 
 const WEEKDAY = ['一', '二', '三', '四', '五', '六', '日'];
@@ -632,13 +632,13 @@ function WeekCard({ today, hide }: { today: string; hide: boolean }) {
   const tipIndex = Math.floor(new Date(`${today}T00:00:00`).getTime() / 86_400_000) % TIPS.length;
 
   const stats = [
-    { label: '有記錄', value: `${logged.length} 天` },
+    { label: '有记录', value: `${logged.length} 天` },
     ...(hide
       ? []
       : [
           { label: '每日平均', value: avg !== null ? `${fmtInt(avg)} kcal` : '—' },
           {
-            label: '沒超過目標',
+            label: '没超过目标',
             value: past.length > 0 ? `${withinTarget} / ${past.length} 天` : '—',
           },
         ]),
@@ -646,7 +646,7 @@ function WeekCard({ today, hide }: { today: string; hide: boolean }) {
 
   return (
     <Card>
-      <CardTitle>本週</CardTitle>
+      <CardTitle>本周</CardTitle>
       <ol className="grid grid-cols-7 gap-1 text-center">
         {info.map((d) => {
           const isToday = d.date === today;
@@ -663,7 +663,7 @@ function WeekCard({ today, hide }: { today: string; hide: boolean }) {
               >
                 {d.complete ? '✓' : Number(d.date.slice(8))}
                 <span className="sr-only">
-                  {d.complete ? '已完整記錄' : d.logged ? '有記錄' : '沒有記錄'}
+                  {d.complete ? '已完整记录' : d.logged ? '有记录' : '没有记录'}
                 </span>
               </span>
               {!hide && (

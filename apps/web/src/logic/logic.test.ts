@@ -85,7 +85,7 @@ describe('nutrition', () => {
 
   it('searches Chinese, English and Malay names', () => {
     expect(searchFoods(SEED_FOODS, 'tauhu').map((f) => f.id)).toEqual(['usda-172475']);
-    expect(searchFoods(SEED_FOODS, '白飯').map((f) => f.id)).toEqual(['usda-168878']);
+    expect(searchFoods(SEED_FOODS, '白饭').map((f) => f.id)).toEqual(['usda-168878']);
     expect(searchFoods(SEED_FOODS, 'CHICKEN').map((f) => f.id)).toEqual(['usda-171477']);
     expect(searchFoods(SEED_FOODS, '  ').length).toBe(SEED_FOODS.length);
   });

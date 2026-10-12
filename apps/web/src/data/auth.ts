@@ -51,17 +51,17 @@ export function authErrorMessage(
   const code = error.code ?? '';
   const msg = (error.message ?? '').toLowerCase();
   if (code === 'invalid_credentials' || msg.includes('invalid login credentials'))
-    return 'Email 或密碼不正確。';
+    return 'Email 或密码不正确。';
   if (code === 'email_not_confirmed' || msg.includes('email not confirmed'))
-    return '請先到信箱點擊確認連結，再登入。';
+    return '请先到信箱点击确认链接，再登录。';
   if (code === 'user_already_exists' || msg.includes('already registered'))
-    return '這個 Email 已經註冊過，請直接登入。';
+    return '这个 Email 已经注册过，请直接登录。';
   if (code === 'weak_password' || msg.includes('password should'))
-    return '密碼太弱：至少 8 個字元，建議混合字母和數字。';
+    return '密码太弱：至少 8 个字元，建议混合字母和数字。';
   if (code === 'over_email_send_rate_limit' || msg.includes('rate limit'))
-    return '寄信次數太多，請稍後再試。';
-  if (code === 'same_password') return '新密碼不能和舊密碼一樣。';
+    return '寄信次数太多，请稍后再试。';
+  if (code === 'same_password') return '新密码不能和旧密码一样。';
   if (msg.includes('failed to fetch') || msg.includes('network'))
-    return '連不上伺服器，請檢查網路。';
-  return '發生錯誤，請稍後再試。';
+    return '连不上服务器，请检查网络。';
+  return '发生错误，请稍后再试。';
 }

@@ -84,7 +84,7 @@ function SetLogger({ template }: { template: WorkoutTemplate }) {
     save(done);
     toast({
       text: records.length
-        ? `完成！新的個人紀錄：${records.map((id) => exerciseById(id)?.name).join('、')}`
+        ? `完成！新的个人纪录：${records.map((id) => exerciseById(id)?.name).join('、')}`
         : `完成 ${template.name}！`,
     });
     navigate('/workout');
@@ -104,10 +104,10 @@ function SetLogger({ template }: { template: WorkoutTemplate }) {
           aria-live="off"
         >
           <span>
-            組間休息 <span className="text-2xl font-semibold tabular-nums">{restLeft}</span> 秒
+            组间休息 <span className="text-2xl font-semibold tabular-nums">{restLeft}</span> 秒
           </span>
           <Button variant="secondary" onClick={() => setRestLeft(0)}>
-            跳過
+            跳过
           </Button>
         </div>
       )}
@@ -138,7 +138,7 @@ function SetLogger({ template }: { template: WorkoutTemplate }) {
             {pain ? (
               <div className="mt-3">
                 <Notice tone="warn">
-                  已停止這個動作。如果疼痛持續或明顯，請尋求醫療協助，不要勉強繼續。
+                  已停止这个动作。如果疼痛持续或明显，请寻求医疗协助，不要勉强继续。
                 </Notice>
               </div>
             ) : (
@@ -148,11 +148,11 @@ function SetLogger({ template }: { template: WorkoutTemplate }) {
                     <li key={i} className="flex items-end gap-2">
                       <span className="w-12 shrink-0 whitespace-nowrap pb-3 text-sm text-slate-600 dark:text-slate-300">
                         第 {session.sets.slice(0, i + 1).filter((x) => x.exerciseId === id).length}{' '}
-                        組
+                        组
                       </span>
                       {ex.kind === 'reps' ? (
                         <NumberBox
-                          label="次數"
+                          label="次数"
                           value={set.reps}
                           onChange={(v) => patchSet(i, v === undefined ? { reps: 0 } : { reps: v })}
                         />
@@ -209,10 +209,10 @@ function SetLogger({ template }: { template: WorkoutTemplate }) {
             navigate('/workout');
           }}
         >
-          放棄
+          放弃
         </Button>
         <Button className="flex-1" disabled={doneCount === 0} onClick={finish}>
-          結束訓練（{doneCount} / {session.sets.length} 組）
+          结束训练（{doneCount} / {session.sets.length} 组）
         </Button>
       </div>
     </div>
@@ -262,8 +262,8 @@ function ActivityLogger({ template }: { template: WorkoutTemplate }) {
     <div className="space-y-4">
       <PageTitle sub={template.note}>{template.name}</PageTitle>
       <Card className="space-y-4">
-        <p className="text-sm">完成後記錄實際的分鐘數。走路、跑步都算數。</p>
-        <Field label="分鐘" error={ok ? null : '請輸入 1 至 600 分鐘。'}>
+        <p className="text-sm">完成后记录实际的分钟数。走路、跑步都算数。</p>
+        <Field label="分钟" error={ok ? null : '请输入 1 至 600 分钟。'}>
           {(p) => (
             <input
               {...p}
@@ -287,11 +287,11 @@ function ActivityLogger({ template }: { template: WorkoutTemplate }) {
                 minutes: m,
               }),
             );
-            toast({ text: `已記錄 ${m} 分鐘活動` });
+            toast({ text: `已记录 ${m} 分钟活动` });
             navigate('/today');
           }}
         >
-          記錄活動
+          记录活动
         </Button>
       </Card>
     </div>

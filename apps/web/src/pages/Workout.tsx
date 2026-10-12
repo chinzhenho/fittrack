@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router';
-import { Button, Card, CardTitle, PageTitle } from '../components/ui';
+import { BackButton, Button, Card, CardTitle, PageTitle } from '../components/ui';
 import { removeSession } from '../data/actions';
 import { update, useAppState } from '../data/store';
 import { formatDateZh, localToday } from '../lib/dates';
@@ -31,26 +31,27 @@ export function Workout() {
 
   return (
     <div className="space-y-4">
-      <PageTitle sub={`目前模式：${MODE_LABELS[mode].name}（可在「我」頁面切換）`}>訓練</PageTitle>
+      <BackButton fallback="/me" />
+      <PageTitle sub={`目前模式：${MODE_LABELS[mode].name}（可在“我”页面切换）`}>训练</PageTitle>
 
       {unfinished && (
         <Card className="ring-2 ring-emerald">
           <p className="font-medium">
-            有一個未完成的訓練：{templateById(unfinished.templateId)?.name}
+            有一个未完成的训练：{templateById(unfinished.templateId)?.name}
           </p>
           <div className="mt-3 flex gap-2">
             <Button onClick={() => navigate(`/workout/start/${unfinished.templateId}`)}>
-              繼續
+              继续
             </Button>
             <Button variant="ghost" onClick={() => update((x) => removeSession(x, unfinished.id))}>
-              放棄
+              放弃
             </Button>
           </div>
         </Card>
       )}
 
       <Card>
-        <CardTitle>適合你的訓練</CardTitle>
+        <CardTitle>适合你的训练</CardTitle>
         <TemplateList templates={mine} onStart={(id) => navigate(`/workout/start/${id}`)} />
         <Button
           variant="ghost"
@@ -58,7 +59,7 @@ export function Workout() {
           onClick={() => setShowAll((v) => !v)}
           aria-expanded={showAll}
         >
-          {showAll ? '收起其他訓練' : `查看其他訓練（${others.length}）`}
+          {showAll ? '收起其他训练' : `查看其他训练（${others.length}）`}
         </Button>
         {showAll && (
           <TemplateList templates={others} onStart={(id) => navigate(`/workout/start/${id}`)} />
@@ -67,7 +68,7 @@ export function Workout() {
 
       {best.size > 0 && (
         <Card>
-          <CardTitle>個人最佳重量</CardTitle>
+          <CardTitle>个人最佳重量</CardTitle>
           <ul className="space-y-1 text-sm">
             {[...best].map(([id, kg]) => (
               <li key={id} className="flex justify-between">
@@ -80,10 +81,10 @@ export function Workout() {
       )}
 
       <Card>
-        <CardTitle>最近記錄</CardTitle>
+        <CardTitle>最近记录</CardTitle>
         {finished.length === 0 && activities.length === 0 ? (
           <p className="text-sm text-slate-600 dark:text-slate-300">
-            還沒有訓練記錄。從一個 5 分鐘的活動開始吧。
+            还没有训练记录。从一个 5 分钟的活动开始吧。
           </p>
         ) : (
           <ul className="divide-y divide-slate-100 text-sm dark:divide-slate-700">
@@ -91,17 +92,17 @@ export function Workout() {
               <li key={x.id} className="flex justify-between gap-3 py-2">
                 <span>{templateById(x.templateId)?.name}</span>
                 <span className="text-slate-600 dark:text-slate-300">
-                  {formatDateZh(x.date, today)} · {x.sets.filter((t) => t.done).length} 組
+                  {formatDateZh(x.date, today)} · {x.sets.filter((t) => t.done).length} 组
                 </span>
               </li>
             ))}
             {activities.map((a) => (
               <li key={a.id} className="flex justify-between gap-3 py-2">
                 <span>
-                  {{ walk: '走路', run: '跑步', cycle: '騎腳車', other: '其他活動' }[a.type]}
+                  {{ walk: '走路', run: '跑步', cycle: '骑脚车', other: '其他活动' }[a.type]}
                 </span>
                 <span className="text-slate-600 dark:text-slate-300">
-                  {formatDateZh(a.date, today)} · {a.minutes} 分鐘
+                  {formatDateZh(a.date, today)} · {a.minutes} 分钟
                 </span>
               </li>
             ))}
@@ -126,11 +127,11 @@ function TemplateList({
           <div className="min-w-0">
             <p className="font-medium">{t.name}</p>
             <p className="text-xs text-slate-600 dark:text-slate-300">
-              約 {t.minutes} 分鐘 · {t.note}
+              约 {t.minutes} 分钟 · {t.note}
             </p>
           </div>
           <Button variant="secondary" onClick={() => onStart(t.id)}>
-            開始
+            开始
           </Button>
         </li>
       ))}

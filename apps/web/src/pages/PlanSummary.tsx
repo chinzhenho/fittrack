@@ -9,7 +9,7 @@ export function PlanSummary({ plan, goal }: { plan: Plan; goal: Goal }) {
   const delta = Math.round(plan.appliedDeltaKcal);
   const rows = [
     {
-      name: '蛋白質',
+      name: '蛋白质',
       g: macros.proteinG,
       kcal: macros.proteinG * KCAL_PER_G.protein,
       color: 'bg-emerald',
@@ -30,17 +30,17 @@ export function PlanSummary({ plan, goal }: { plan: Plan; goal: Goal }) {
   return (
     <div className="space-y-4">
       <div className="rounded-2xl bg-navy p-5 text-white dark:bg-slate-700 dark:ring-1 dark:ring-emerald/40">
-        <p className="text-sm text-slate-300">{GOAL_LABELS[goal]} · 每日熱量目標（估算）</p>
+        <p className="text-sm text-slate-300">{GOAL_LABELS[goal]} · 每日热量目标（估算）</p>
         <p className="mt-1 text-5xl font-semibold tracking-tight">
           {fmtInt(caloriesKcal)}
           <span className="ml-2 text-xl font-normal text-slate-300">kcal</span>
         </p>
         <p className="mt-2 text-sm text-slate-300">
           {delta === 0
-            ? '約等於你的估算維持熱量'
+            ? '约等于你的估算维持热量'
             : delta < 0
-              ? `比估算維持熱量少約 ${fmtInt(-delta)} kcal`
-              : `比估算維持熱量多約 ${fmtInt(delta)} kcal`}
+              ? `比估算维持热量少约 ${fmtInt(-delta)} kcal`
+              : `比估算维持热量多约 ${fmtInt(delta)} kcal`}
         </p>
       </div>
       <ul className="space-y-3">
@@ -61,10 +61,10 @@ export function PlanSummary({ plan, goal }: { plan: Plan; goal: Goal }) {
         ))}
       </ul>
       <p className="text-xs text-slate-600 dark:text-slate-300">
-        蛋白質按 {macros.proteinGPerKg} g/kg × {fmt1(macros.referenceWeightKg)} kg 參考體重計算。BMR
-        約 {fmtInt(plan.bmrKcal)} kcal，TDEE 約 {fmtInt(plan.tdeeKcal)} kcal。
+        蛋白质按 {macros.proteinGPerKg} g/kg × {fmt1(macros.referenceWeightKg)} kg 参考体重计算。BMR
+        约 {fmtInt(plan.bmrKcal)} kcal，TDEE 约 {fmtInt(plan.tdeeKcal)} kcal。
         <Link to="/how-we-calculate" className="underline">
-          計算方法
+          计算方法
         </Link>
       </p>
       {notes.length > 0 && (

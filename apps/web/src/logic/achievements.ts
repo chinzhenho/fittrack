@@ -98,24 +98,24 @@ export function progressSummary(s: AppState, today: string): ProgressSummary {
     progress: { value: Math.min(value, max), max },
   });
 
-  const lostWord = direction < 0 ? '減' : '增';
+  const lostWord = direction < 0 ? '减' : '增';
   const badges: Badge[] = [
-    badge('first', '🌱', '好的開始', '記錄第一餐', dates.length, 1),
-    badge('streak3', '🔥', '連續 3 天', '連續 3 天記錄飲食', longest, 3),
-    badge('streak7', '⭐', '一整週', '連續 7 天記錄飲食', longest, 7),
-    badge('streak30', '🏆', '習慣養成', '連續 30 天記錄飲食', longest, 30),
-    badge('protein7', '💪', '蛋白質達人', '7 天蛋白質吃夠', proteinDays, 7),
-    badge('weigh10', '⚖️', '持續追蹤', '記錄體重 10 天', weighIns, 10),
+    badge('first', '🌱', '好的开始', '记录第一餐', dates.length, 1),
+    badge('streak3', '🔥', '连续 3 天', '连续 3 天记录饮食', longest, 3),
+    badge('streak7', '⭐', '一整周', '连续 7 天记录饮食', longest, 7),
+    badge('streak30', '🏆', '习惯养成', '连续 30 天记录饮食', longest, 30),
+    badge('protein7', '💪', '蛋白质达人', '7 天蛋白质吃够', proteinDays, 7),
+    badge('weigh10', '⚖️', '持续追踪', '记录体重 10 天', weighIns, 10),
   ];
   if (direction !== 0) {
     const kg = Math.max(0, towardGoalKg ?? 0);
     badges.push(
-      badge('kg1', '🎯', `${lostWord}了 1 kg`, `趨勢體重${lostWord} 1 kg`, kg, 1),
-      badge('kg5', '🥇', `${lostWord}了 5 kg`, `趨勢體重${lostWord} 5 kg`, kg, 5),
+      badge('kg1', '🎯', `${lostWord}了 1 kg`, `趋势体重${lostWord} 1 kg`, kg, 1),
+      badge('kg5', '🥇', `${lostWord}了 5 kg`, `趋势体重${lostWord} 5 kg`, kg, 5),
     );
   }
   if (goalKg !== undefined && direction !== 0) {
-    badges.push(badge('goal', '🎉', '達到目標', `趨勢體重到達 ${goalKg} kg`, reached ? 1 : 0, 1));
+    badges.push(badge('goal', '🎉', '达到目标', `趋势体重到达 ${goalKg} kg`, reached ? 1 : 0, 1));
   }
 
   return { streak, longest, daysLogged: dates.length, towardGoalKg, badges };

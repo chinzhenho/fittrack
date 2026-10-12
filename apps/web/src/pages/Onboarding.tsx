@@ -281,28 +281,28 @@ export function Onboarding() {
     d.pregnantOrLactating || d.eatingDisorderHistory || d.kidneyDisease || d.exerciseCaution;
 
   const TITLES: Record<StepId, string> = {
-    start: '歡迎！先花 1 分鐘設定',
-    goal: '你目前最主要的目標是？',
-    mode: '你比較喜歡哪種方式？',
-    minutes: '每天願意花多少時間？',
-    experience: '你目前的運動經驗？',
-    sex: '用哪個計算公式？',
-    body: '你的身體資料',
-    activity: '你平時的活動量？',
-    health: '有沒有以下情況？',
-    rate: '想多快達到目標？',
-    target: '有目標體重嗎？',
-    diet: '有飲食限制嗎？',
-    plan: '你的計劃',
+    start: '欢迎！先花 1 分钟设置',
+    goal: '你目前最主要的目标是？',
+    mode: '你比较喜欢哪种方式？',
+    minutes: '每天愿意花多少时间？',
+    experience: '你目前的运动经验？',
+    sex: '用哪个计算公式？',
+    body: '你的身体资料',
+    activity: '你平时的活动量？',
+    health: '有没有以下情况？',
+    rate: '想多快达到目标？',
+    target: '有目标体重吗？',
+    diet: '有饮食限制吗？',
+    plan: '你的计划',
   };
   const HINTS: Partial<Record<StepId, string>> = {
-    mode: '之後隨時可以切換，記錄不會消失',
-    sex: 'Mifflin–St Jeor 公式分男性與女性版本；中性為兩者平均',
-    activity: '工作加運動一起算',
-    health: '只用於安全檢查，讓建議不會對你造成風險。可以選多項。',
-    rate: '較慢的速度比較容易堅持，也較能保留肌肉',
-    target: '選填。只用於顯示進度，不影響每日熱量',
-    diet: '可以選多項，也可以跳過',
+    mode: '之后随时可以切换，记录不会消失',
+    sex: 'Mifflin–St Jeor 公式分男性与女性版本；中性为两者平均',
+    activity: '工作加运动一起算',
+    health: '只用于安全检查，让建议不会对你造成风险。可以选多项。',
+    rate: '较慢的速度比较容易坚持，也较能保留肌肉',
+    target: '选填。只用于显示进度，不影响每日热量',
+    diet: '可以选多项，也可以跳过',
   };
 
   // Steps answered by tapping a card have no bottom button.
@@ -350,26 +350,26 @@ export function Onboarding() {
           {step === 'start' && (
             <Card className="space-y-5">
               <p className="leading-relaxed">
-                FitTrack 依照你的生活方式，幫你安全地減脂、增重、增肌或維持體重。不用去 Gym
-                也可以開始。
+                FitTrack 依照你的生活方式，帮你安全地减脂、增重、增肌或维持体重。不用去 Gym
+                也可以开始。
               </p>
               <Notice>
                 {signedIn
-                  ? '你已登入：資料會經加密連線保存到你的帳號（伺服器在新加坡），換裝置登入也看得到，只有你能存取。'
-                  : '你沒有登入：資料只保存在這部裝置的瀏覽器中。之後可以在「我」頁面註冊，把資料備份到帳號。'}
+                  ? '你已登录：资料会经加密连线保存到你的账号（服务器在新加坡），换设备登录也看得到，只有你能存取。'
+                  : '你没有登录：资料只保存在这部设备的浏览器中。之后可以在“我”页面注册，把资料备份到账号。'}
               </Notice>
               <div className="space-y-1">
                 <Check checked={d.adult} onChange={(v) => set('adult', v)}>
-                  我年滿 18 歲
+                  我年满 18 岁
                 </Check>
                 <Check checked={d.terms} onChange={(v) => set('terms', v)}>
-                  我已閱讀並接受
+                  我已阅读并接受
                   <Link
                     to="/legal/disclaimer"
                     className="mx-1 text-emerald-strong underline dark:text-emerald"
                     target="_blank"
                   >
-                    健康免責聲明
+                    健康免责声明
                   </Link>
                   和
                   <Link
@@ -377,11 +377,11 @@ export function Onboarding() {
                     className="ml-1 text-emerald-strong underline dark:text-emerald"
                     target="_blank"
                   >
-                    隱私政策
+                    隐私政策
                   </Link>
                 </Check>
                 <Check checked={d.healthConsent} onChange={(v) => set('healthConsent', v)}>
-                  我同意 FitTrack 使用我提供的身體與健康資料來計算建議
+                  我同意 FitTrack 使用我提供的身体与健康资料来计算建议
                 </Check>
               </div>
             </Card>
@@ -420,10 +420,10 @@ export function Onboarding() {
             <Choices
               value={shown(String(d.minutesPerDay))}
               options={[
-                { value: '5', label: '5 分鐘' },
-                { value: '15', label: '10–15 分鐘' },
-                { value: '30', label: '20–30 分鐘' },
-                { value: '45', label: '45 分鐘以上' },
+                { value: '5', label: '5 分钟' },
+                { value: '15', label: '10–15 分钟' },
+                { value: '30', label: '20–30 分钟' },
+                { value: '45', label: '45 分钟以上' },
                 { value: '0', label: '不一定' },
               ]}
               onPick={(v) => pick('minutesPerDay', Number(v))}
@@ -434,9 +434,9 @@ export function Onboarding() {
             <Choices<Experience>
               value={shown(d.experience)}
               options={[
-                { value: 'beginner', label: '初學者', sub: '很少運動' },
-                { value: 'occasional', label: '偶爾運動' },
-                { value: 'regular', label: '已有規律習慣' },
+                { value: 'beginner', label: '初学者', sub: '很少运动' },
+                { value: 'occasional', label: '偶尔运动' },
+                { value: 'regular', label: '已有规律习惯' },
               ]}
               onPick={(v) => pick('experience', v)}
             />
@@ -481,7 +481,7 @@ export function Onboarding() {
                     />
                   )}
                 </Field>
-                <Field label="體重（kg）" error={bodyFieldError('weightKg')}>
+                <Field label="体重（kg）" error={bodyFieldError('weightKg')}>
                   {(p) => (
                     <input
                       {...p}
@@ -517,29 +517,29 @@ export function Onboarding() {
                   checked={d.pregnantOrLactating}
                   onChange={(v) => set('pregnantOrLactating', v)}
                 >
-                  正在懷孕或哺乳
+                  正在怀孕或哺乳
                 </Check>
                 <Check
                   checked={d.eatingDisorderHistory}
                   onChange={(v) => set('eatingDisorderHistory', v)}
                 >
-                  曾被診斷或正在接受飲食失調治療
+                  曾被诊断或正在接受饮食失调治疗
                 </Check>
                 <Check checked={d.kidneyDisease} onChange={(v) => set('kidneyDisease', v)}>
-                  有腎臟疾病
+                  有肾脏疾病
                 </Check>
                 <Check checked={d.exerciseCaution} onChange={(v) => set('exerciseCaution', v)}>
-                  醫生曾建議我限制運動，或我有心臟、關節等問題
+                  医生曾建议我限制运动，或我有心脏、关节等问题
                 </Check>
               </Card>
               {d.exerciseCaution && (
                 <Notice tone="warn">
-                  開始運動前，建議先諮詢醫生。我們會優先推薦低衝擊的活動。
+                  开始运动前，建议先咨询医生。我们会优先推荐低冲击的活动。
                 </Notice>
               )}
               {d.kidneyDisease && (
                 <Notice tone="warn">
-                  蛋白質目標會固定為每公斤 0.8 g，請按醫生或營養師的建議調整。
+                  蛋白质目标会固定为每公斤 0.8 g，请按医生或营养师的建议调整。
                 </Notice>
               )}
             </>
@@ -550,8 +550,8 @@ export function Onboarding() {
               value={shown(String(d.ratePctPerWeek))}
               options={RATE_OPTIONS[d.goal].map((r) => ({
                 value: String(r),
-                label: `每週 ${r}% 體重`,
-                ...(weight > 0 && { sub: `約 ${((r / 100) * weight).toFixed(2)} kg／週` }),
+                label: `每周 ${r}% 体重`,
+                ...(weight > 0 && { sub: `约 ${((r / 100) * weight).toFixed(2)} kg／周` }),
                 ...(r === RATE_PCT_PER_WEEK[d.goal].default && { icon: '⭐' }),
               }))}
               onPick={(v) => pick('ratePctPerWeek', Number(v))}
@@ -561,12 +561,12 @@ export function Onboarding() {
           {step === 'target' && (
             <Card>
               <Field
-                label="目標體重（kg）"
+                label="目标体重（kg）"
                 error={
                   evaluated.kind === 'invalid' && evaluated.field === 'targetWeightKg'
                     ? d.goal === 'fat_loss'
-                      ? '目標體重需低於現在的體重。'
-                      : '目標體重需高於現在的體重。'
+                      ? '目标体重需低于现在的体重。'
+                      : '目标体重需高于现在的体重。'
                     : null
                 }
               >
@@ -606,7 +606,7 @@ export function Onboarding() {
               {rejectMessage(evaluated.result.reason).body}
               <div className="mt-3">
                 <Button variant="secondary" onClick={() => setStep('goal')}>
-                  更改目標
+                  更改目标
                 </Button>
               </div>
             </Notice>
@@ -626,19 +626,19 @@ export function Onboarding() {
                 disabled={!(evaluated.kind === 'result' && evaluated.result.ok)}
                 onClick={finish}
               >
-                開始使用
+                开始使用
               </Button>
             ) : step === 'health' && !anyHealth ? (
               <Button className="w-full" onClick={() => goNext()}>
-                以上都沒有
+                以上都没有
               </Button>
             ) : step === 'diet' && d.dietTags.length === 0 ? (
               <Button className="w-full" onClick={() => goNext()}>
-                沒有特別限制
+                没有特别限制
               </Button>
             ) : step === 'target' && d.targetWeightKg.trim() === '' ? (
               <Button className="w-full" onClick={() => goNext()}>
-                跳過
+                跳过
               </Button>
             ) : (
               <Button className="w-full" disabled={!canNext} onClick={() => goNext()}>

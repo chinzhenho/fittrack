@@ -48,9 +48,9 @@ const RATE_OPTIONS: Record<Goal, number[]> = {
 const SYNC_TEXT: Record<SyncStatus, string> = {
   off: '',
   syncing: '同步中…',
-  synced: '✓ 所有記錄已同步到你的帳號',
-  offline: '目前離線：記錄先保存在這部裝置，恢復網路後會自動同步。',
-  error: '同步失敗，稍後會自動重試。',
+  synced: '✓ 所有记录已同步到你的账号',
+  offline: '目前离线：记录先保存在这部设备，恢复网络后会自动同步。',
+  error: '同步失败，稍后会自动重试。',
 };
 
 export function Me({ mode = 'home' }: { mode?: 'home' | 'plan' }) {
@@ -108,7 +108,7 @@ export function Me({ mode = 'home' }: { mode?: 'home' | 'plan' }) {
         ),
       ),
     );
-    toast({ text: `已儲存，新的每日目標是 ${fmtInt(preview.plan.caloriesKcal)} kcal` });
+    toast({ text: `已保存，新的每日目标是 ${fmtInt(preview.plan.caloriesKcal)} kcal` });
     navigate('/me');
   };
 
@@ -131,11 +131,11 @@ export function Me({ mode = 'home' }: { mode?: 'home' | 'plan' }) {
         >
           ‹ 我
         </Link>
-        <PageTitle sub="改完按最下面的「儲存並重新計算」">我的計劃</PageTitle>
+        <PageTitle sub="改完按最下面的“保存并重新计算”">我的计划</PageTitle>
         <Card className="space-y-5">
-          <CardTitle>目標與生活方式</CardTitle>
+          <CardTitle>目标与生活方式</CardTitle>
           <Segmented
-            label="目標"
+            label="目标"
             value={draft.goal}
             options={(Object.keys(GOAL_LABELS) as Goal[]).map((g) => ({
               value: g,
@@ -147,7 +147,7 @@ export function Me({ mode = 'home' }: { mode?: 'home' | 'plan' }) {
           />
           {draft.goal !== 'maintain' && (
             <Segmented
-              label="每週體重變化"
+              label="每周体重变化"
               value={String(draft.ratePctPerWeek)}
               options={RATE_OPTIONS[draft.goal].map((r) => ({ value: String(r), label: `${r}%` }))}
               onChange={(v) => set('ratePctPerWeek', Number(v))}
@@ -155,7 +155,7 @@ export function Me({ mode = 'home' }: { mode?: 'home' | 'plan' }) {
           )}
           <Segmented
             label="生活方式模式"
-            hint="切換模式不會影響熱量公式，只會改變建議的任務和訓練"
+            hint="切换模式不会影响热量公式，只会改变建议的任务和训练"
             value={draft.lifestyleMode}
             options={(Object.keys(MODE_LABELS) as LifestyleMode[]).map((m) => ({
               value: m,
@@ -166,9 +166,9 @@ export function Me({ mode = 'home' }: { mode?: 'home' | 'plan' }) {
         </Card>
 
         <Card className="space-y-5">
-          <CardTitle>身體資料</CardTitle>
+          <CardTitle>身体资料</CardTitle>
           <Segmented
-            label="計算公式"
+            label="计算公式"
             value={draft.formulaSex}
             options={(Object.keys(SEX_LABELS) as FormulaSex[]).map((x) => ({
               value: x,
@@ -210,10 +210,10 @@ export function Me({ mode = 'home' }: { mode?: 'home' | 'plan' }) {
             </Field>
           </div>
           <p className="text-xs text-slate-600 dark:text-slate-300">
-            體重請在「進度」頁面記錄，計算會使用最新的體重（{weight} kg）。
+            体重请在“进度”页面记录，计算会使用最新的体重（{weight} kg）。
           </p>
           <Segmented
-            label="日常活動水平"
+            label="日常活动水平"
             value={draft.activityLevel}
             options={(Object.keys(ACTIVITY_LABELS) as ActivityLevel[]).map((a) => ({
               value: a,
@@ -223,34 +223,34 @@ export function Me({ mode = 'home' }: { mode?: 'home' | 'plan' }) {
             onChange={(v) => set('activityLevel', v)}
           />
           <fieldset className="space-y-1">
-            <legend className="text-sm font-medium">健康狀況</legend>
+            <legend className="text-sm font-medium">健康状况</legend>
             <Check
               checked={draft.screening.pregnantOrLactating}
               onChange={(v) => set('screening', { ...draft.screening, pregnantOrLactating: v })}
             >
-              正在懷孕或哺乳
+              正在怀孕或哺乳
             </Check>
             <Check
               checked={draft.screening.eatingDisorderHistory}
               onChange={(v) => set('screening', { ...draft.screening, eatingDisorderHistory: v })}
             >
-              曾被診斷或正在接受飲食失調治療
+              曾被诊断或正在接受饮食失调治疗
             </Check>
             <Check
               checked={draft.screening.kidneyDisease}
               onChange={(v) => set('screening', { ...draft.screening, kidneyDisease: v })}
             >
-              有腎臟疾病
+              有肾脏疾病
             </Check>
             <Check
               checked={draft.screening.exerciseCaution}
               onChange={(v) => set('screening', { ...draft.screening, exerciseCaution: v })}
             >
-              醫生曾建議我限制運動，或我有心臟、關節等問題
+              医生曾建议我限制运动，或我有心脏、关节等问题
             </Check>
           </fieldset>
           <fieldset className="space-y-1">
-            <legend className="text-sm font-medium">飲食偏好</legend>
+            <legend className="text-sm font-medium">饮食偏好</legend>
             {(Object.keys(DIET_LABELS) as DietTag[]).map((t) => (
               <Check
                 key={t}
@@ -274,12 +274,12 @@ export function Me({ mode = 'home' }: { mode?: 'home' | 'plan' }) {
           )}
           {changed && preview?.ok && target && (
             <Notice>
-              儲存後每日目標會由 {fmtInt(target.caloriesKcal)} kcal 變為{' '}
-              {fmtInt(preview.plan.caloriesKcal)} kcal。舊的記錄和目標歷史會保留。
+              保存后每日目标会由 {fmtInt(target.caloriesKcal)} kcal 变为{' '}
+              {fmtInt(preview.plan.caloriesKcal)} kcal。旧的记录和目标历史会保留。
             </Notice>
           )}
           <Button className="w-full" disabled={!changed || !preview?.ok} onClick={save}>
-            儲存並重新計算
+            保存并重新计算
           </Button>
         </Card>
       </div>
@@ -304,21 +304,21 @@ export function Me({ mode = 'home' }: { mode?: 'home' | 'plan' }) {
           </span>
           <div className="min-w-0">
             <p className="truncate text-lg font-semibold">
-              {signedIn ? auth.user.email : '訪客（未登入）'}
+              {signedIn ? auth.user.email : '访客（未登录）'}
             </p>
             <p className="text-sm text-emerald-50">
               {signedIn
-                ? SYNC_TEXT[sync.status] || '已登入'
-                : '目前資料只存在這部裝置。註冊後換手機也能看到記錄。'}
+                ? SYNC_TEXT[sync.status] || '已登录'
+                : '目前资料只存在这部设备。注册后换手机也能看到记录。'}
             </p>
           </div>
         </div>
         {target && !profile.hideNumbers && (
           <dl className="mt-4 grid grid-cols-3 gap-2 text-center">
             {[
-              { k: '每日熱量', v: `${fmtInt(target.caloriesKcal)}`, u: 'kcal' },
-              { k: '蛋白質', v: `${target.proteinG}`, u: 'g' },
-              { k: '目標', v: GOAL_LABELS[profile.goal], u: '' },
+              { k: '每日热量', v: `${fmtInt(target.caloriesKcal)}`, u: 'kcal' },
+              { k: '蛋白质', v: `${target.proteinG}`, u: 'g' },
+              { k: '目标', v: GOAL_LABELS[profile.goal], u: '' },
             ].map((x) => (
               <div key={x.k} className="rounded-2xl bg-white/15 px-2 py-2">
                 <dt className="text-xs text-emerald-50">{x.k}</dt>
@@ -336,13 +336,13 @@ export function Me({ mode = 'home' }: { mode?: 'home' | 'plan' }) {
               to="/signup"
               className="inline-flex min-h-11 flex-1 items-center justify-center rounded-2xl bg-white px-4 text-sm font-semibold text-emerald-900"
             >
-              註冊帳號
+              注册账号
             </Link>
             <Link
               to="/login"
               className="inline-flex min-h-11 flex-1 items-center justify-center rounded-2xl border border-white/50 px-4 text-sm font-semibold"
             >
-              登入
+              登录
             </Link>
           </div>
         )}
@@ -356,10 +356,10 @@ export function Me({ mode = 'home' }: { mode?: 'home' | 'plan' }) {
                 🎯
               </span>
               <span className="min-w-0 flex-1">
-                <span className="block font-medium">我的計劃</span>
+                <span className="block font-medium">我的计划</span>
                 <span className="block truncate text-xs text-slate-600 dark:text-slate-300">
                   {GOAL_LABELS[profile.goal]}
-                  {profile.goal !== 'maintain' && ` · 每週 ${profile.ratePctPerWeek}%`} ·{' '}
+                  {profile.goal !== 'maintain' && ` · 每周 ${profile.ratePctPerWeek}%`} ·{' '}
                   {MODE_LABELS[profile.lifestyleMode].name} · 身高 {profile.heightCm} cm
                 </span>
               </span>
@@ -374,9 +374,9 @@ export function Me({ mode = 'home' }: { mode?: 'home' | 'plan' }) {
                 🏃
               </span>
               <span className="min-w-0 flex-1">
-                <span className="block font-medium">運動與訓練</span>
+                <span className="block font-medium">运动与训练</span>
                 <span className="block text-xs text-slate-600 dark:text-slate-300">
-                  在家、Gym、散步的訓練和記錄
+                  在家、Gym、散步的训练和记录
                 </span>
               </span>
               <span aria-hidden="true" className="text-slate-400">
@@ -390,7 +390,7 @@ export function Me({ mode = 'home' }: { mode?: 'home' | 'plan' }) {
                 ⚖️
               </span>
               <span className="min-w-0 flex-1">
-                <span className="block font-medium">體重記錄</span>
+                <span className="block font-medium">体重记录</span>
                 <span className="block text-xs text-slate-600 dark:text-slate-300">
                   目前 {fmt1(weight)} kg
                 </span>
@@ -404,34 +404,34 @@ export function Me({ mode = 'home' }: { mode?: 'home' | 'plan' }) {
       </Card>
 
       <Card className="space-y-4">
-        <CardTitle>顯示</CardTitle>
+        <CardTitle>显示</CardTitle>
         <Segmented<Theme>
-          label="外觀"
+          label="外观"
           value={theme}
           options={[
-            { value: 'light', label: '☀️ 淺色' },
+            { value: 'light', label: '☀️ 浅色' },
             { value: 'dark', label: '🌙 深色' },
-            { value: 'system', label: '跟隨手機' },
+            { value: 'system', label: '跟随手机' },
           ]}
           onChange={setTheme}
         />
         <Check checked={profile.hideNumbers} onChange={(v) => update((x) => setHideNumbers(x, v))}>
-          隱藏熱量和體重數字（只看習慣和食物）
+          隐藏热量和体重数字（只看习惯和食物）
         </Check>
       </Card>
 
       <Card className="space-y-3">
-        <CardTitle>資料與帳號</CardTitle>
+        <CardTitle>资料与账号</CardTitle>
         <p className="text-sm text-slate-600 dark:text-slate-300">
           {signedIn
-            ? '資料保存在你的帳號（伺服器在新加坡），這部裝置也有一份副本供離線使用。'
+            ? '资料保存在你的账号（服务器在新加坡），这部设备也有一份副本供离线使用。'
             : isPersistent()
-              ? '資料只保存在這部裝置的瀏覽器中。清除瀏覽器資料或換手機會令資料消失，建議註冊或定期匯出備份。'
-              : '這個瀏覽器目前無法保存資料。'}
+              ? '资料只保存在这部设备的浏览器中。清除浏览器资料或换手机会令资料消失，建议注册或定期导出备份。'
+              : '这个浏览器目前无法保存资料。'}
         </p>
         <div className="flex flex-wrap gap-2">
           <Button variant="secondary" onClick={exportData}>
-            匯出備份
+            导出备份
           </Button>
           {signedIn && (
             <>
@@ -439,7 +439,7 @@ export function Me({ mode = 'home' }: { mode?: 'home' | 'plan' }) {
                 to="/update-password"
                 className="inline-flex min-h-11 items-center rounded-2xl border border-slate-200 px-4 text-sm font-medium dark:border-slate-600"
               >
-                更改密碼
+                更改密码
               </Link>
               <Button
                 variant="secondary"
@@ -450,20 +450,20 @@ export function Me({ mode = 'home' }: { mode?: 'home' | 'plan' }) {
                   navigate('/welcome', { replace: true });
                 }}
               >
-                登出
+                退出登录
               </Button>
             </>
           )}
         </div>
         {!confirmDelete ? (
           <Button variant="danger" onClick={() => setConfirmDelete(true)}>
-            刪除全部資料
+            删除全部资料
           </Button>
         ) : (
-          <Notice tone="warn" title="確定刪除？">
+          <Notice tone="warn" title="确定删除？">
             {signedIn
-              ? '你帳號裡的所有飲食、體重、訓練記錄和設定都會從雲端和這部裝置永久刪除，無法復原，然後自動登出。建議先匯出備份。'
-              : '所有飲食、體重、訓練記錄和設定都會被永久刪除，無法復原。建議先匯出備份。'}
+              ? '你账号里的所有饮食、体重、训练记录和设置都会从云端和这部设备永久删除，无法撤销，然后自动退出登录。建议先导出备份。'
+              : '所有饮食、体重、训练记录和设置都会被永久删除，无法撤销。建议先导出备份。'}
             <div className="mt-3 flex gap-2">
               <Button
                 variant="danger"
@@ -481,7 +481,7 @@ export function Me({ mode = 'home' }: { mode?: 'home' | 'plan' }) {
                   navigate('/welcome', { replace: true });
                 }}
               >
-                確定刪除
+                确定删除
               </Button>
               <Button variant="secondary" onClick={() => setConfirmDelete(false)}>
                 取消
@@ -494,10 +494,10 @@ export function Me({ mode = 'home' }: { mode?: 'home' | 'plan' }) {
       <Card className="p-3">
         <ul>
           {[
-            { to: '/how-we-calculate', icon: '🧮', label: '計算方法與資料來源' },
-            { to: '/legal/disclaimer', icon: '🩺', label: '健康免責聲明' },
-            { to: '/legal/privacy', icon: '🔒', label: '隱私政策' },
-            { to: '/legal/credits', icon: '📚', label: '資料與圖片來源' },
+            { to: '/how-we-calculate', icon: '🧮', label: '计算方法与资料来源' },
+            { to: '/legal/disclaimer', icon: '🩺', label: '健康免责声明' },
+            { to: '/legal/privacy', icon: '🔒', label: '隐私政策' },
+            { to: '/legal/credits', icon: '📚', label: '资料与图片来源' },
           ].map((x) => (
             <li key={x.to}>
               <Link to={x.to} className={row}>

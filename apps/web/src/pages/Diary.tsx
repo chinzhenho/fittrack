@@ -36,7 +36,7 @@ export function Diary() {
 
   return (
     <div className="space-y-4">
-      <PageTitle>飲食日記</PageTitle>
+      <PageTitle>饮食日记</PageTitle>
       <div className="flex items-center justify-between rounded-3xl bg-white p-2 shadow-sm ring-1 ring-slate-900/5 dark:bg-slate-800 dark:ring-white/10">
         <Button variant="ghost" aria-label="前一天" onClick={() => go(addDays(date, -1))}>
           ‹ 前一天
@@ -44,11 +44,11 @@ export function Diary() {
         <span className="font-semibold">{formatDateZh(date, today)}</span>
         <Button
           variant="ghost"
-          aria-label="後一天"
+          aria-label="后一天"
           disabled={date >= today}
           onClick={() => go(addDays(date, 1))}
         >
-          後一天 ›
+          后一天 ›
         </Button>
       </div>
 
@@ -69,7 +69,7 @@ export function Diary() {
                 className={`rounded-full px-3 py-1 text-sm font-semibold ${total.kcal <= target.caloriesKcal ? 'bg-emerald-50 text-emerald-900 dark:bg-emerald/15 dark:text-emerald-100' : 'bg-amber-50 text-amber-900 dark:bg-amber-500/15 dark:text-amber-100'}`}
               >
                 {total.kcal <= target.caloriesKcal
-                  ? `還可吃 ${fmtInt(target.caloriesKcal - total.kcal)}`
+                  ? `还可吃 ${fmtInt(target.caloriesKcal - total.kcal)}`
                   : `超出 ${fmtInt(total.kcal - target.caloriesKcal)}`}
               </p>
             )}
@@ -83,7 +83,7 @@ export function Diary() {
           )}
           <div className="mt-4 grid grid-cols-3 gap-3 text-sm">
             {[
-              { n: '蛋白質', v: total.proteinG, t: target?.proteinG, c: 'bg-rose-500' },
+              { n: '蛋白质', v: total.proteinG, t: target?.proteinG, c: 'bg-rose-500' },
               { n: '碳水', v: total.carbsG, t: target?.carbsG, c: 'bg-sky-500' },
               { n: '脂肪', v: total.fatG, t: target?.fatG, c: 'bg-amber-500' },
             ].map((m) => (
@@ -121,10 +121,10 @@ export function Diary() {
                 <h2 className="text-lg font-semibold">{MEAL_LABELS[meal]}</h2>
                 <p className="text-sm text-slate-600 dark:text-slate-300">
                   {list.length === 0
-                    ? '還沒有記錄'
+                    ? '还没有记录'
                     : hide
-                      ? `${list.length} 項`
-                      : `${list.length} 項 · ${fmtInt(sub.kcal)} kcal`}
+                      ? `${list.length} 项`
+                      : `${list.length} 项 · ${fmtInt(sub.kcal)} kcal`}
                 </p>
               </div>
               <Link
@@ -148,10 +148,10 @@ export function Diary() {
 
       <Card>
         <Check checked={complete} onChange={(v) => update((x) => setDayComplete(x, date, v))}>
-          這一天的飲食已完整記錄
+          这一天的饮食已完整记录
         </Check>
         <p className="text-xs text-slate-600 dark:text-slate-300">
-          只有標記為完整的日子，才會用來估算你的實際消耗和建議調整。
+          只有标记为完整的日子，才会用来估算你的实际消耗和建议调整。
         </p>
       </Card>
     </div>
@@ -171,8 +171,8 @@ function MealRow({ item: i, hide }: { item: MealItem; hide: boolean }) {
   const remove = () => {
     update((x) => removeMeal(x, i.id));
     toast({
-      text: `已刪除 ${i.name}`,
-      actionLabel: '復原',
+      text: `已删除 ${i.name}`,
+      actionLabel: '撤销',
       onAction: () => update((x) => restoreMeal(x, i)),
     });
   };
@@ -183,7 +183,7 @@ function MealRow({ item: i, hide }: { item: MealItem; hide: boolean }) {
         <button
           type="button"
           onClick={() => setEditing(true)}
-          aria-label={`編輯 ${i.name}`}
+          aria-label={`编辑 ${i.name}`}
           className="flex w-full items-center gap-3 rounded-2xl py-3 text-left hover:bg-slate-50 dark:hover:bg-slate-700"
         >
           <span className="min-w-0 flex-1">
@@ -198,7 +198,7 @@ function MealRow({ item: i, hide }: { item: MealItem; hide: boolean }) {
             <span className="block text-xs text-slate-600 dark:text-slate-300">
               {fmt1(i.grams)} g
               {!hide &&
-                ` · 蛋白質 ${fmt1(i.nutrients.proteinG)} g · 碳水 ${fmt1(i.nutrients.carbsG)} g · 脂肪 ${fmt1(i.nutrients.fatG)} g`}
+                ` · 蛋白质 ${fmt1(i.nutrients.proteinG)} g · 碳水 ${fmt1(i.nutrients.carbsG)} g · 脂肪 ${fmt1(i.nutrients.fatG)} g`}
             </span>
           </span>
           {!hide && <span className="shrink-0 font-semibold">{fmtInt(i.nutrients.kcal)} kcal</span>}
@@ -214,7 +214,7 @@ function MealRow({ item: i, hide }: { item: MealItem; hide: boolean }) {
     <li className="space-y-3 rounded-2xl bg-slate-50 p-3 my-2 dark:bg-slate-700">
       <p className="font-medium">{i.name}</p>
       <div className="grid grid-cols-2 gap-3">
-        <Field label="份量（g）" error={ok ? null : '需介於 1 至 5000 g'}>
+        <Field label="份量（g）" error={ok ? null : '需介于 1 至 5000 g'}>
           {(p) => (
             <input
               {...p}
@@ -240,7 +240,7 @@ function MealRow({ item: i, hide }: { item: MealItem; hide: boolean }) {
         onChange={setMeal}
       />
       {meal === 'snack' && (
-        <Field label="名稱（選填）">
+        <Field label="名称（选填）">
           {(p) => (
             <input
               {...p}
@@ -255,7 +255,7 @@ function MealRow({ item: i, hide }: { item: MealItem; hide: boolean }) {
       )}
       <div className="flex gap-2">
         <Button variant="danger" onClick={remove}>
-          刪除
+          删除
         </Button>
         <Button variant="secondary" onClick={() => setEditing(false)}>
           取消
@@ -269,7 +269,7 @@ function MealRow({ item: i, hide }: { item: MealItem; hide: boolean }) {
             toast({ text: '已更新' });
           }}
         >
-          儲存
+          保存
         </Button>
       </div>
     </li>
