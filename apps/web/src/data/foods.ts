@@ -1,4 +1,5 @@
 import type { Food } from './types';
+import { SG_FOODS } from './foodsSg';
 
 // Values per 100 g fetched from USDA FoodData Central, SR Legacy (public domain, CC0)
 // on 2026-10-11. Never edit a number by hand: re-fetch and update sourceRef instead.
@@ -91,3 +92,6 @@ export const SEED_FOODS: Food[] = [
     sourceRef: 'USDA FDC 175168',
   },
 ];
+
+/** Every food shipped with the app: SG FoodID local dishes first, then USDA basics. */
+export const BUILT_IN_FOODS: Food[] = [...SG_FOODS, ...SEED_FOODS];

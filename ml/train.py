@@ -121,7 +121,7 @@ def load_data(args):
         test = datasets.ImageFolder(data_dir / "test", transform=eval_transform())
         if val.classes != train.classes or test.classes != train.classes:
             raise SystemExit("train/val/test must contain the same class folders")
-        return train, val, test, train.classes, f"Own photos: {data_dir}"
+        return train, val, test, train.classes, f"Image folder: {data_dir}"
 
     full_aug = datasets.ImageFolder(data_dir, transform=train_transform())
     full_eval = datasets.ImageFolder(data_dir, transform=eval_transform())
@@ -131,7 +131,7 @@ def load_data(args):
         Subset(full_eval, val_idx),
         Subset(full_eval, test_idx),
         full_aug.classes,
-        f"Own photos: {data_dir} (auto split 70/15/15, seed {args.seed})",
+        f"Image folder: {data_dir} (auto split 70/15/15, seed {args.seed})",
     )
 
 

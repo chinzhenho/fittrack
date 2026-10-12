@@ -8,7 +8,7 @@ import { useSync } from './data/sync';
 import { AddFood } from './pages/AddFood';
 import { Loading, Login, ResetPassword, Signup, UpdatePassword, Welcome } from './pages/Auth';
 import { Diary } from './pages/Diary';
-import { Disclaimer, HowWeCalculate, Privacy } from './pages/Info';
+import { Credits, Disclaimer, HowWeCalculate, Privacy } from './pages/Info';
 import { Me } from './pages/Me';
 import { Onboarding } from './pages/Onboarding';
 import { Progress } from './pages/Progress';
@@ -59,6 +59,7 @@ export function AppRoutes() {
       <Route path="/how-we-calculate" element={<HowWeCalculate />} />
       <Route path="/legal/disclaimer" element={<Disclaimer />} />
       <Route path="/legal/privacy" element={<Privacy />} />
+      <Route path="/legal/credits" element={<Credits />} />
       <Route
         element={
           <RequireProfile>

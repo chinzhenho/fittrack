@@ -1,10 +1,22 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { AppRoutes } from './App';
 import { ToastProvider } from './components/Toast';
 import { getState, replaceState } from './data/store';
 import { emptyState } from './data/types';
+
+vi.mock('./ml/foodRecognizer', () => ({
+  recognizeFood: vi.fn(() =>
+    Promise.resolve([
+      { label: 'nasi_lemak', probability: 0.9 },
+      { label: 'rendang', probability: 0.06 },
+      { label: 'chicken_rice', probability: 0.02 },
+    ]),
+  ),
+}));
+URL.createObjectURL = () => 'blob:test';
+URL.revokeObjectURL = () => undefined;
 
 function renderAt(path: string) {
   return render(
@@ -60,7 +72,7 @@ describe('app flow', () => {
     expect(button.disabled).toBe(false);
   });
 
-  it('completes onboarding with spec case A and logs a food', () => {
+  it('completes onboarding with spec case A and logs a food', async () => {
     renderAt('/onboarding');
     fireEvent.click(screen.getByLabelText('我年滿 18 歲'));
     fireEvent.click(screen.getByLabelText(/我已閱讀並接受/));
@@ -103,6 +115,18 @@ describe('app flow', () => {
     const meal = getState().meals[0];
     expect(meal).toMatchObject({ meal: 'lunch', grams: 150, foodId: 'usda-172475' });
     expect(meal?.nutrients.kcal).toBeCloseTo(216, 10);
+
+    // Photo -> recognised dish -> SG FoodID variant -> one serving logged.
+    cleanup();
+    renderAt('/diary/add?meal=dinner');
+    const photo = new File(['x'], 'food.jpg', { type: 'image/jpeg' });
+    fireEvent.change(screen.getByLabelText('從相簿選擇'), { target: { files: [photo] } });
+    fireEvent.click(await screen.findByRole('button', { name: /Nasi lemak（炸魚套餐）/ }));
+    expect((screen.getByLabelText('份量（g）') as HTMLInputElement).value).toBe('335');
+    fireEvent.click(screen.getByRole('button', { name: '加入晚餐' }));
+    const dinner = getState().meals.find((m) => m.meal === 'dinner');
+    expect(dinner).toMatchObject({ foodId: 'sg-F05100089', grams: 335 });
+    expect(dinner?.nutrients.kcal).toBeCloseTo(693.45, 10);
   });
 
   it('shows the safety refusal for an underweight fat-loss goal', () => {

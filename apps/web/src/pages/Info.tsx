@@ -1,7 +1,8 @@
 import { FORMULA_VERSION } from '@fittrack/engine';
-import type { ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { Link } from 'react-router';
 import { Card } from '../components/ui';
+import { SG_FOODID_ACCESSED, SG_FOODID_URL } from '../data/foodsSg';
 
 function InfoPage({
   title,
@@ -31,7 +32,7 @@ function InfoPage({
 
 export function HowWeCalculate() {
   return (
-    <InfoPage title="計算方法與資料來源" updated="2026-10-11">
+    <InfoPage title="計算方法與資料來源" updated="2026-10-12">
       <p>
         所有數字都由公開、可檢查的公式計算（公式版本 {FORMULA_VERSION}
         ）。它們是估算，不是你身體的精確測量。
@@ -78,8 +79,19 @@ export function HowWeCalculate() {
       </p>
       <h2>食物資料</h2>
       <p>
-        內建食物的營養數值來自美國農業部 USDA FoodData Central（SR
-        Legacy，公有領域），每項都標示來源編號。自訂食物由你按包裝標籤輸入，只有你看得到。
+        內建的本地菜式（nasi lemak、roti canai、雞飯等）來自新加坡保健促進局 SG FoodID
+        資料庫；基本食材來自美國農業部 USDA FoodData Central（SR
+        Legacy，公有領域）。每項都標示來源編號。自訂食物由你按包裝標籤輸入，只有你看得到。
+      </p>
+      <h2>拍照辨識</h2>
+      <p>
+        拍照功能用一個在你裝置上運行的圖像分類模型（MobileNetV3），只判斷照片是哪一道菜，不會估算份量。熱量來自你選擇的菜式和份量，請按實際情況調整克數。模型在
+        131 張測試照片上的首選準確率約 80%，所以每次都請你確認結果。
+      </p>
+      <p>
+        <Link to="/legal/credits" className="underline">
+          資料與圖片來源
+        </Link>
       </p>
     </InfoPage>
   );
@@ -123,6 +135,9 @@ export function Privacy() {
         Supabase
         代為儲存，伺服器位於新加坡。資料庫設有權限規則，每個帳號只能讀寫自己的資料。裝置上也會保留一份副本，讓你離線時也能使用。註冊時你會被要求明確同意這項儲存。
       </p>
+      <p>
+        <strong>拍照辨識：</strong>照片只在你的裝置上由瀏覽器分析，不會上傳，也不會被保存。
+      </p>
       <h2>用途</h2>
       <p>
         只用於計算熱量目標、營養建議、趨勢和每日任務，以及在你的裝置之間同步。我們不出售資料，也不使用廣告追蹤。
@@ -137,6 +152,71 @@ export function Privacy() {
       <h2>未來變更</h2>
       <p>政策有重要變更時，我們會在網站內通知你。</p>
       <p>此文件為草稿，正式公開上線前會由法律專業人士按 PDPA 審閱，並提供英文及馬來文版本。</p>
+    </InfoPage>
+  );
+}
+
+interface PhotoCredit {
+  c: string;
+  t: string;
+  a: string;
+  l: string;
+  u: string;
+}
+
+export function Credits() {
+  const [photos, setPhotos] = useState<PhotoCredit[] | null>(null);
+  const [failed, setFailed] = useState(false);
+  useEffect(() => {
+    fetch('/models/food-v1/credits.json')
+      .then((r) => (r.ok ? (r.json() as Promise<PhotoCredit[]>) : Promise.reject(new Error())))
+      .then(setPhotos)
+      .catch(() => setFailed(true));
+  }, []);
+
+  return (
+    <InfoPage title="資料與圖片來源" updated="2026-10-12">
+      <h2>本地菜式營養資料</h2>
+      <p>
+        Contains information from the Singapore Food Insights Database (SG FoodID), Health Promotion
+        Board, accessed on {SG_FOODID_ACCESSED}, which is made available under the terms of the SG
+        FoodID Terms of Use:{' '}
+        <a href={SG_FOODID_URL} className="break-all underline" target="_blank" rel="noreferrer">
+          {SG_FOODID_URL}
+        </a>
+        . The information is provided &quot;as is&quot; without warranty. FitTrack is not endorsed
+        by or affiliated with the Health Promotion Board.
+      </p>
+      <p>
+        本網站的本地菜式營養數值取自新加坡保健促進局 SG FoodID
+        資料庫，數字未經修改；中文名稱與份量按鈕為我們加上。新加坡與馬來西亞的做法和份量可能不同。
+      </p>
+      <h2>基本食材營養資料</h2>
+      <p>U.S. Department of Agriculture, FoodData Central（SR Legacy），公有領域（CC0）。</p>
+      <h2>拍照辨識模型的訓練圖片</h2>
+      <p>
+        模型使用來自 Wikimedia Commons 和 Openverse 的公開授權照片訓練（CC0、公有領域、CC BY、CC
+        BY-SA）。照片沒有包含在網站中，只有訓練後的模型。以下按授權條款列出每張照片的作者與來源。
+      </p>
+      {failed && <p>無法載入圖片清單，請稍後再試。</p>}
+      {!photos && !failed && <p>載入中…</p>}
+      {photos && (
+        <details>
+          <summary className="min-h-11 cursor-pointer">
+            顯示全部 {photos.length} 張照片的來源
+          </summary>
+          <ul className="mt-2 text-xs break-words">
+            {photos.map((p) => (
+              <li key={p.u}>
+                <a href={p.u} className="underline" target="_blank" rel="noreferrer">
+                  {p.t.replace(/^File:/, '')}
+                </a>{' '}
+                — {p.a || '作者不詳'}，{p.l}
+              </li>
+            ))}
+          </ul>
+        </details>
+      )}
     </InfoPage>
   );
 }

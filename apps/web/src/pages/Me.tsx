@@ -394,6 +394,11 @@ export function Me() {
               隱私政策
             </Link>
           </li>
+          <li>
+            <Link className="flex min-h-11 items-center underline" to="/legal/credits">
+              資料與圖片來源
+            </Link>
+          </li>
         </ul>
       </Card>
     </div>

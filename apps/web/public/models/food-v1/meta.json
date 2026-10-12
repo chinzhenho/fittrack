@@ -1,0 +1,27 @@
+{
+  "arch": "mobilenet_v3_large",
+  "precision": "fp32",
+  "labels": [
+    "char_kway_teow",
+    "chicken_rice",
+    "laksa",
+    "mee_goreng",
+    "nasi_goreng",
+    "nasi_lemak",
+    "rendang",
+    "roti_canai",
+    "satay",
+    "wonton_noodles"
+  ],
+  "input": {
+    "name": "input",
+    "size": 224,
+    "resize": 256,
+    "mean": [0.485, 0.456, 0.406],
+    "std": [0.229, 0.224, 0.225]
+  },
+  "output": "logits",
+  "test_top1_onnx": 0.8015,
+  "test_images_scored": 131,
+  "source": "Wikimedia Commons + Openverse photos (CC0 / public domain / CC BY / CC BY-SA), manually cleaned; 877 images. Credits: credits.json"
+}

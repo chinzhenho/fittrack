@@ -1,13 +1,15 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
 import { useToast } from '../components/Toast';
 import { Button, Card, Field, inputClass, PageTitle, Segmented } from '../components/ui';
 import { addCustomFood, logFood } from '../data/actions';
-import { SEED_FOODS } from '../data/foods';
+import { BUILT_IN_FOODS } from '../data/foods';
+import { DISH_LABELS } from '../data/foodsSg';
 import { newId, update, useAppState } from '../data/store';
 import type { Food, MealType } from '../data/types';
 import { localToday } from '../lib/dates';
 import { fmt1, fmtInt } from '../lib/format';
+import type { Prediction } from '../ml/foodRecognizer';
 import {
   MEAL_LABELS,
   MEAL_TYPES,
@@ -40,13 +42,18 @@ export function AddFood() {
   const [grams, setGrams] = useState('100');
   const [creating, setCreating] = useState(false);
 
-  const allFoods = useMemo(() => [...s.customFoods, ...SEED_FOODS], [s.customFoods]);
+  const allFoods = useMemo(() => [...s.customFoods, ...BUILT_IN_FOODS], [s.customFoods]);
   const recent = recentFoodIds(s.meals)
     .map((id) => allFoods.find((f) => f.id === id))
     .filter((f): f is Food => f !== undefined);
   const results = searchFoods(allFoods, query);
   const g = Number(grams);
   const gramsOk = g > 0 && g <= 5000;
+
+  const pick = (f: Food) => {
+    setSelected(f);
+    setGrams(String(Math.round(f.servings?.[0]?.grams ?? 100)));
+  };
 
   const add = () => {
     if (!selected || !gramsOk) return;
@@ -81,9 +88,37 @@ export function AddFood() {
             <p className="text-xs text-slate-500 dark:text-slate-400">
               {selected.source === 'usda'
                 ? `來源：${selected.sourceRef}（已驗證）`
-                : '來源：你自己輸入的包裝標籤'}
+                : selected.source === 'sgfoodid'
+                  ? `來源：新加坡保健促進局 ${selected.sourceRef}`
+                  : '來源：你自己輸入的包裝標籤'}
             </p>
+            {selected.description && (
+              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                {selected.description}
+              </p>
+            )}
           </div>
+          {selected.servings?.map((sv) => (
+            <div key={sv.label}>
+              <p className="mb-2 text-sm">
+                標準份量：{sv.label}（可食用部分約 {fmtInt(sv.grams)} g）
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {[0.5, 1, 1.5, 2].map((m) => (
+                  <Button
+                    key={m}
+                    variant="secondary"
+                    onClick={() => setGrams(String(Math.round(sv.grams * m * 10) / 10))}
+                  >
+                    {m} 份
+                  </Button>
+                ))}
+              </div>
+              <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+                份量比標準多或少時，請按實際情況調整克數。
+              </p>
+            </div>
+          ))}
           <Field label="份量（g）" error={gramsOk ? null : '份量需介於 1 至 5000 g。'}>
             {(p) => (
               <input
@@ -113,11 +148,12 @@ export function AddFood() {
           onSave={(food) => {
             update((x) => addCustomFood(x, food));
             setCreating(false);
-            setSelected(food);
+            pick(food);
           }}
         />
       ) : (
         <>
+          <PhotoCard foods={BUILT_IN_FOODS} onPick={pick} />
           <Field label="搜尋食物" hint="可輸入中文、英文或馬來文，例如：雞蛋、tauhu、rice">
             {(p) => (
               <input
@@ -131,19 +167,15 @@ export function AddFood() {
             )}
           </Field>
           {!query && recent.length > 0 && (
-            <FoodList title="最近吃過" foods={recent} onPick={setSelected} />
+            <FoodList title="最近吃過" foods={recent} onPick={pick} />
           )}
           <FoodList
             title={query ? `搜尋結果（${results.length}）` : '所有食物'}
             foods={results}
-            onPick={setSelected}
+            onPick={pick}
           />
           <Card>
             <p className="text-sm">找不到？可以按包裝上的營養標籤自己新增。</p>
-            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-              馬來西亞本地菜式（如 nasi lemak、roti
-              canai）會在取得可靠的營養資料來源後加入，不會使用估計數字。
-            </p>
             <Button variant="secondary" className="mt-3" onClick={() => setCreating(true)}>
               新增自訂食物
             </Button>
@@ -151,6 +183,133 @@ export function AddFood() {
         </>
       )}
     </div>
+  );
+}
+
+const SOURCE_LABEL: Record<Food['source'], string> = {
+  usda: 'USDA',
+  sgfoodid: 'SG FoodID',
+  user: '自訂',
+};
+
+function servingText(f: Food): string {
+  const sv = f.servings?.[0];
+  if (!sv) return `每 100 g ${fmtInt(f.per100g.kcal)} kcal`;
+  return `${sv.label}約 ${fmtInt(nutrientsFor(f.per100g, sv.grams).kcal)} kcal`;
+}
+
+type PhotoState =
+  | { status: 'idle' }
+  | { status: 'working' }
+  | { status: 'done'; predictions: Prediction[]; dish: string }
+  | { status: 'error'; message: string };
+
+/** Below this top-1 probability the photo is treated as "not sure". */
+const CONFIDENT = 0.5;
+
+function PhotoCard({ foods, onPick }: { foods: Food[]; onPick: (f: Food) => void }) {
+  const [state, setState] = useState<PhotoState>({ status: 'idle' });
+  const [preview, setPreview] = useState<string | null>(null);
+
+  useEffect(
+    () => () => {
+      if (preview) URL.revokeObjectURL(preview);
+    },
+    [preview],
+  );
+
+  const onFile = async (file: File | undefined) => {
+    if (!file) return;
+    setPreview(URL.createObjectURL(file));
+    setState({ status: 'working' });
+    try {
+      const { recognizeFood } = await import('../ml/foodRecognizer');
+      const predictions = await recognizeFood(file);
+      setState({ status: 'done', predictions, dish: predictions[0]?.label ?? '' });
+    } catch (e) {
+      setState({
+        status: 'error',
+        message: e instanceof Error ? e.message : '辨識失敗，請檢查網絡後再試。',
+      });
+    }
+  };
+
+  const fileButton = (label: string, capture: boolean) => (
+    <label className="inline-flex min-h-11 cursor-pointer items-center justify-center rounded-xl border border-slate-300 bg-white px-4 text-sm text-navy has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-emerald dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100">
+      {label}
+      <input
+        type="file"
+        accept="image/*"
+        {...(capture && { capture: 'environment' as const })}
+        className="sr-only"
+        disabled={state.status === 'working'}
+        onChange={(e) => {
+          void onFile(e.target.files?.[0]);
+          e.target.value = '';
+        }}
+      />
+    </label>
+  );
+
+  const variants = state.status === 'done' ? foods.filter((f) => f.dishClass === state.dish) : [];
+  const top = state.status === 'done' ? state.predictions[0] : undefined;
+
+  return (
+    <Card className="space-y-3">
+      <div>
+        <h2 className="text-sm font-semibold">📷 拍照辨識（測試版）</h2>
+        <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+          目前可辨識 10 種本地菜式：{Object.values(DISH_LABELS).join('、')}
+          。照片只在你的裝置上分析，不會上傳。第一次使用需下載約 30 MB。
+        </p>
+      </div>
+      <div className="flex flex-wrap gap-2">
+        {fileButton('拍照', true)}
+        {fileButton('從相簿選擇', false)}
+      </div>
+
+      {preview && (
+        <img
+          src={preview}
+          alt="你選擇的食物照片"
+          className="max-h-48 w-full rounded-xl object-cover"
+        />
+      )}
+      {state.status === 'working' && (
+        <p className="text-sm" role="status">
+          辨識中…（第一次需要下載模型，請稍候）
+        </p>
+      )}
+      {state.status === 'error' && (
+        <p className="text-sm text-red-700 dark:text-red-400" role="alert">
+          {state.message}
+        </p>
+      )}
+      {state.status === 'done' && (
+        <div className="space-y-3">
+          {top && top.probability < CONFIDENT && (
+            <p className="text-sm text-amber-700 dark:text-amber-400">
+              不太確定是哪一道菜。如果下面都不對，請用搜尋或自訂食物。
+            </p>
+          )}
+          <div>
+            <p className="mb-2 text-sm">最可能是（點選切換）：</p>
+            <div className="flex flex-wrap gap-2">
+              {state.predictions.map((p) => (
+                <Button
+                  key={p.label}
+                  variant={p.label === state.dish ? 'primary' : 'secondary'}
+                  onClick={() => setState({ ...state, dish: p.label })}
+                >
+                  {DISH_LABELS[p.label] ?? p.label} {Math.round(p.probability * 100)}%
+                </Button>
+              ))}
+            </div>
+          </div>
+          <FoodList title="選擇最接近的一種（之後可調整份量）" foods={variants} onPick={onPick} />
+        </div>
+      )}
+    </Card>
   );
 }
 
@@ -204,8 +363,7 @@ function FoodList({
                 <span className="min-w-0">
                   <span className="block truncate text-sm font-medium">{f.nameZh}</span>
                   <span className="block text-xs text-slate-500 dark:text-slate-400">
-                    每 100 g · {fmtInt(f.per100g.kcal)} kcal ·{' '}
-                    {f.source === 'usda' ? 'USDA' : '自訂'}
+                    {servingText(f)} · {SOURCE_LABEL[f.source]}
                   </span>
                 </span>
                 <span aria-hidden="true" className="text-slate-400">
