@@ -25,7 +25,7 @@ import { deleteCloudData, signOut, useSync, type SyncStatus } from '../data/sync
 import { getState, isPersistent, newId, replaceState, update, useAppState } from '../data/store';
 import { emptyState, type DietTag, type LifestyleMode, type Profile } from '../data/types';
 import { localToday } from '../lib/dates';
-import { fmtInt } from '../lib/format';
+import { fmt1, fmtInt } from '../lib/format';
 import { setTheme, useTheme, type Theme } from '../lib/theme';
 import {
   ACTIVITY_LABELS,
@@ -53,7 +53,7 @@ const SYNC_TEXT: Record<SyncStatus, string> = {
   error: '同步失敗，稍後會自動重試。',
 };
 
-export function Me() {
+export function Me({ mode = 'home' }: { mode?: 'home' | 'plan' }) {
   const s = useAppState();
   const toast = useToast();
   const navigate = useNavigate();
@@ -109,6 +109,7 @@ export function Me() {
       ),
     );
     toast({ text: `已儲存，新的每日目標是 ${fmtInt(preview.plan.caloriesKcal)} kcal` });
+    navigate('/me');
   };
 
   const exportData = () => {
@@ -121,19 +122,323 @@ export function Me() {
     URL.revokeObjectURL(url);
   };
 
+  if (mode === 'plan') {
+    return (
+      <div className="space-y-4">
+        <Link
+          to="/me"
+          className="inline-flex min-h-11 items-center text-sm font-medium text-emerald-strong dark:text-emerald"
+        >
+          ‹ 我
+        </Link>
+        <PageTitle sub="改完按最下面的「儲存並重新計算」">我的計劃</PageTitle>
+        <Card className="space-y-5">
+          <CardTitle>目標與生活方式</CardTitle>
+          <Segmented
+            label="目標"
+            value={draft.goal}
+            options={(Object.keys(GOAL_LABELS) as Goal[]).map((g) => ({
+              value: g,
+              label: GOAL_LABELS[g],
+            }))}
+            onChange={(g) =>
+              setDraft({ ...draft, goal: g, ratePctPerWeek: RATE_PCT_PER_WEEK[g].default })
+            }
+          />
+          {draft.goal !== 'maintain' && (
+            <Segmented
+              label="每週體重變化"
+              value={String(draft.ratePctPerWeek)}
+              options={RATE_OPTIONS[draft.goal].map((r) => ({ value: String(r), label: `${r}%` }))}
+              onChange={(v) => set('ratePctPerWeek', Number(v))}
+            />
+          )}
+          <Segmented
+            label="生活方式模式"
+            hint="切換模式不會影響熱量公式，只會改變建議的任務和訓練"
+            value={draft.lifestyleMode}
+            options={(Object.keys(MODE_LABELS) as LifestyleMode[]).map((m) => ({
+              value: m,
+              label: MODE_LABELS[m].name,
+            }))}
+            onChange={(m) => set('lifestyleMode', m)}
+          />
+        </Card>
+
+        <Card className="space-y-5">
+          <CardTitle>身體資料</CardTitle>
+          <Segmented
+            label="計算公式"
+            value={draft.formulaSex}
+            options={(Object.keys(SEX_LABELS) as FormulaSex[]).map((x) => ({
+              value: x,
+              label: SEX_LABELS[x],
+            }))}
+            onChange={(v) => set('formulaSex', v)}
+          />
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field
+              label="出生日期"
+              error={invalid === 'birthDate' ? fieldMessage('birthDate') : null}
+            >
+              {(p) => (
+                <input
+                  {...p}
+                  type="date"
+                  max={today}
+                  value={draft.birthDate}
+                  onChange={(e) => set('birthDate', e.target.value)}
+                  className={inputClass}
+                />
+              )}
+            </Field>
+            <Field
+              label="身高（cm）"
+              error={invalid === 'heightCm' ? fieldMessage('heightCm') : null}
+            >
+              {(p) => (
+                <input
+                  {...p}
+                  type="number"
+                  inputMode="decimal"
+                  step="0.1"
+                  value={heightText}
+                  onChange={(e) => setHeightText(e.target.value)}
+                  className={inputClass}
+                />
+              )}
+            </Field>
+          </div>
+          <p className="text-xs text-slate-600 dark:text-slate-300">
+            體重請在「進度」頁面記錄，計算會使用最新的體重（{weight} kg）。
+          </p>
+          <Segmented
+            label="日常活動水平"
+            value={draft.activityLevel}
+            options={(Object.keys(ACTIVITY_LABELS) as ActivityLevel[]).map((a) => ({
+              value: a,
+              label: ACTIVITY_LABELS[a].name,
+              sub: ACTIVITY_LABELS[a].hint,
+            }))}
+            onChange={(v) => set('activityLevel', v)}
+          />
+          <fieldset className="space-y-1">
+            <legend className="text-sm font-medium">健康狀況</legend>
+            <Check
+              checked={draft.screening.pregnantOrLactating}
+              onChange={(v) => set('screening', { ...draft.screening, pregnantOrLactating: v })}
+            >
+              正在懷孕或哺乳
+            </Check>
+            <Check
+              checked={draft.screening.eatingDisorderHistory}
+              onChange={(v) => set('screening', { ...draft.screening, eatingDisorderHistory: v })}
+            >
+              曾被診斷或正在接受飲食失調治療
+            </Check>
+            <Check
+              checked={draft.screening.kidneyDisease}
+              onChange={(v) => set('screening', { ...draft.screening, kidneyDisease: v })}
+            >
+              有腎臟疾病
+            </Check>
+            <Check
+              checked={draft.screening.exerciseCaution}
+              onChange={(v) => set('screening', { ...draft.screening, exerciseCaution: v })}
+            >
+              醫生曾建議我限制運動，或我有心臟、關節等問題
+            </Check>
+          </fieldset>
+          <fieldset className="space-y-1">
+            <legend className="text-sm font-medium">飲食偏好</legend>
+            {(Object.keys(DIET_LABELS) as DietTag[]).map((t) => (
+              <Check
+                key={t}
+                checked={draft.dietTags.includes(t)}
+                onChange={(on) =>
+                  set(
+                    'dietTags',
+                    on ? [...draft.dietTags, t] : draft.dietTags.filter((x) => x !== t),
+                  )
+                }
+              >
+                {DIET_LABELS[t]}
+              </Check>
+            ))}
+          </fieldset>
+
+          {changed && preview && !preview.ok && (
+            <Notice tone="warn" title={rejectMessage(preview.reason).title}>
+              {rejectMessage(preview.reason).body}
+            </Notice>
+          )}
+          {changed && preview?.ok && target && (
+            <Notice>
+              儲存後每日目標會由 {fmtInt(target.caloriesKcal)} kcal 變為{' '}
+              {fmtInt(preview.plan.caloriesKcal)} kcal。舊的記錄和目標歷史會保留。
+            </Notice>
+          )}
+          <Button className="w-full" disabled={!changed || !preview?.ok} onClick={save}>
+            儲存並重新計算
+          </Button>
+        </Card>
+      </div>
+    );
+  }
+
+  const initial = signedIn ? (auth.user.email?.[0] ?? '?').toUpperCase() : '🙂';
+  const row =
+    'flex min-h-14 w-full items-center gap-3 px-1 text-left hover:bg-slate-50 dark:hover:bg-slate-700 rounded-2xl';
+
   return (
     <div className="space-y-4">
       <PageTitle>我</PageTitle>
 
-      <Card className="space-y-3">
-        <CardTitle>帳號</CardTitle>
-        {signedIn ? (
-          <>
-            <p className="text-sm">
-              已登入：<span className="font-medium">{auth.user.email}</span>
+      <section className="rounded-3xl bg-gradient-to-br from-emerald-700 to-teal-800 p-5 text-white shadow-md">
+        <div className="flex items-center gap-4">
+          <span
+            aria-hidden="true"
+            className="flex size-14 shrink-0 items-center justify-center rounded-full bg-white/20 text-2xl font-bold"
+          >
+            {initial}
+          </span>
+          <div className="min-w-0">
+            <p className="truncate text-lg font-semibold">
+              {signedIn ? auth.user.email : '訪客（未登入）'}
             </p>
-            <p className="text-sm text-slate-600 dark:text-slate-300">{SYNC_TEXT[sync.status]}</p>
-            <div className="flex flex-wrap gap-2">
+            <p className="text-sm text-emerald-50">
+              {signedIn ? SYNC_TEXT[sync.status] || '已登入' : '資料只保存在這部裝置'}
+            </p>
+          </div>
+        </div>
+        {target && !profile.hideNumbers && (
+          <dl className="mt-4 grid grid-cols-3 gap-2 text-center">
+            {[
+              { k: '每日熱量', v: `${fmtInt(target.caloriesKcal)}`, u: 'kcal' },
+              { k: '蛋白質', v: `${target.proteinG}`, u: 'g' },
+              { k: '目標', v: GOAL_LABELS[profile.goal], u: '' },
+            ].map((x) => (
+              <div key={x.k} className="rounded-2xl bg-white/15 px-2 py-2">
+                <dt className="text-xs text-emerald-50">{x.k}</dt>
+                <dd className="font-semibold">
+                  {x.v}
+                  {x.u && <span className="ml-0.5 text-xs font-normal">{x.u}</span>}
+                </dd>
+              </div>
+            ))}
+          </dl>
+        )}
+        {!signedIn && (
+          <div className="mt-4 flex gap-2">
+            <Link
+              to="/signup"
+              className="inline-flex min-h-11 flex-1 items-center justify-center rounded-2xl bg-white px-4 text-sm font-semibold text-emerald-900"
+            >
+              註冊並備份
+            </Link>
+            <Link
+              to="/login"
+              className="inline-flex min-h-11 flex-1 items-center justify-center rounded-2xl border border-white/50 px-4 text-sm font-semibold"
+            >
+              登入
+            </Link>
+          </div>
+        )}
+      </section>
+
+      <Card className="p-3">
+        <ul>
+          <li>
+            <Link to="/me/plan" className={row}>
+              <span aria-hidden="true" className="text-xl">
+                🎯
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block font-medium">我的計劃</span>
+                <span className="block truncate text-xs text-slate-600 dark:text-slate-300">
+                  {GOAL_LABELS[profile.goal]}
+                  {profile.goal !== 'maintain' && ` · 每週 ${profile.ratePctPerWeek}%`} ·{' '}
+                  {MODE_LABELS[profile.lifestyleMode].name} · 身高 {profile.heightCm} cm
+                </span>
+              </span>
+              <span aria-hidden="true" className="text-slate-400">
+                ›
+              </span>
+            </Link>
+          </li>
+          <li>
+            <Link to="/workout" className={row}>
+              <span aria-hidden="true" className="text-xl">
+                🏃
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block font-medium">運動與訓練</span>
+                <span className="block text-xs text-slate-600 dark:text-slate-300">
+                  在家、Gym、散步的訓練和記錄
+                </span>
+              </span>
+              <span aria-hidden="true" className="text-slate-400">
+                ›
+              </span>
+            </Link>
+          </li>
+          <li>
+            <Link to="/progress" className={row}>
+              <span aria-hidden="true" className="text-xl">
+                ⚖️
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block font-medium">體重記錄</span>
+                <span className="block text-xs text-slate-600 dark:text-slate-300">
+                  目前 {fmt1(weight)} kg
+                </span>
+              </span>
+              <span aria-hidden="true" className="text-slate-400">
+                ›
+              </span>
+            </Link>
+          </li>
+        </ul>
+      </Card>
+
+      <Card className="space-y-4">
+        <CardTitle>顯示</CardTitle>
+        <Segmented<Theme>
+          label="外觀"
+          value={theme}
+          options={[
+            { value: 'light', label: '☀️ 淺色' },
+            { value: 'dark', label: '🌙 深色' },
+            { value: 'system', label: '跟隨手機' },
+          ]}
+          onChange={setTheme}
+        />
+        <Check checked={profile.hideNumbers} onChange={(v) => update((x) => setHideNumbers(x, v))}>
+          隱藏熱量和體重數字（只看習慣和食物）
+        </Check>
+      </Card>
+
+      <Card className="space-y-3">
+        <CardTitle>資料與帳號</CardTitle>
+        <p className="text-sm text-slate-600 dark:text-slate-300">
+          {signedIn
+            ? '資料保存在你的帳號（伺服器在新加坡），這部裝置也有一份副本供離線使用。'
+            : isPersistent()
+              ? '資料只保存在這部裝置的瀏覽器中。清除瀏覽器資料或換手機會令資料消失，建議註冊或定期匯出備份。'
+              : '這個瀏覽器目前無法保存資料。'}
+        </p>
+        <div className="flex flex-wrap gap-2">
+          <Button variant="secondary" onClick={exportData}>
+            匯出備份
+          </Button>
+          {signedIn && (
+            <>
+              <Link
+                to="/update-password"
+                className="inline-flex min-h-11 items-center rounded-2xl border border-slate-200 px-4 text-sm font-medium dark:border-slate-600"
+              >
+                更改密碼
+              </Link>
               <Button
                 variant="secondary"
                 disabled={busy}
@@ -145,214 +450,9 @@ export function Me() {
               >
                 登出
               </Button>
-              <Link
-                to="/update-password"
-                className="inline-flex min-h-11 items-center rounded-xl px-4 text-sm text-emerald-strong hover:bg-emerald/10 dark:text-emerald"
-              >
-                更改密碼
-              </Link>
-            </div>
-          </>
-        ) : (
-          <>
-            <p className="text-sm text-slate-600 dark:text-slate-300">
-              你沒有登入：資料只保存在這部裝置。註冊後，現有的記錄會自動上傳到你的帳號，換手機也不會遺失。
-            </p>
-            <div className="flex flex-wrap gap-2">
-              <Link
-                to="/signup"
-                className="inline-flex min-h-11 items-center rounded-xl bg-emerald px-4 text-sm font-semibold text-navy"
-              >
-                註冊並備份
-              </Link>
-              <Link
-                to="/login"
-                className="inline-flex min-h-11 items-center rounded-xl border border-slate-300 px-4 text-sm dark:border-slate-500"
-              >
-                登入
-              </Link>
-            </div>
-          </>
-        )}
-      </Card>
-
-      <Card className="space-y-5">
-        <CardTitle>目標與生活方式</CardTitle>
-        <Segmented
-          label="目標"
-          value={draft.goal}
-          options={(Object.keys(GOAL_LABELS) as Goal[]).map((g) => ({
-            value: g,
-            label: GOAL_LABELS[g],
-          }))}
-          onChange={(g) =>
-            setDraft({ ...draft, goal: g, ratePctPerWeek: RATE_PCT_PER_WEEK[g].default })
-          }
-        />
-        {draft.goal !== 'maintain' && (
-          <Segmented
-            label="每週體重變化"
-            value={String(draft.ratePctPerWeek)}
-            options={RATE_OPTIONS[draft.goal].map((r) => ({ value: String(r), label: `${r}%` }))}
-            onChange={(v) => set('ratePctPerWeek', Number(v))}
-          />
-        )}
-        <Segmented
-          label="生活方式模式"
-          hint="切換模式不會影響熱量公式，只會改變建議的任務和訓練"
-          value={draft.lifestyleMode}
-          options={(Object.keys(MODE_LABELS) as LifestyleMode[]).map((m) => ({
-            value: m,
-            label: MODE_LABELS[m].name,
-          }))}
-          onChange={(m) => set('lifestyleMode', m)}
-        />
-      </Card>
-
-      <Card className="space-y-5">
-        <CardTitle>身體資料</CardTitle>
-        <Segmented
-          label="計算公式"
-          value={draft.formulaSex}
-          options={(Object.keys(SEX_LABELS) as FormulaSex[]).map((x) => ({
-            value: x,
-            label: SEX_LABELS[x],
-          }))}
-          onChange={(v) => set('formulaSex', v)}
-        />
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Field
-            label="出生日期"
-            error={invalid === 'birthDate' ? fieldMessage('birthDate') : null}
-          >
-            {(p) => (
-              <input
-                {...p}
-                type="date"
-                max={today}
-                value={draft.birthDate}
-                onChange={(e) => set('birthDate', e.target.value)}
-                className={inputClass}
-              />
-            )}
-          </Field>
-          <Field
-            label="身高（cm）"
-            error={invalid === 'heightCm' ? fieldMessage('heightCm') : null}
-          >
-            {(p) => (
-              <input
-                {...p}
-                type="number"
-                inputMode="decimal"
-                step="0.1"
-                value={heightText}
-                onChange={(e) => setHeightText(e.target.value)}
-                className={inputClass}
-              />
-            )}
-          </Field>
+            </>
+          )}
         </div>
-        <p className="text-xs text-slate-600 dark:text-slate-300">
-          體重請在「進度」頁面記錄，計算會使用最新的體重（{weight} kg）。
-        </p>
-        <Segmented
-          label="日常活動水平"
-          value={draft.activityLevel}
-          options={(Object.keys(ACTIVITY_LABELS) as ActivityLevel[]).map((a) => ({
-            value: a,
-            label: ACTIVITY_LABELS[a].name,
-            sub: ACTIVITY_LABELS[a].hint,
-          }))}
-          onChange={(v) => set('activityLevel', v)}
-        />
-        <fieldset className="space-y-1">
-          <legend className="text-sm font-medium">健康狀況</legend>
-          <Check
-            checked={draft.screening.pregnantOrLactating}
-            onChange={(v) => set('screening', { ...draft.screening, pregnantOrLactating: v })}
-          >
-            正在懷孕或哺乳
-          </Check>
-          <Check
-            checked={draft.screening.eatingDisorderHistory}
-            onChange={(v) => set('screening', { ...draft.screening, eatingDisorderHistory: v })}
-          >
-            曾被診斷或正在接受飲食失調治療
-          </Check>
-          <Check
-            checked={draft.screening.kidneyDisease}
-            onChange={(v) => set('screening', { ...draft.screening, kidneyDisease: v })}
-          >
-            有腎臟疾病
-          </Check>
-          <Check
-            checked={draft.screening.exerciseCaution}
-            onChange={(v) => set('screening', { ...draft.screening, exerciseCaution: v })}
-          >
-            醫生曾建議我限制運動，或我有心臟、關節等問題
-          </Check>
-        </fieldset>
-        <fieldset className="space-y-1">
-          <legend className="text-sm font-medium">飲食偏好</legend>
-          {(Object.keys(DIET_LABELS) as DietTag[]).map((t) => (
-            <Check
-              key={t}
-              checked={draft.dietTags.includes(t)}
-              onChange={(on) =>
-                set('dietTags', on ? [...draft.dietTags, t] : draft.dietTags.filter((x) => x !== t))
-              }
-            >
-              {DIET_LABELS[t]}
-            </Check>
-          ))}
-        </fieldset>
-
-        {changed && preview && !preview.ok && (
-          <Notice tone="warn" title={rejectMessage(preview.reason).title}>
-            {rejectMessage(preview.reason).body}
-          </Notice>
-        )}
-        {changed && preview?.ok && target && (
-          <Notice>
-            儲存後每日目標會由 {fmtInt(target.caloriesKcal)} kcal 變為{' '}
-            {fmtInt(preview.plan.caloriesKcal)} kcal。舊的記錄和目標歷史會保留。
-          </Notice>
-        )}
-        <Button className="w-full" disabled={!changed || !preview?.ok} onClick={save}>
-          儲存並重新計算
-        </Button>
-      </Card>
-
-      <Card className="space-y-3">
-        <CardTitle>顯示</CardTitle>
-        <Segmented<Theme>
-          label="外觀"
-          value={theme}
-          options={[
-            { value: 'light', label: '☀️ 淺色' },
-            { value: 'dark', label: '🌙 深色' },
-            { value: 'system', label: '跟隨手機設定' },
-          ]}
-          onChange={setTheme}
-        />
-        <Check checked={profile.hideNumbers} onChange={(v) => update((x) => setHideNumbers(x, v))}>
-          隱藏熱量和體重數字（只顯示習慣和食物）
-        </Check>
-      </Card>
-
-      <Card className="space-y-3">
-        <CardTitle>你的資料</CardTitle>
-        <p className="text-sm text-slate-600 dark:text-slate-300">
-          {signedIn
-            ? '資料保存在你的帳號（伺服器在新加坡），這部裝置也有一份副本供離線使用。'
-            : isPersistent()
-              ? '所有資料只保存在這部裝置的瀏覽器中。清除瀏覽器資料或換手機會令資料消失，建議註冊或定期匯出備份。'
-              : '這個瀏覽器目前無法保存資料。'}
-        </p>
-        <Button variant="secondary" onClick={exportData}>
-          匯出全部資料（JSON）
-        </Button>
         {!confirmDelete ? (
           <Button variant="danger" onClick={() => setConfirmDelete(true)}>
             刪除全部資料
@@ -389,28 +489,26 @@ export function Me() {
         )}
       </Card>
 
-      <Card>
-        <ul className="space-y-1 text-sm">
-          <li>
-            <Link className="flex min-h-11 items-center underline" to="/how-we-calculate">
-              計算方法與資料來源
-            </Link>
-          </li>
-          <li>
-            <Link className="flex min-h-11 items-center underline" to="/legal/disclaimer">
-              健康免責聲明
-            </Link>
-          </li>
-          <li>
-            <Link className="flex min-h-11 items-center underline" to="/legal/privacy">
-              隱私政策
-            </Link>
-          </li>
-          <li>
-            <Link className="flex min-h-11 items-center underline" to="/legal/credits">
-              資料與圖片來源
-            </Link>
-          </li>
+      <Card className="p-3">
+        <ul>
+          {[
+            { to: '/how-we-calculate', icon: '🧮', label: '計算方法與資料來源' },
+            { to: '/legal/disclaimer', icon: '🩺', label: '健康免責聲明' },
+            { to: '/legal/privacy', icon: '🔒', label: '隱私政策' },
+            { to: '/legal/credits', icon: '📚', label: '資料與圖片來源' },
+          ].map((x) => (
+            <li key={x.to}>
+              <Link to={x.to} className={row}>
+                <span aria-hidden="true" className="text-xl">
+                  {x.icon}
+                </span>
+                <span className="flex-1 text-sm font-medium">{x.label}</span>
+                <span aria-hidden="true" className="text-slate-400">
+                  ›
+                </span>
+              </Link>
+            </li>
+          ))}
         </ul>
       </Card>
     </div>

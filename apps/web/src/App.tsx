@@ -74,6 +74,7 @@ export function AppRoutes() {
         <Route path="/workout/start/:templateId" element={<WorkoutSession />} />
         <Route path="/progress" element={<Progress />} />
         <Route path="/me" element={<Me />} />
+        <Route path="/me/plan" element={<Me mode="plan" />} />
       </Route>
       <Route path="*" element={<Navigate to="/today" replace />} />
     </Routes>

@@ -187,18 +187,6 @@ export function Today() {
                 ))}
               </div>
             </div>
-            <p className="mt-4 text-xs text-emerald-50">
-              {eaten.kcal === 0
-                ? '今天還沒有記錄，從下一餐開始吧。'
-                : eaten.proteinG < target.proteinG * 0.5 && hour >= 15
-                  ? `蛋白質還差 ${fmtInt(target.proteinG - eaten.proteinG)} g，晚餐可以多吃些雞蛋、豆腐、魚或雞肉。`
-                  : remaining < 0
-                    ? '今天吃多了一點沒關係，看的是一週的平均。'
-                    : '進度不錯，繼續保持！'}{' '}
-              <Link to="/how-we-calculate" className="underline">
-                怎樣計算？
-              </Link>
-            </p>
           </section>
         ) : (
           <Card>
