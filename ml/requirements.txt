@@ -1,0 +1,9 @@
+# Install PyTorch with CUDA first (see ml/README.md), then:
+#   .venv\Scripts\python -m pip install -r ml\requirements.txt
+torch
+torchvision
+onnx
+onnxscript
+onnxruntime
+numpy
+pillow

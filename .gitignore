@@ -9,6 +9,14 @@ coverage/
 .env.*
 !.env.example
 
+# ML: datasets, training runs and the Python environment stay local
+ml/data/
+ml/runs/
+ml/.venv/
+ml/wheels/
+ml/*.log
+__pycache__/
+
 # Supabase local
 supabase/.temp/
 supabase/.branches/
