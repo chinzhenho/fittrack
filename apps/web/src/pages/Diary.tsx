@@ -1,22 +1,15 @@
 import { addDays } from '@fittrack/engine';
 import { useMemo } from 'react';
 import { Link, useSearchParams } from 'react-router';
+import { MEAL_STYLE } from '../components/mealStyle';
 import { useToast } from '../components/Toast';
 import { Bar, Button, Card, Check, PageTitle } from '../components/ui';
 import { removeMeal, restoreMeal, setDayComplete } from '../data/actions';
 import { update, useAppState } from '../data/store';
-import type { MealType } from '../data/types';
 import { formatDateZh, localToday } from '../lib/dates';
 import { fmt1, fmtInt } from '../lib/format';
 import { MEAL_LABELS, MEAL_TYPES, mealsOn, sumNutrients } from '../logic/nutrition';
 import { targetOn } from '../logic/targets';
-
-const MEAL_STYLE: Record<MealType, { icon: string; bg: string }> = {
-  breakfast: { icon: '🍳', bg: 'bg-amber-100 dark:bg-amber-500/20' },
-  lunch: { icon: '🍛', bg: 'bg-emerald-100 dark:bg-emerald/20' },
-  dinner: { icon: '🍲', bg: 'bg-sky-100 dark:bg-sky-500/20' },
-  snack: { icon: '🍎', bg: 'bg-rose-100 dark:bg-rose-500/20' },
-};
 
 export function Diary() {
   const s = useAppState();
