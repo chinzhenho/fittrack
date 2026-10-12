@@ -11,6 +11,7 @@ export type TaskId =
   | 'log_three'
   | 'protein_meal'
   | 'protein_target'
+  | 'kcal_within'
   | 'mark_complete'
   | 'log_weight'
   | 'walk_10'
@@ -35,6 +36,11 @@ const COPY: Record<TaskId, { title: string; hint: string; link?: string }> = {
   log_three: { title: '記錄三餐', hint: '早餐、午餐、晚餐都記一下', link: '/diary' },
   protein_meal: { title: '一餐含 20 g 蛋白質', hint: '例如雞蛋、豆腐、魚或雞肉', link: '/diary' },
   protein_target: { title: '蛋白質吃夠', hint: '雞蛋、豆腐、魚、雞肉都是好選擇', link: '/diary' },
+  kcal_within: {
+    title: '熱量不超過目標',
+    hint: '記錄晚餐後才會計算',
+    link: '/diary',
+  },
   mark_complete: { title: '確認今天全部記錄了', hint: '完整的日子會讓建議更準確' },
   log_weight: { title: '記錄今天的體重', hint: '早上如廁後、吃東西前量最準' },
   walk_10: { title: '散步 10 分鐘', hint: '走路也算數', link: '/workout' },
@@ -65,6 +71,15 @@ function isDone(id: TaskId, s: AppState, date: string): boolean {
       const t = targetOn(s.targets, date);
       return t !== null && sumNutrients(meals).proteinG >= t.proteinG;
     }
+    case 'kcal_within': {
+      // Judged only once dinner is in, so the day is not "done" at breakfast.
+      const t = targetOn(s.targets, date);
+      return (
+        t !== null &&
+        meals.some((x) => x.meal === 'dinner') &&
+        sumNutrients(meals).kcal <= t.caloriesKcal
+      );
+    }
     case 'mark_complete':
       return s.completeDays.includes(date);
     case 'log_weight':
@@ -86,7 +101,8 @@ function activityTask(mode: LifestyleMode, restDay: boolean, easy: boolean): Tas
   if (restDay) return 'stretch';
   switch (mode) {
     case 'nutrition_first':
-      return 'walk_10';
+      // No exercise chosen: a measurable eating goal instead of an unverifiable walk.
+      return 'kcal_within';
     case 'home':
       return 'home_short';
     case 'gym':
@@ -152,6 +168,14 @@ function progressFor(id: TaskId, s: AppState, date: string): Pick<Task, 'progres
       if (!t) return {};
       const g = Math.round(sumNutrients(meals).proteinG);
       return { progress: { value: g, max: t.proteinG, text: `${g} / ${t.proteinG} g` } };
+    }
+    case 'kcal_within': {
+      const t = targetOn(s.targets, date);
+      if (!t) return {};
+      const kcal = Math.round(sumNutrients(meals).kcal);
+      return {
+        progress: { value: kcal, max: t.caloriesKcal, text: `${kcal} / ${t.caloriesKcal} kcal` },
+      };
     }
     case 'walk_10':
     case 'walk_20': {

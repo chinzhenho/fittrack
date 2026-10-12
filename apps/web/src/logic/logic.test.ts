@@ -271,6 +271,42 @@ describe('daily tasks', () => {
     expect(tasksFor(s2, '2026-10-11').find((x) => x.id === 'protein_target')?.done).toBe(true);
   });
 
+  it('nutrition-first users get a calorie goal judged after dinner', () => {
+    const target = {
+      id: 't',
+      effectiveFrom: '2026-10-01',
+      createdAt: '1',
+      reason: 'initial' as const,
+      formulaVersion: '1.0.0',
+      weightKg: 75,
+      bmrKcal: 1698.75,
+      tdeeKcal: 2335.78,
+      calorieFloorKcal: 1698.75,
+      caloriesKcal: 1920,
+      proteinG: 120,
+      carbsG: 241,
+      fatG: 53,
+      clamps: [],
+    };
+    const s0: AppState = {
+      ...base,
+      targets: [target],
+      profile: {
+        ...profile,
+        lifestyleMode: 'nutrition_first',
+        consentedAt: '2026-10-11T00:00:00.000Z',
+      },
+    };
+    const eat = (s: AppState, id: string, meal: 'lunch' | 'dinner', grams: number) =>
+      logFood(s, { id, date: '2026-10-11', meal, food: chicken, grams, now: 't' });
+    const task = (s: AppState) => tasksFor(s, '2026-10-11').find((x) => x.id === 'kcal_within');
+    const lunch = eat(s0, 'a', 'lunch', 300); // 495 kcal, no dinner yet
+    expect(task(lunch)?.done).toBe(false);
+    expect(task(lunch)?.progress?.text).toBe('495 / 1920 kcal');
+    expect(task(eat(lunch, 'b', 'dinner', 300))?.done).toBe(true); // 990 kcal
+    expect(task(eat(lunch, 'c', 'dinner', 1000))?.done).toBe(false); // 2145 kcal
+  });
+
   it('switches to two easy tasks after a week under 30% completion', () => {
     expect(recentCompletion(base, '2026-10-11')).toBe(0);
     expect(tasksFor(base, '2026-10-11').map((x) => x.id)).toEqual(['log_meal', 'home_short']);

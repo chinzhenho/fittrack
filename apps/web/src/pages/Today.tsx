@@ -4,7 +4,14 @@ import { Link, useNavigate } from 'react-router';
 import { Ring } from '../components/Charts';
 import { MEAL_STYLE } from '../components/mealStyle';
 import { Bar, Button, Card, CardTitle, Notice } from '../components/ui';
-import { addTarget, setDayComplete, setRestDay, setWeightOn, skipTask } from '../data/actions';
+import {
+  addActivity,
+  addTarget,
+  setDayComplete,
+  setRestDay,
+  setWeightOn,
+  skipTask,
+} from '../data/actions';
 import { newId, update, useAppState } from '../data/store';
 import { localToday } from '../lib/dates';
 import { fmt1, fmtInt } from '../lib/format';
@@ -288,7 +295,20 @@ export function Today() {
                     )
                   )}
                 </div>
-                {t.id === 'log_weight' && !t.done ? (
+                {(t.id === 'walk_10' || t.id === 'walk_20') && !t.done && t.progress ? (
+                  <Button
+                    variant="secondary"
+                    className="min-h-9 shrink-0 px-3"
+                    onClick={() => {
+                      const left = (t.progress?.max ?? 0) - (t.progress?.value ?? 0);
+                      update((x) =>
+                        addActivity(x, { id: newId(), date: today, type: 'walk', minutes: left }),
+                      );
+                    }}
+                  >
+                    走了
+                  </Button>
+                ) : t.id === 'log_weight' && !t.done ? (
                   <Button
                     variant="secondary"
                     className="min-h-9 shrink-0 px-3"
@@ -363,20 +383,41 @@ export function Today() {
             </div>
             {goalKg !== undefined && toGoal !== null && current !== null && first && (
               <div className="mt-4 text-sm">
-                <p className="font-medium">
-                  {reached
-                    ? `🎉 已達到目標 ${fmt1(goalKg)} kg！`
-                    : `距離目標 ${fmt1(goalKg)} kg 還有 ${fmt1(Math.abs(current - goalKg))} kg`}
-                </p>
-                <Bar value={toGoal} max={1} color="bg-emerald" />
-                <div className="mt-1 flex justify-between text-xs text-slate-600 dark:text-slate-300">
-                  <span>開始 {fmt1(first.weightKg)}</span>
-                  <span>{Math.round(toGoal * 100)}%</span>
-                  <span>目標 {fmt1(goalKg)}</span>
-                </div>
+                {reached ? (
+                  <p className="font-medium">🎉 已達到目標 {fmt1(goalKg)} kg！</p>
+                ) : first.date === today ? (
+                  <div className="flex items-center gap-2 rounded-2xl bg-slate-50 px-4 py-3 dark:bg-slate-700">
+                    <span>
+                      起點 <strong>{fmt1(first.weightKg)}</strong>
+                    </span>
+                    <span aria-hidden="true" className="text-slate-400">
+                      →
+                    </span>
+                    <span>
+                      目標 <strong>{fmt1(goalKg)}</strong> kg
+                    </span>
+                    <span className="ml-auto text-xs text-slate-600 dark:text-slate-300">
+                      {losing ? '要減' : '要增'} {fmt1(Math.abs(current - goalKg))} kg
+                    </span>
+                  </div>
+                ) : (
+                  <>
+                    <p className="font-medium">
+                      還要{losing ? '減' : '增'} {fmt1(Math.abs(current - goalKg))} kg 到目標{' '}
+                      {fmt1(goalKg)} kg
+                    </p>
+                    <Bar value={toGoal} max={1} color="bg-emerald" />
+                    <div className="mt-1 flex justify-between text-xs text-slate-600 dark:text-slate-300">
+                      <span>起點 {fmt1(first.weightKg)}</span>
+                      <span>已完成 {Math.round(toGoal * 100)}%</span>
+                      <span>目標 {fmt1(goalKg)}</span>
+                    </div>
+                  </>
+                )}
                 {!reached && weeksLeft !== null && (
                   <p className="mt-2 text-xs text-slate-600 dark:text-slate-300">
-                    按計劃每週約 {fmt1(weeklyKg)} kg，預計再約 {weeksLeft} 週（只是估算）。
+                    按你選的速度（每週約 {fmt1(weeklyKg)} kg），大約 {weeksLeft}{' '}
+                    週後到達。這只是估算。
                   </p>
                 )}
               </div>
@@ -386,7 +427,7 @@ export function Today() {
                 ? `比上次（${prev.date.slice(5).replace('-', '/')}）${todayWeight.weightKg - prev.weightKg > 0 ? '+' : ''}${fmt1(todayWeight.weightKg - prev.weightKg)} kg。每天會因水分起伏，看長期趨勢就好。`
                 : weekly !== null
                   ? `過去 7 天 ${weekly > 0 ? '+' : ''}${fmt1(weekly)}%`
-                  : '建議每天早上如廁後、吃東西前量，數字最穩定。'}
+                  : '明天起每天量一次，這裡會顯示和上次的差別。'}
             </p>
             {todayWeight && !editingWeight ? (
               <div className="mt-3 flex items-center justify-between gap-3 rounded-2xl bg-emerald-50 py-1 pr-1 pl-4 text-sm text-emerald-900 dark:bg-emerald/15 dark:text-emerald-100">
@@ -570,79 +611,87 @@ const TIPS = [
   '體重每天會因為水分和食物而上下起伏，看趨勢比看單日更準。',
 ];
 
-const WEEKDAY = ['日', '一', '二', '三', '四', '五', '六'];
+const WEEKDAY = ['一', '二', '三', '四', '五', '六', '日'];
 
-/** Last 7 days at a glance: which days were logged, average intake, and a tip. */
+/** This week (Monday to Sunday) at a glance: logged days, calories per day, and a tip. */
 function WeekCard({ today, hide }: { today: string; hide: boolean }) {
   const s = useAppState();
-  const days = Array.from({ length: 7 }, (_, i) => addDays(today, i - 6));
-  const info = days.map((date) => {
+  const mondayOffset = (new Date(`${today}T00:00:00`).getDay() + 6) % 7;
+  const monday = addDays(today, -mondayOffset);
+  const info = WEEKDAY.map((label, i) => {
+    const date = addDays(monday, i);
     const meals = mealsOn(s.meals, date);
     return {
       date,
+      label,
+      future: date > today,
       logged: meals.length > 0,
       complete: s.completeDays.includes(date),
       kcal: sumNutrients(meals).kcal,
       target: targetOn(s.targets, date)?.caloriesKcal,
     };
   });
-  // Average only finished days (before today) that have records.
-  const past = info.filter((d) => d.date < today && d.logged);
+  const logged = info.filter((d) => d.logged);
+  // Averages use finished days only; today is still in progress.
+  const past = logged.filter((d) => d.date < today);
   const avg = past.length > 0 ? past.reduce((t, d) => t + d.kcal, 0) / past.length : null;
-  const avgTarget =
-    past.length > 0 ? past.reduce((t, d) => t + (d.target ?? 0), 0) / past.length : null;
-  const loggedDays = info.filter((d) => d.logged).length;
+  const withinTarget = past.filter((d) => d.target !== undefined && d.kcal <= d.target).length;
   const tipIndex = Math.floor(new Date(`${today}T00:00:00`).getTime() / 86_400_000) % TIPS.length;
+
+  const stats = [
+    { label: '有記錄', value: `${logged.length} 天` },
+    ...(hide
+      ? []
+      : [
+          { label: '每日平均', value: avg !== null ? `${fmtInt(avg)} kcal` : '—' },
+          {
+            label: '沒超過目標',
+            value: past.length > 0 ? `${withinTarget} / ${past.length} 天` : '—',
+          },
+        ]),
+  ];
 
   return (
     <Card>
-      <CardTitle
-        action={
-          <span className="text-sm text-slate-600 dark:text-slate-300">
-            記錄了 {loggedDays} / 7 天
-          </span>
-        }
-      >
-        最近 7 天
-      </CardTitle>
-      <ol className="grid grid-cols-7 gap-1 text-center text-xs">
-        {info.map((d) => (
-          <li key={d.date}>
-            <span className="text-slate-600 dark:text-slate-300">
-              {d.date === today ? '今' : WEEKDAY[new Date(`${d.date}T00:00:00`).getDay()]}
-            </span>
-            <span
-              className={`mx-auto mt-1 flex size-9 items-center justify-center rounded-full text-sm font-semibold ${d.complete ? 'bg-emerald-strong text-white dark:bg-emerald dark:text-slate-950' : d.logged ? 'bg-emerald-100 text-emerald-900 dark:bg-emerald/25 dark:text-emerald-100' : 'bg-slate-100 text-slate-400 dark:bg-slate-700'}`}
-            >
-              {d.complete ? '✓' : Number(d.date.slice(8))}
-              <span className="sr-only">
-                {d.complete ? '已完整記錄' : d.logged ? '有記錄' : '沒有記錄'}
+      <CardTitle>本週</CardTitle>
+      <ol className="grid grid-cols-7 gap-1 text-center">
+        {info.map((d) => {
+          const isToday = d.date === today;
+          const over = d.target !== undefined && d.kcal > d.target;
+          return (
+            <li key={d.date} className={d.future ? 'opacity-40' : ''}>
+              <span
+                className={`text-xs ${isToday ? 'font-bold text-emerald-strong dark:text-emerald' : 'text-slate-600 dark:text-slate-300'}`}
+              >
+                {d.label}
               </span>
-            </span>
-          </li>
-        ))}
+              <span
+                className={`mx-auto mt-1 flex size-9 items-center justify-center rounded-full text-sm font-semibold ${isToday ? 'ring-2 ring-emerald-strong ring-offset-2 dark:ring-emerald dark:ring-offset-slate-800' : ''} ${d.complete ? 'bg-emerald-strong text-white dark:bg-emerald dark:text-slate-950' : d.logged ? 'bg-emerald-100 text-emerald-900 dark:bg-emerald/25 dark:text-emerald-100' : 'bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-300'}`}
+              >
+                {d.complete ? '✓' : Number(d.date.slice(8))}
+                <span className="sr-only">
+                  {d.complete ? '已完整記錄' : d.logged ? '有記錄' : '沒有記錄'}
+                </span>
+              </span>
+              {!hide && (
+                <span
+                  className={`mt-1 block text-[11px] ${over ? 'font-semibold text-amber-700 dark:text-amber-300' : 'text-slate-600 dark:text-slate-300'}`}
+                >
+                  {d.logged ? fmtInt(d.kcal) : ''}
+                </span>
+              )}
+            </li>
+          );
+        })}
       </ol>
-      <p className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-600 dark:text-slate-300">
-        <span>
-          <span className="mr-1 inline-block size-2.5 rounded-full bg-emerald-strong align-middle dark:bg-emerald" />
-          已完整記錄
-        </span>
-        <span>
-          <span className="mr-1 inline-block size-2.5 rounded-full bg-emerald-100 align-middle dark:bg-emerald/25" />
-          有記錄
-        </span>
-      </p>
-      {!hide && (
-        <p className="mt-3 text-sm">
-          {avg !== null && avgTarget !== null ? (
-            <>
-              之前記錄的日子平均每天 <strong>{fmtInt(avg)} kcal</strong>（目標 {fmtInt(avgTarget)}）
-            </>
-          ) : (
-            '記錄幾天後，這裡會顯示你的每日平均熱量。'
-          )}
-        </p>
-      )}
+      <dl className={`mt-4 grid gap-2 ${hide ? 'grid-cols-1' : 'grid-cols-3'}`}>
+        {stats.map((x) => (
+          <div key={x.label} className="rounded-2xl bg-slate-50 px-3 py-2 dark:bg-slate-700">
+            <dt className="text-xs text-slate-600 dark:text-slate-300">{x.label}</dt>
+            <dd className="font-semibold">{x.value}</dd>
+          </div>
+        ))}
+      </dl>
       <p className="mt-3 rounded-2xl bg-amber-50 px-4 py-3 text-sm text-amber-950 dark:bg-amber-500/10 dark:text-amber-100">
         💡 {TIPS[tipIndex]}
       </p>
