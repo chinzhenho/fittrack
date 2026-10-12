@@ -36,7 +36,7 @@ const COPY: Record<TaskId, { title: string; hint: string; link?: string }> = {
   protein_meal: { title: '一餐含 20 g 蛋白質', hint: '例如雞蛋、豆腐、魚或雞肉', link: '/diary' },
   protein_target: { title: '蛋白質吃夠', hint: '雞蛋、豆腐、魚、雞肉都是好選擇', link: '/diary' },
   mark_complete: { title: '確認今天全部記錄了', hint: '完整的日子會讓建議更準確' },
-  log_weight: { title: '記錄體重', hint: '建議早上如廁後、進食前量', link: '/progress' },
+  log_weight: { title: '記錄今天的體重', hint: '早上如廁後、吃東西前量最準' },
   walk_10: { title: '散步 10 分鐘', hint: '走路也算數', link: '/workout' },
   walk_20: { title: '快走 20 分鐘', hint: '能說話但不能唱歌的節奏', link: '/workout' },
   home_short: { title: '完成 5 或 10 分鐘訓練', hint: '在家就能做', link: '/workout' },
@@ -104,7 +104,10 @@ function taskIdsFor(s: AppState, date: string, easy: boolean): TaskId[] {
   const rest = s.restDays.includes(date);
   const act = activityTask(p.lifestyleMode, rest, easy);
   if (easy) return ['log_meal', act];
-  return ['log_three', p.hideNumbers ? 'protein_meal' : 'protein_target', act, 'mark_complete'];
+  // With numbers hidden the user does not want to weigh in, so ask for a complete day instead.
+  return p.hideNumbers
+    ? ['log_three', 'protein_meal', act, 'mark_complete']
+    : ['log_three', 'protein_target', act, 'log_weight'];
 }
 
 /** Completion rate over the 7 days before `date` (spec 7.1: < 30% -> only 2 easy tasks). */

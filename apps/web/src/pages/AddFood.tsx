@@ -192,24 +192,25 @@ export function AddFood() {
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 className={inputClass}
-                autoFocus
               />
             )}
           </Field>
           {!query && recent.length > 0 && (
             <FoodList title="最近吃過" foods={recent} onPick={pick} />
           )}
-          <FoodList
-            title={query ? `搜尋結果（${results.length}）` : '所有食物'}
-            foods={results}
-            onPick={pick}
-          />
-          <Card>
-            <p className="text-sm">找不到？可以按包裝上的營養標籤自己新增。</p>
-            <Button variant="secondary" className="mt-3" onClick={() => setCreating(true)}>
-              新增自訂食物
-            </Button>
-          </Card>
+          {query.trim() !== '' && (
+            <>
+              <FoodList title={`搜尋結果（${results.length}）`} foods={results} onPick={pick} />
+              <div className="flex items-center justify-between gap-3 px-1">
+                <p className="text-sm text-slate-600 dark:text-slate-300">
+                  找不到？可按包裝營養標籤新增。
+                </p>
+                <Button variant="ghost" className="shrink-0" onClick={() => setCreating(true)}>
+                  ＋ 自訂食物
+                </Button>
+              </div>
+            </>
+          )}
         </>
       )}
     </div>

@@ -223,13 +223,14 @@ describe('daily tasks', () => {
       'log_three',
       'protein_target',
       'home_short',
-      'mark_complete',
+      'log_weight',
     ]);
     expect(tasks.find((x) => x.id === 'log_three')?.progress?.text).toBe('1 / 3 餐');
     expect(tasks.find((x) => x.id === 'log_three')?.done).toBe(false);
     s = setDayComplete(s, '2026-10-11', true);
     expect(s.completeDays).toEqual(['2026-10-11']);
-    expect(tasksFor(s, '2026-10-11').find((x) => x.id === 'mark_complete')?.done).toBe(true);
+    s = addWeight(s, { id: 'w', date: '2026-10-11', measuredAt: 't', weightKg: 74 });
+    expect(tasksFor(s, '2026-10-11').find((x) => x.id === 'log_weight')?.done).toBe(true);
   });
 
   it('protein task compares the day total with the protein target', () => {

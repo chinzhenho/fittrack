@@ -93,6 +93,19 @@ export function Today() {
       ? Math.min(1, Math.max(0, (first.weightKg - current) / (first.weightKg - goalKg)))
       : null;
   const todayWeight = s.weights.find((w) => w.date === today);
+  const prev = s.weights
+    .filter((w) => w.date < today)
+    .sort((a, b) => a.date.localeCompare(b.date))
+    .at(-1);
+  const losing = profile.goal === 'fat_loss';
+  const movingRight = change !== null && (losing ? change < 0 : change > 0);
+  const reached =
+    current !== null && goalKg !== undefined && (losing ? current <= goalKg : current >= goalKg);
+  const weeklyKg = current !== null ? (profile.ratePctPerWeek / 100) * current : 0;
+  const weeksLeft =
+    current !== null && goalKg !== undefined && weeklyKg > 0
+      ? Math.ceil(Math.abs(current - goalKg) / weeklyKg)
+      : null;
   const doneCount = tasks.filter((t) => t.done).length;
 
   return (
@@ -275,7 +288,19 @@ export function Today() {
                     )
                   )}
                 </div>
-                {t.id === 'mark_complete' ? (
+                {t.id === 'log_weight' && !t.done ? (
+                  <Button
+                    variant="secondary"
+                    className="min-h-9 shrink-0 px-3"
+                    onClick={() => {
+                      const input = document.getElementById('quick-weight');
+                      input?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                      input?.focus({ preventScroll: true });
+                    }}
+                  >
+                    記錄
+                  </Button>
+                ) : t.id === 'mark_complete' ? (
                   <Button
                     variant={t.done ? 'ghost' : 'secondary'}
                     className="min-h-9 shrink-0 px-3"
@@ -318,39 +343,50 @@ export function Today() {
             </CardTitle>
             <div className="flex items-end justify-between gap-3">
               <div>
+                <p className="text-sm text-slate-600 dark:text-slate-300">目前體重</p>
                 <p className="text-3xl font-bold">
                   {current !== null ? fmt1(current) : '—'}
                   <span className="ml-1 text-base font-medium">kg</span>
                 </p>
-                <p className="text-xs text-slate-600 dark:text-slate-300">
-                  {trend !== null ? '趨勢體重（平滑每天的起伏）' : '最新記錄'}
-                </p>
               </div>
               {change !== null && first && first.date !== today && (
-                <p className="text-right text-sm">
-                  <span className="font-semibold">
-                    {change > 0 ? '+' : ''}
-                    {fmt1(change)} kg
-                  </span>
-                  <span className="block text-xs text-slate-600 dark:text-slate-300">
-                    自 {first.date.slice(5).replace('-', '/')} 開始
+                <p
+                  className={`rounded-full px-3 py-1 text-sm font-semibold ${movingRight ? 'bg-emerald-50 text-emerald-900 dark:bg-emerald/15 dark:text-emerald-100' : 'bg-slate-100 dark:bg-slate-700'}`}
+                >
+                  {change > 0 ? '+' : ''}
+                  {fmt1(change)} kg
+                  <span className="ml-1 font-normal">
+                    自 {first.date.slice(5).replace('-', '/')}
                   </span>
                 </p>
               )}
             </div>
-            {goalKg !== undefined && toGoal !== null && (
-              <div className="mt-3 text-sm">
-                <div className="flex justify-between text-slate-600 dark:text-slate-300">
-                  <span>目標 {fmt1(goalKg)} kg</span>
-                  <span>{Math.round(toGoal * 100)}%</span>
-                </div>
+            {goalKg !== undefined && toGoal !== null && current !== null && first && (
+              <div className="mt-4 text-sm">
+                <p className="font-medium">
+                  {reached
+                    ? `🎉 已達到目標 ${fmt1(goalKg)} kg！`
+                    : `距離目標 ${fmt1(goalKg)} kg 還有 ${fmt1(Math.abs(current - goalKg))} kg`}
+                </p>
                 <Bar value={toGoal} max={1} color="bg-emerald" />
+                <div className="mt-1 flex justify-between text-xs text-slate-600 dark:text-slate-300">
+                  <span>開始 {fmt1(first.weightKg)}</span>
+                  <span>{Math.round(toGoal * 100)}%</span>
+                  <span>目標 {fmt1(goalKg)}</span>
+                </div>
+                {!reached && weeksLeft !== null && (
+                  <p className="mt-2 text-xs text-slate-600 dark:text-slate-300">
+                    按計劃每週約 {fmt1(weeklyKg)} kg，預計再約 {weeksLeft} 週（只是估算）。
+                  </p>
+                )}
               </div>
             )}
-            <p className="mt-2 text-xs text-slate-600 dark:text-slate-300">
-              {weekly !== null
-                ? `過去 7 天 ${weekly > 0 ? '+' : ''}${fmt1(weekly)}%`
-                : '記錄滿一週後會顯示每週變化'}
+            <p className="mt-3 text-xs text-slate-600 dark:text-slate-300">
+              {prev && todayWeight
+                ? `比上次（${prev.date.slice(5).replace('-', '/')}）${todayWeight.weightKg - prev.weightKg > 0 ? '+' : ''}${fmt1(todayWeight.weightKg - prev.weightKg)} kg。每天會因水分起伏，看長期趨勢就好。`
+                : weekly !== null
+                  ? `過去 7 天 ${weekly > 0 ? '+' : ''}${fmt1(weekly)}%`
+                  : '建議每天早上如廁後、吃東西前量，數字最穩定。'}
             </p>
             {todayWeight && !editingWeight ? (
               <div className="mt-3 flex items-center justify-between gap-3 rounded-2xl bg-emerald-50 py-1 pr-1 pl-4 text-sm text-emerald-900 dark:bg-emerald/15 dark:text-emerald-100">
@@ -384,7 +420,7 @@ export function Today() {
                   step="0.1"
                   min={30}
                   max={300}
-                  placeholder="今天的體重 kg"
+                  placeholder="輸入今天的體重 kg"
                   value={weightInput}
                   onChange={(e) => setWeightInput(e.target.value)}
                   className="min-h-11 min-w-0 flex-1 rounded-2xl border border-slate-200 bg-slate-50 px-4 text-base dark:border-slate-600 dark:bg-slate-900"
