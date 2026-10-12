@@ -1,15 +1,15 @@
-import { trendOn, weeklyChangePct } from '@fittrack/engine';
+import { addDays, trendOn, weeklyChangePct } from '@fittrack/engine';
 import { useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { Ring } from '../components/Charts';
 import { MEAL_STYLE } from '../components/mealStyle';
 import { Bar, Button, Card, CardTitle, Notice } from '../components/ui';
-import { addTarget, addWeight, setRestDay, skipTask } from '../data/actions';
+import { addTarget, setDayComplete, setRestDay, setWeightOn, skipTask } from '../data/actions';
 import { newId, update, useAppState } from '../data/store';
 import { localToday } from '../lib/dates';
 import { fmt1, fmtInt } from '../lib/format';
 import { GOAL_LABELS, MODE_LABELS } from '../lib/messages';
-import { MEAL_LABELS, MEAL_TYPES, mealForHour, mealsOn, sumNutrients } from '../logic/nutrition';
+import { MEAL_LABELS, MEAL_TYPES, mealsOn, sumNutrients } from '../logic/nutrition';
 import {
   latestWeight,
   needsRecompute,
@@ -26,6 +26,7 @@ export function Today() {
   const today = useMemo(() => localToday(), []);
   const navigate = useNavigate();
   const [weightInput, setWeightInput] = useState('');
+  const [editingWeight, setEditingWeight] = useState(false);
   const [showNoWorkout, setShowNoWorkout] = useState(false);
   const profile = s.profile;
   const target = targetOn(s.targets, today);
@@ -50,7 +51,7 @@ export function Today() {
     const kg = Number(weightInput);
     if (!(kg >= 30 && kg <= 300)) return;
     update((x) =>
-      addWeight(x, {
+      setWeightOn(x, {
         id: newId(),
         date: today,
         measuredAt: new Date().toISOString(),
@@ -58,6 +59,7 @@ export function Today() {
       }),
     );
     setWeightInput('');
+    setEditingWeight(false);
   };
 
   const recompute = () => {
@@ -81,7 +83,6 @@ export function Today() {
   const hour = new Date().getHours();
   const greeting = hour < 5 ? '夜深了' : hour < 12 ? '早安' : hour < 18 ? '午安' : '晚上好';
   const todayMeals = mealsOn(s.meals, today);
-  const nextMeal = mealForHour(hour);
   const latest = latestWeight(s.weights);
   const first = [...s.weights].sort((a, b) => a.measuredAt.localeCompare(b.measuredAt))[0];
   const current = trend ?? latest?.weightKg ?? null;
@@ -91,7 +92,7 @@ export function Today() {
     current !== null && first && goalKg !== undefined && first.weightKg !== goalKg
       ? Math.min(1, Math.max(0, (first.weightKg - current) / (first.weightKg - goalKg)))
       : null;
-  const loggedWeightToday = s.weights.some((w) => w.date === today);
+  const todayWeight = s.weights.find((w) => w.date === today);
   const doneCount = tasks.filter((t) => t.done).length;
 
   return (
@@ -126,7 +127,7 @@ export function Today() {
 
       <div className="grid gap-4 lg:grid-cols-2">
         {!hide ? (
-          <section className="rounded-3xl bg-gradient-to-br from-emerald-700 to-teal-800 p-5 text-white shadow-md">
+          <section className="flex flex-col justify-center rounded-3xl bg-gradient-to-br from-emerald-700 to-teal-800 p-5 text-white shadow-md">
             <div className="flex items-center gap-5">
               <div className="relative">
                 <Ring
@@ -210,7 +211,11 @@ export function Today() {
                     <span className="min-w-0 flex-1">
                       <span className="block font-medium">{MEAL_LABELS[meal]}</span>
                       <span className="block truncate text-xs text-slate-600 dark:text-slate-300">
-                        {list.length === 0 ? '還沒有記錄' : list.map((i) => i.name).join('、')}
+                        {list.length === 0
+                          ? '還沒有記錄'
+                          : list
+                              .map((i) => (i.label ? `${i.label}：${i.name}` : i.name))
+                              .join('、')}
                       </span>
                     </span>
                     {!hide && list.length > 0 && (
@@ -227,12 +232,6 @@ export function Today() {
               );
             })}
           </ul>
-          <Link
-            to={`/diary/add?meal=${nextMeal}`}
-            className="mt-3 flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-emerald-strong text-sm font-semibold text-white shadow-sm hover:bg-emerald-800 dark:bg-emerald dark:text-slate-950"
-          >
-            📷 拍照記錄{MEAL_LABELS[nextMeal]}
-          </Link>
         </Card>
 
         <Card>
@@ -247,7 +246,7 @@ export function Today() {
           </CardTitle>
           <ul className="divide-y divide-slate-100 dark:divide-slate-700">
             {tasks.map((t) => (
-              <li key={t.id} className="flex items-center gap-3 py-2">
+              <li key={t.id} className="flex items-center gap-3 py-3">
                 <span
                   aria-hidden="true"
                   className={`flex size-7 shrink-0 items-center justify-center rounded-full border-2 text-sm font-bold ${t.done ? 'border-emerald-strong bg-emerald-strong text-white dark:border-emerald dark:bg-emerald dark:text-slate-950' : 'border-slate-300 dark:border-slate-500'}`}
@@ -255,22 +254,45 @@ export function Today() {
                   {t.done ? '✓' : ''}
                 </span>
                 <div className={`min-w-0 flex-1 ${t.skipped && !t.done ? 'opacity-50' : ''}`}>
-                  <p
-                    className={`text-sm font-medium ${t.done ? 'line-through decoration-slate-400' : ''}`}
-                  >
-                    {t.link ? <Link to={t.link}>{t.title}</Link> : t.title}
-                    <span className="sr-only">{t.done ? '（已完成）' : '（未完成）'}</span>
-                  </p>
-                  <p className="text-xs text-slate-600 dark:text-slate-300">{t.hint}</p>
+                  <div className="flex items-baseline justify-between gap-2">
+                    <p
+                      className={`text-sm font-medium ${t.done ? 'text-slate-500 line-through' : ''}`}
+                    >
+                      {t.link && !t.done ? <Link to={t.link}>{t.title}</Link> : t.title}
+                      <span className="sr-only">{t.done ? '（已完成）' : '（未完成）'}</span>
+                    </p>
+                    {t.progress && !hide && (
+                      <span className="shrink-0 text-xs font-medium text-slate-600 dark:text-slate-300">
+                        {t.progress.text}
+                      </span>
+                    )}
+                  </div>
+                  {t.progress && !hide && !t.done ? (
+                    <Bar value={t.progress.value} max={t.progress.max} color="bg-emerald" />
+                  ) : (
+                    !t.done && (
+                      <p className="text-xs text-slate-600 dark:text-slate-300">{t.hint}</p>
+                    )
+                  )}
                 </div>
-                {!t.done && (
-                  <button
-                    type="button"
-                    className="min-h-11 shrink-0 px-2 text-xs text-slate-600 dark:text-slate-300"
-                    onClick={() => update((x) => skipTask(x, today, t.id, !t.skipped))}
+                {t.id === 'mark_complete' ? (
+                  <Button
+                    variant={t.done ? 'ghost' : 'secondary'}
+                    className="min-h-9 shrink-0 px-3"
+                    onClick={() => update((x) => setDayComplete(x, today, !t.done))}
                   >
-                    {t.skipped ? '恢復' : '跳過'}
-                  </button>
+                    {t.done ? '取消' : '確認'}
+                  </Button>
+                ) : (
+                  !t.done && (
+                    <button
+                      type="button"
+                      className="min-h-11 shrink-0 px-1 text-xs text-slate-500 dark:text-slate-400"
+                      onClick={() => update((x) => skipTask(x, today, t.id, !t.skipped))}
+                    >
+                      {t.skipped ? '恢復' : '跳過'}
+                    </button>
+                  )
                 )}
               </li>
             ))}
@@ -330,10 +352,20 @@ export function Today() {
                 ? `過去 7 天 ${weekly > 0 ? '+' : ''}${fmt1(weekly)}%`
                 : '記錄滿一週後會顯示每週變化'}
             </p>
-            {loggedWeightToday ? (
-              <p className="mt-3 rounded-2xl bg-emerald-50 px-4 py-3 text-sm text-emerald-900 dark:bg-emerald/15 dark:text-emerald-100">
-                ✓ 今天已記錄 {fmt1(latest?.weightKg ?? 0)} kg
-              </p>
+            {todayWeight && !editingWeight ? (
+              <div className="mt-3 flex items-center justify-between gap-3 rounded-2xl bg-emerald-50 py-1 pr-1 pl-4 text-sm text-emerald-900 dark:bg-emerald/15 dark:text-emerald-100">
+                <span>✓ 今天已記錄 {fmt1(todayWeight.weightKg)} kg</span>
+                <Button
+                  variant="ghost"
+                  className="shrink-0"
+                  onClick={() => {
+                    setWeightInput(String(todayWeight.weightKg));
+                    setEditingWeight(true);
+                  }}
+                >
+                  更改
+                </Button>
+              </div>
             ) : (
               <form
                 className="mt-3 flex gap-2"
@@ -370,22 +402,8 @@ export function Today() {
         )}
       </div>
 
-      {profile.lifestyleMode === 'nutrition_first' && !isRest ? (
-        <Card>
-          <CardTitle>想動一動嗎？（可選）</CardTitle>
-          <p className="text-sm text-slate-600 dark:text-slate-300">
-            你選了「暫時不運動」，先專注飲食就好。有空的話，散步也很有幫助。
-          </p>
-          <div className="mt-3 flex flex-wrap gap-2">
-            <Button variant="secondary" onClick={() => navigate('/workout/start/walk-20')}>
-              🚶 散步 20 分鐘
-            </Button>
-            <Button variant="secondary" onClick={() => navigate('/workout/start/stretch-10')}>
-              🧘 伸展 10 分鐘
-            </Button>
-          </div>
-        </Card>
-      ) : (
+      <WeekCard today={today} hide={hide} />
+      {profile.lifestyleMode !== 'nutrition_first' && (
         <ActivityCard
           {...{ isRest, today, suggested, showNoWorkout, setShowNoWorkout, navigate }}
           caution={profile.screening.exerciseCaution}
@@ -502,6 +520,96 @@ function ActivityCard({
           )}
         </div>
       )}
+    </Card>
+  );
+}
+
+const TIPS = [
+  '飲料換成無糖（kosong）或少糖（siew dai），是最容易減少熱量的方法之一。',
+  '炒飯、炒麵通常用油較多；想吃得輕一點，可以選湯麵或白飯配菜。',
+  '每餐先有一份蛋白質（雞蛋、豆腐、魚、雞肉），比較容易吃飽。',
+  '打包時咖喱汁、醬汁可以另外裝，自己決定要加多少。',
+  '外食時多點一份青菜，份量多了，熱量卻增加不多。',
+  '晚上嘴饞時，先喝一杯水或無糖茶，等 10 分鐘再決定要不要吃。',
+  '體重每天會因為水分和食物而上下起伏，看趨勢比看單日更準。',
+];
+
+const WEEKDAY = ['日', '一', '二', '三', '四', '五', '六'];
+
+/** Last 7 days at a glance: which days were logged, average intake, and a tip. */
+function WeekCard({ today, hide }: { today: string; hide: boolean }) {
+  const s = useAppState();
+  const days = Array.from({ length: 7 }, (_, i) => addDays(today, i - 6));
+  const info = days.map((date) => {
+    const meals = mealsOn(s.meals, date);
+    return {
+      date,
+      logged: meals.length > 0,
+      complete: s.completeDays.includes(date),
+      kcal: sumNutrients(meals).kcal,
+      target: targetOn(s.targets, date)?.caloriesKcal,
+    };
+  });
+  // Average only finished days (before today) that have records.
+  const past = info.filter((d) => d.date < today && d.logged);
+  const avg = past.length > 0 ? past.reduce((t, d) => t + d.kcal, 0) / past.length : null;
+  const avgTarget =
+    past.length > 0 ? past.reduce((t, d) => t + (d.target ?? 0), 0) / past.length : null;
+  const loggedDays = info.filter((d) => d.logged).length;
+  const tipIndex = Math.floor(new Date(`${today}T00:00:00`).getTime() / 86_400_000) % TIPS.length;
+
+  return (
+    <Card>
+      <CardTitle
+        action={
+          <span className="text-sm text-slate-600 dark:text-slate-300">
+            記錄了 {loggedDays} / 7 天
+          </span>
+        }
+      >
+        最近 7 天
+      </CardTitle>
+      <ol className="grid grid-cols-7 gap-1 text-center text-xs">
+        {info.map((d) => (
+          <li key={d.date}>
+            <span className="text-slate-600 dark:text-slate-300">
+              {d.date === today ? '今' : WEEKDAY[new Date(`${d.date}T00:00:00`).getDay()]}
+            </span>
+            <span
+              className={`mx-auto mt-1 flex size-9 items-center justify-center rounded-full text-sm font-semibold ${d.complete ? 'bg-emerald-strong text-white dark:bg-emerald dark:text-slate-950' : d.logged ? 'bg-emerald-100 text-emerald-900 dark:bg-emerald/25 dark:text-emerald-100' : 'bg-slate-100 text-slate-400 dark:bg-slate-700'}`}
+            >
+              {d.complete ? '✓' : Number(d.date.slice(8))}
+              <span className="sr-only">
+                {d.complete ? '已完整記錄' : d.logged ? '有記錄' : '沒有記錄'}
+              </span>
+            </span>
+          </li>
+        ))}
+      </ol>
+      <p className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-600 dark:text-slate-300">
+        <span>
+          <span className="mr-1 inline-block size-2.5 rounded-full bg-emerald-strong align-middle dark:bg-emerald" />
+          已完整記錄
+        </span>
+        <span>
+          <span className="mr-1 inline-block size-2.5 rounded-full bg-emerald-100 align-middle dark:bg-emerald/25" />
+          有記錄
+        </span>
+      </p>
+      {!hide && (
+        <p className="mt-3 text-sm">
+          {avg !== null && avgTarget !== null ? (
+            <>
+              之前記錄的日子平均每天 <strong>{fmtInt(avg)} kcal</strong>（目標 {fmtInt(avgTarget)}）
+            </>
+          ) : (
+            '記錄幾天後，這裡會顯示你的每日平均熱量。'
+          )}
+        </p>
+      )}
+      <p className="mt-3 rounded-2xl bg-amber-50 px-4 py-3 text-sm text-amber-950 dark:bg-amber-500/10 dark:text-amber-100">
+        💡 {TIPS[tipIndex]}
+      </p>
     </Card>
   );
 }

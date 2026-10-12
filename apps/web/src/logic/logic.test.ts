@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { addActivity, addWeight, logFood, saveSession, setDayComplete } from '../data/actions';
+import {
+  addActivity,
+  addWeight,
+  logFood,
+  saveSession,
+  setDayComplete,
+  setWeightOn,
+} from '../data/actions';
 import { BUILT_IN_FOODS, SEED_FOODS } from '../data/foods';
 import { DISH_LABELS } from '../data/foodsSg';
 import meta from '../../public/models/food-v1/meta.json';
@@ -90,6 +97,37 @@ describe('nutrition', () => {
     expect(validateCustomFood('x', { ...ok, fatG: -1 })).toEqual(['macro']);
     expect(validateCustomFood('x', { ...ok, carbsG: 80 })).toEqual(['macroSum']);
     expect(validateCustomFood('x', { ...ok, sodiumMg: -5 })).toEqual(['sodium']);
+  });
+
+  it('setWeightOn keeps one weight per day', () => {
+    const w = (id: string, date: string, kg: number) => ({
+      id,
+      date,
+      measuredAt: date,
+      weightKg: kg,
+    });
+    let s = addWeight(emptyState, w('a', '2026-10-11', 70));
+    s = setWeightOn(s, w('b', '2026-10-12', 69.5));
+    s = setWeightOn(s, w('c', '2026-10-12', 69.2));
+    expect(s.weights.map((x) => [x.id, x.weightKg])).toEqual([
+      ['a', 70],
+      ['c', 69.2],
+    ]);
+  });
+
+  it('logs an optional trimmed label for 其他 entries', () => {
+    const food = SEED_FOODS[0]!;
+    const base = {
+      id: 'm1',
+      date: '2026-10-12',
+      meal: 'snack' as const,
+      food,
+      grams: 100,
+      now: 'x',
+    };
+    expect(logFood(emptyState, { ...base, label: '  下午茶 ' }).meals[0]?.label).toBe('下午茶');
+    expect(logFood(emptyState, { ...base, label: '   ' }).meals[0]).not.toHaveProperty('label');
+    expect(logFood(emptyState, base).meals[0]).not.toHaveProperty('label');
   });
 
   it('built-in foods are internally consistent', () => {
@@ -183,14 +221,53 @@ describe('daily tasks', () => {
     const tasks = tasksFor(s, '2026-10-11');
     expect(tasks.map((x) => x.id)).toEqual([
       'log_three',
-      'protein_meal',
+      'protein_target',
       'home_short',
-      'log_weight',
+      'mark_complete',
     ]);
-    expect(tasks.find((x) => x.id === 'protein_meal')?.done).toBe(true);
+    expect(tasks.find((x) => x.id === 'log_three')?.progress?.text).toBe('1 / 3 餐');
     expect(tasks.find((x) => x.id === 'log_three')?.done).toBe(false);
     s = setDayComplete(s, '2026-10-11', true);
     expect(s.completeDays).toEqual(['2026-10-11']);
+    expect(tasksFor(s, '2026-10-11').find((x) => x.id === 'mark_complete')?.done).toBe(true);
+  });
+
+  it('protein task compares the day total with the protein target', () => {
+    const target = {
+      id: 't',
+      effectiveFrom: '2026-10-01',
+      createdAt: '1',
+      reason: 'initial' as const,
+      formulaVersion: '1.0.0',
+      weightKg: 75,
+      bmrKcal: 1698.75,
+      tdeeKcal: 2335.78,
+      calorieFloorKcal: 1698.75,
+      caloriesKcal: 1920,
+      proteinG: 120,
+      carbsG: 241,
+      fatG: 53,
+      clamps: [],
+    };
+    const s0: AppState = {
+      ...base,
+      targets: [target],
+      profile: { ...profile, consentedAt: '2026-10-11T00:00:00.000Z' },
+    };
+    const meal = (id: string, grams: number) => ({
+      id,
+      date: '2026-10-11',
+      meal: 'lunch' as const,
+      food: chicken,
+      grams,
+      now: 't',
+    });
+    const s1 = logFood(s0, meal('a', 200)); // 62 g protein
+    const p1 = tasksFor(s1, '2026-10-11').find((x) => x.id === 'protein_target');
+    expect(p1?.progress?.text).toBe('62 / 120 g');
+    expect(p1?.done).toBe(false);
+    const s2 = logFood(s1, meal('b', 200)); // 124 g in total
+    expect(tasksFor(s2, '2026-10-11').find((x) => x.id === 'protein_target')?.done).toBe(true);
   });
 
   it('switches to two easy tasks after a week under 30% completion', () => {

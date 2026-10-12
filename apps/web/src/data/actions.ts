@@ -37,12 +37,22 @@ export function setHideNumbers(s: AppState, hide: boolean): AppState {
 
 export function logFood(
   s: AppState,
-  args: { id: string; date: string; meal: MealType; food: Food; grams: number; now: string },
+  args: {
+    id: string;
+    date: string;
+    meal: MealType;
+    food: Food;
+    grams: number;
+    now: string;
+    label?: string;
+  },
 ): AppState {
+  const label = args.label?.trim().slice(0, 20);
   const item: MealItem = {
     id: args.id,
     date: args.date,
     meal: args.meal,
+    ...(label && { label }),
     foodId: args.food.id,
     name: args.food.nameZh,
     grams: args.grams,
@@ -87,6 +97,11 @@ export function skipTask(s: AppState, date: string, taskId: string, skip: boolea
 
 export function addWeight(s: AppState, entry: WeightEntry): AppState {
   return { ...s, weights: [...s.weights, entry] };
+}
+
+/** Records the weight for one day, replacing any earlier entry on that day. */
+export function setWeightOn(s: AppState, entry: WeightEntry): AppState {
+  return { ...s, weights: [...s.weights.filter((w) => w.date !== entry.date), entry] };
 }
 
 export function removeWeight(s: AppState, id: string): AppState {

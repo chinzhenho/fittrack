@@ -78,6 +78,8 @@ export interface MealItem {
   id: string;
   date: string;
   meal: MealType;
+  /** Optional name the user gave this entry, e.g. 下午茶 or 宵夜 (used with 其他). */
+  label?: string;
   foodId: string;
   name: string;
   grams: number;

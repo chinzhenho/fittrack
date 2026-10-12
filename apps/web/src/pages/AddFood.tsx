@@ -41,6 +41,7 @@ export function AddFood() {
   const [selected, setSelected] = useState<Food | null>(null);
   const [grams, setGrams] = useState('100');
   const [creating, setCreating] = useState(false);
+  const [label, setLabel] = useState('');
 
   const allFoods = useMemo(() => [...s.customFoods, ...BUILT_IN_FOODS], [s.customFoods]);
   const recent = recentFoodIds(s.meals)
@@ -65,9 +66,11 @@ export function AddFood() {
         food: selected,
         grams: g,
         now: new Date().toISOString(),
+        ...(meal === 'snack' && { label }),
       }),
     );
-    toast({ text: `已加入${MEAL_LABELS[meal]}：${selected.nameZh}` });
+    const where = meal === 'snack' && label.trim() ? label.trim() : MEAL_LABELS[meal];
+    toast({ text: `已加入${where}：${selected.nameZh}` });
     navigate(date === localToday() ? '/diary' : `/diary?date=${date}`);
   };
 
@@ -80,6 +83,33 @@ export function AddFood() {
         options={MEAL_TYPES.map((m) => ({ value: m, label: MEAL_LABELS[m] }))}
         onChange={setMeal}
       />
+      {meal === 'snack' && (
+        <div>
+          <Field label="這是什麼？（選填）" hint="例如：下午茶、宵夜、飲料">
+            {(p) => (
+              <input
+                {...p}
+                maxLength={20}
+                value={label}
+                onChange={(e) => setLabel(e.target.value)}
+                className={inputClass}
+              />
+            )}
+          </Field>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {['下午茶', '宵夜', '飲料', '零食', '水果'].map((x) => (
+              <Button
+                key={x}
+                variant={label === x ? 'primary' : 'secondary'}
+                className="min-h-9 rounded-full px-3"
+                onClick={() => setLabel(label === x ? '' : x)}
+              >
+                {x}
+              </Button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {selected ? (
         <Card className="space-y-4">

@@ -131,7 +131,14 @@ export function Diary() {
                 {list.map((i) => (
                   <li key={i.id} className="flex items-center gap-3 py-3">
                     <div className="min-w-0 flex-1">
-                      <p className="truncate font-medium">{i.name}</p>
+                      <p className="truncate font-medium">
+                        {i.label && (
+                          <span className="mr-2 rounded-full bg-rose-100 px-2 py-0.5 text-xs font-medium text-rose-900 dark:bg-rose-500/20 dark:text-rose-100">
+                            {i.label}
+                          </span>
+                        )}
+                        {i.name}
+                      </p>
                       <p className="text-xs text-slate-600 dark:text-slate-300">
                         {fmt1(i.grams)} g
                         {!hide &&

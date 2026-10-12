@@ -1,6 +1,7 @@
 import { addDays } from '@fittrack/engine';
 import type { AppState, LifestyleMode } from '../data/types';
 import { mealsOn, sumNutrients } from './nutrition';
+import { targetOn } from './targets';
 
 // Daily "small wins" (spec 7.1 and 18.3). Completion is computed from the records,
 // never stored, so it is always consistent with what the user logged.
@@ -9,6 +10,7 @@ export type TaskId =
   | 'log_meal'
   | 'log_three'
   | 'protein_meal'
+  | 'protein_target'
   | 'mark_complete'
   | 'log_weight'
   | 'walk_10'
@@ -24,13 +26,16 @@ export interface Task {
   done: boolean;
   skipped: boolean;
   link?: string;
+  /** How far along the task is today, e.g. 2 of 3 meals. */
+  progress?: { value: number; max: number; text: string };
 }
 
 const COPY: Record<TaskId, { title: string; hint: string; link?: string }> = {
   log_meal: { title: '記錄一餐', hint: '先從一餐開始就好', link: '/diary' },
   log_three: { title: '記錄三餐', hint: '早餐、午餐、晚餐都記一下', link: '/diary' },
   protein_meal: { title: '一餐含 20 g 蛋白質', hint: '例如雞蛋、豆腐、魚或雞肉', link: '/diary' },
-  mark_complete: { title: '標記今天已完整記錄', hint: '讓趨勢分析更準確', link: '/diary' },
+  protein_target: { title: '蛋白質吃夠', hint: '雞蛋、豆腐、魚、雞肉都是好選擇', link: '/diary' },
+  mark_complete: { title: '確認今天全部記錄了', hint: '完整的日子會讓建議更準確' },
   log_weight: { title: '記錄體重', hint: '建議早上如廁後、進食前量', link: '/progress' },
   walk_10: { title: '散步 10 分鐘', hint: '走路也算數', link: '/workout' },
   walk_20: { title: '快走 20 分鐘', hint: '能說話但不能唱歌的節奏', link: '/workout' },
@@ -56,6 +61,10 @@ function isDone(id: TaskId, s: AppState, date: string): boolean {
       return (['breakfast', 'lunch', 'dinner', 'snack'] as const).some(
         (m) => sumNutrients(meals.filter((x) => x.meal === m)).proteinG >= 20,
       );
+    case 'protein_target': {
+      const t = targetOn(s.targets, date);
+      return t !== null && sumNutrients(meals).proteinG >= t.proteinG;
+    }
     case 'mark_complete':
       return s.completeDays.includes(date);
     case 'log_weight':
@@ -95,8 +104,7 @@ function taskIdsFor(s: AppState, date: string, easy: boolean): TaskId[] {
   const rest = s.restDays.includes(date);
   const act = activityTask(p.lifestyleMode, rest, easy);
   if (easy) return ['log_meal', act];
-  const last: TaskId = p.hideNumbers ? 'mark_complete' : 'log_weight';
-  return ['log_three', 'protein_meal', act, last];
+  return ['log_three', p.hideNumbers ? 'protein_meal' : 'protein_target', act, 'mark_complete'];
 }
 
 /** Completion rate over the 7 days before `date` (spec 7.1: < 30% -> only 2 easy tasks). */
@@ -122,5 +130,32 @@ export function tasksFor(s: AppState, date: string): Task[] {
     ...COPY[id],
     done: isDone(id, s, date),
     skipped: skipped.includes(id),
+    ...progressFor(id, s, date),
   }));
+}
+
+function progressFor(id: TaskId, s: AppState, date: string): Pick<Task, 'progress'> {
+  const meals = mealsOn(s.meals, date);
+  const minutes = s.activities.filter((a) => a.date === date).reduce((t, a) => t + a.minutes, 0);
+  switch (id) {
+    case 'log_three': {
+      const n = (['breakfast', 'lunch', 'dinner'] as const).filter((m) =>
+        meals.some((x) => x.meal === m),
+      ).length;
+      return { progress: { value: n, max: 3, text: `${n} / 3 餐` } };
+    }
+    case 'protein_target': {
+      const t = targetOn(s.targets, date);
+      if (!t) return {};
+      const g = Math.round(sumNutrients(meals).proteinG);
+      return { progress: { value: g, max: t.proteinG, text: `${g} / ${t.proteinG} g` } };
+    }
+    case 'walk_10':
+    case 'walk_20': {
+      const max = id === 'walk_10' ? 10 : 20;
+      return { progress: { value: minutes, max, text: `${minutes} / ${max} 分鐘` } };
+    }
+    default:
+      return {};
+  }
 }

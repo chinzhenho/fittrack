@@ -6,7 +6,7 @@ export const MEAL_LABELS: Record<MealType, string> = {
   breakfast: '早餐',
   lunch: '午餐',
   dinner: '晚餐',
-  snack: '點心',
+  snack: '其他',
 };
 
 /** Spec 5.5: N_item = N_100g x grams / 100. Values kept unrounded; round only for display. */
