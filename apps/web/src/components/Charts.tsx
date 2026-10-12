@@ -71,7 +71,7 @@ export function WeightChart({
   const ticks = [lo, (lo + hi) / 2, hi];
 
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="w-full" role="img" aria-label="體重與趨勢圖">
+    <svg viewBox={`0 0 ${W} ${H}`} className="max-h-64 w-full" role="img" aria-label="體重與趨勢圖">
       {ticks.map((t) => (
         <g key={t}>
           <line

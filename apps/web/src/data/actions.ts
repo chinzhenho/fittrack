@@ -63,6 +63,41 @@ export function logFood(
   return { ...s, meals: [...s.meals, item] };
 }
 
+/**
+ * Changes the amount, meal or label of a logged item. Nutrients are a snapshot of the
+ * food at logging time, so they are scaled linearly to the new amount.
+ */
+export function editMeal(
+  s: AppState,
+  id: string,
+  change: { grams: number; meal: MealType; label?: string },
+): AppState {
+  return {
+    ...s,
+    meals: s.meals.map((m) => {
+      if (m.id !== id) return m;
+      const f = change.grams / m.grams;
+      const n = m.nutrients;
+      const nutrients = {
+        kcal: n.kcal * f,
+        proteinG: n.proteinG * f,
+        carbsG: n.carbsG * f,
+        fatG: n.fatG * f,
+        ...(n.fiberG !== undefined && { fiberG: n.fiberG * f }),
+        ...(n.sugarG !== undefined && { sugarG: n.sugarG * f }),
+        ...(n.sodiumMg !== undefined && { sodiumMg: n.sodiumMg * f }),
+      };
+      const label = change.label?.trim().slice(0, 20);
+      const next: MealItem = { ...m, grams: change.grams, meal: change.meal, nutrients };
+      delete next.label;
+      return {
+        ...next,
+        ...(change.meal === 'snack' && label ? { label } : {}),
+      };
+    }),
+  };
+}
+
 export function removeMeal(s: AppState, id: string): AppState {
   return { ...s, meals: s.meals.filter((m) => m.id !== id) };
 }

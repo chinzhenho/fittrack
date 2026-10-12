@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   addActivity,
   addWeight,
+  editMeal,
   logFood,
   saveSession,
   setDayComplete,
@@ -18,7 +19,7 @@ import {
   sumNutrients,
   validateCustomFood,
 } from './nutrition';
-import { needsRecompute, targetOn } from './targets';
+import { needsRecompute, startWeightKg, targetOn } from './targets';
 import { recentCompletion, tasksFor } from './tasks';
 import { newRecords, TEMPLATES, EXERCISES } from './workouts';
 
@@ -99,6 +100,25 @@ describe('nutrition', () => {
     expect(validateCustomFood('x', { ...ok, sodiumMg: -5 })).toEqual(['sodium']);
   });
 
+  it('editMeal rescales the nutrient snapshot and can move the item', () => {
+    let s = logFood(emptyState, {
+      id: 'm',
+      date: '2026-10-12',
+      meal: 'lunch',
+      food: chicken,
+      grams: 100,
+      now: 't',
+    });
+    s = editMeal(s, 'm', { grams: 250, meal: 'snack', label: ' 宵夜 ' });
+    const m = s.meals[0]!;
+    expect(m).toMatchObject({ grams: 250, meal: 'snack', label: '宵夜' });
+    expect(m.nutrients.kcal).toBeCloseTo(412.5, 10);
+    expect(m.nutrients.proteinG).toBeCloseTo(77.5, 10);
+    s = editMeal(s, 'm', { grams: 100, meal: 'dinner' });
+    expect(s.meals[0]).not.toHaveProperty('label');
+    expect(s.meals[0]!.nutrients.kcal).toBeCloseTo(165, 10);
+  });
+
   it('setWeightOn keeps one weight per day', () => {
     const w = (id: string, date: string, kg: number) => ({
       id,
@@ -173,6 +193,26 @@ describe('targets', () => {
     carbsG: 241,
     fatG: 53,
     clamps: [],
+  });
+
+  it('start weight is the first weight ever entered, not a corrected weigh-in', () => {
+    let s: AppState = {
+      ...base,
+      profile: { ...profile, goalStartDate: '2026-10-01' },
+      targets: [
+        t('a', '2026-10-01', '1'),
+        { ...t('b', '2026-10-20', '2'), weightKg: 70, reason: 'profile_change' as const },
+      ],
+    };
+    s = setWeightOn(s, { id: 'w', date: '2026-10-01', measuredAt: 'x', weightKg: 74 });
+    expect(startWeightKg(s)).toBe(75); // from the initial target, not the 74 correction
+    expect(startWeightKg({ ...emptyState })).toBeNull();
+    expect(
+      startWeightKg({
+        ...emptyState,
+        weights: [{ id: 'x', date: 'd', measuredAt: 'm', weightKg: 80 }],
+      }),
+    ).toBe(80);
   });
 
   it('picks the newest version in force on a date', () => {

@@ -1,11 +1,21 @@
 import { addDays } from '@fittrack/engine';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router';
 import { MEAL_STYLE } from '../components/mealStyle';
 import { useToast } from '../components/Toast';
-import { Bar, Button, Card, Check, PageTitle } from '../components/ui';
-import { removeMeal, restoreMeal, setDayComplete } from '../data/actions';
+import {
+  Bar,
+  Button,
+  Card,
+  Check,
+  Field,
+  inputClass,
+  PageTitle,
+  Segmented,
+} from '../components/ui';
+import { editMeal, removeMeal, restoreMeal, setDayComplete } from '../data/actions';
 import { update, useAppState } from '../data/store';
+import type { MealItem, MealType } from '../data/types';
 import { formatDateZh, localToday } from '../lib/dates';
 import { fmt1, fmtInt } from '../lib/format';
 import { MEAL_LABELS, MEAL_TYPES, mealsOn, sumNutrients } from '../logic/nutrition';
@@ -16,7 +26,6 @@ export function Diary() {
   const [params, setParams] = useSearchParams();
   const today = useMemo(() => localToday(), []);
   const date = params.get('date') ?? today;
-  const toast = useToast();
   const items = mealsOn(s.meals, date);
   const total = sumNutrients(items);
   const target = targetOn(s.targets, date);
@@ -129,43 +138,7 @@ export function Diary() {
             {list.length > 0 && (
               <ul className="mt-3 divide-y divide-slate-100 border-t border-slate-100 dark:divide-slate-700 dark:border-slate-700">
                 {list.map((i) => (
-                  <li key={i.id} className="flex items-center gap-3 py-3">
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate font-medium">
-                        {i.label && (
-                          <span className="mr-2 rounded-full bg-rose-100 px-2 py-0.5 text-xs font-medium text-rose-900 dark:bg-rose-500/20 dark:text-rose-100">
-                            {i.label}
-                          </span>
-                        )}
-                        {i.name}
-                      </p>
-                      <p className="text-xs text-slate-600 dark:text-slate-300">
-                        {fmt1(i.grams)} g
-                        {!hide &&
-                          ` · 蛋白質 ${fmt1(i.nutrients.proteinG)} g · 碳水 ${fmt1(i.nutrients.carbsG)} g · 脂肪 ${fmt1(i.nutrients.fatG)} g`}
-                      </p>
-                    </div>
-                    {!hide && (
-                      <span className="shrink-0 font-semibold">
-                        {fmtInt(i.nutrients.kcal)} kcal
-                      </span>
-                    )}
-                    <button
-                      type="button"
-                      aria-label={`刪除 ${i.name}`}
-                      className="flex size-11 shrink-0 items-center justify-center rounded-2xl text-slate-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950"
-                      onClick={() => {
-                        update((x) => removeMeal(x, i.id));
-                        toast({
-                          text: `已刪除 ${i.name}`,
-                          actionLabel: '復原',
-                          onAction: () => update((x) => restoreMeal(x, i)),
-                        });
-                      }}
-                    >
-                      ✕
-                    </button>
-                  </li>
+                  <MealRow key={i.id} item={i} hide={hide} />
                 ))}
               </ul>
             )}
@@ -182,5 +155,123 @@ export function Diary() {
         </p>
       </Card>
     </div>
+  );
+}
+
+/** One logged food. Tap to change the amount or meal, or delete it (with undo). */
+function MealRow({ item: i, hide }: { item: MealItem; hide: boolean }) {
+  const toast = useToast();
+  const [editing, setEditing] = useState(false);
+  const [grams, setGrams] = useState(String(i.grams));
+  const [meal, setMeal] = useState<MealType>(i.meal);
+  const [label, setLabel] = useState(i.label ?? '');
+  const g = Number(grams);
+  const ok = g > 0 && g <= 5000;
+
+  const remove = () => {
+    update((x) => removeMeal(x, i.id));
+    toast({
+      text: `已刪除 ${i.name}`,
+      actionLabel: '復原',
+      onAction: () => update((x) => restoreMeal(x, i)),
+    });
+  };
+
+  if (!editing) {
+    return (
+      <li>
+        <button
+          type="button"
+          onClick={() => setEditing(true)}
+          aria-label={`編輯 ${i.name}`}
+          className="flex w-full items-center gap-3 rounded-2xl py-3 text-left hover:bg-slate-50 dark:hover:bg-slate-700"
+        >
+          <span className="min-w-0 flex-1">
+            <span className="block truncate font-medium">
+              {i.label && (
+                <span className="mr-2 rounded-full bg-rose-100 px-2 py-0.5 text-xs font-medium text-rose-900 dark:bg-rose-500/20 dark:text-rose-100">
+                  {i.label}
+                </span>
+              )}
+              {i.name}
+            </span>
+            <span className="block text-xs text-slate-600 dark:text-slate-300">
+              {fmt1(i.grams)} g
+              {!hide &&
+                ` · 蛋白質 ${fmt1(i.nutrients.proteinG)} g · 碳水 ${fmt1(i.nutrients.carbsG)} g · 脂肪 ${fmt1(i.nutrients.fatG)} g`}
+            </span>
+          </span>
+          {!hide && <span className="shrink-0 font-semibold">{fmtInt(i.nutrients.kcal)} kcal</span>}
+          <span aria-hidden="true" className="shrink-0 pr-1 text-sm text-slate-400">
+            ✎
+          </span>
+        </button>
+      </li>
+    );
+  }
+
+  return (
+    <li className="space-y-3 rounded-2xl bg-slate-50 p-3 my-2 dark:bg-slate-700">
+      <p className="font-medium">{i.name}</p>
+      <div className="grid grid-cols-2 gap-3">
+        <Field label="份量（g）" error={ok ? null : '需介於 1 至 5000 g'}>
+          {(p) => (
+            <input
+              {...p}
+              type="number"
+              inputMode="decimal"
+              step="1"
+              value={grams}
+              onChange={(e) => setGrams(e.target.value)}
+              className={inputClass}
+            />
+          )}
+        </Field>
+        {!hide && ok && (
+          <div className="self-end pb-3 text-sm">
+            ≈ <strong>{fmtInt((i.nutrients.kcal * g) / i.grams)}</strong> kcal
+          </div>
+        )}
+      </div>
+      <Segmented
+        label="餐次"
+        value={meal}
+        options={MEAL_TYPES.map((m) => ({ value: m, label: MEAL_LABELS[m] }))}
+        onChange={setMeal}
+      />
+      {meal === 'snack' && (
+        <Field label="名稱（選填）">
+          {(p) => (
+            <input
+              {...p}
+              maxLength={20}
+              value={label}
+              placeholder="例如：下午茶、宵夜"
+              onChange={(e) => setLabel(e.target.value)}
+              className={inputClass}
+            />
+          )}
+        </Field>
+      )}
+      <div className="flex gap-2">
+        <Button variant="danger" onClick={remove}>
+          刪除
+        </Button>
+        <Button variant="secondary" onClick={() => setEditing(false)}>
+          取消
+        </Button>
+        <Button
+          className="flex-1"
+          disabled={!ok}
+          onClick={() => {
+            update((x) => editMeal(x, i.id, { grams: g, meal, label }));
+            setEditing(false);
+            toast({ text: '已更新' });
+          }}
+        >
+          儲存
+        </Button>
+      </div>
+    </li>
   );
 }

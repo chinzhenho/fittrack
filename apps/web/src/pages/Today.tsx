@@ -23,6 +23,7 @@ import {
   planFor,
   targetFromPlan,
   targetOn,
+  startWeightKg,
   trendPoints,
 } from '../logic/targets';
 import { tasksFor } from '../logic/tasks';
@@ -91,14 +92,14 @@ export function Today() {
   const greeting = hour < 5 ? '夜深了' : hour < 12 ? '早安' : hour < 18 ? '午安' : '晚上好';
   const todayMeals = mealsOn(s.meals, today);
   const latest = latestWeight(s.weights);
-  const first = [...s.weights].sort((a, b) => a.measuredAt.localeCompare(b.measuredAt))[0];
+  const startKg = startWeightKg(s);
   // The card shows what the user actually weighed; the smoothed trend is a side note.
   const current = latest?.weightKg ?? null;
   const goalKg = profile.targetWeightKg;
-  const change = current !== null && first ? current - first.weightKg : null;
+  const change = current !== null && startKg !== null ? current - startKg : null;
   const toGoal =
-    current !== null && first && goalKg !== undefined && first.weightKg !== goalKg
-      ? Math.min(1, Math.max(0, (first.weightKg - current) / (first.weightKg - goalKg)))
+    current !== null && startKg !== null && goalKg !== undefined && startKg !== goalKg
+      ? Math.min(1, Math.max(0, (startKg - current) / (startKg - goalKg)))
       : null;
   const todayWeight = s.weights.find((w) => w.date === today);
   const prev = s.weights
@@ -363,26 +364,24 @@ export function Today() {
                   </p>
                 )}
               </div>
-              {change !== null && first && first.date !== today && (
+              {change !== null && Math.abs(change) >= 0.05 && (
                 <p
                   className={`rounded-full px-3 py-1 text-sm font-semibold ${movingRight ? 'bg-emerald-50 text-emerald-900 dark:bg-emerald/15 dark:text-emerald-100' : 'bg-slate-100 dark:bg-slate-700'}`}
                 >
                   {change > 0 ? '+' : ''}
                   {fmt1(change)} kg
-                  <span className="ml-1 font-normal">
-                    自 {first.date.slice(5).replace('-', '/')}
-                  </span>
+                  <span className="ml-1 font-normal">比起點</span>
                 </p>
               )}
             </div>
-            {goalKg !== undefined && toGoal !== null && current !== null && first && (
+            {goalKg !== undefined && toGoal !== null && current !== null && startKg !== null && (
               <div className="mt-4 text-sm">
                 {reached ? (
                   <p className="font-medium">🎉 已達到目標 {fmt1(goalKg)} kg！</p>
-                ) : first.date === today ? (
+                ) : change === null || Math.abs(change) < 0.05 ? (
                   <div className="flex items-center gap-2 rounded-2xl bg-slate-50 px-4 py-3 dark:bg-slate-700">
                     <span>
-                      起點 <strong>{fmt1(first.weightKg)}</strong>
+                      起點 <strong>{fmt1(startKg)}</strong>
                     </span>
                     <span aria-hidden="true" className="text-slate-400">
                       →
@@ -402,7 +401,7 @@ export function Today() {
                     </p>
                     <Bar value={toGoal} max={1} color="bg-emerald" />
                     <div className="mt-1 flex justify-between text-xs text-slate-600 dark:text-slate-300">
-                      <span>起點 {fmt1(first.weightKg)}</span>
+                      <span>起點 {fmt1(startKg)}</span>
                       <span>已完成 {Math.round(toGoal * 100)}%</span>
                       <span>目標 {fmt1(goalKg)}</span>
                     </div>

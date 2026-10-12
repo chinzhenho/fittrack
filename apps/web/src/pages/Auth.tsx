@@ -4,18 +4,38 @@ import { Button, Check, Field, inputClass, Notice } from '../components/ui';
 import { authErrorMessage, clearRecovering, isRecovering, useAuth } from '../data/auth';
 import { supabase } from '../data/supabase';
 
-function AuthLayout({ title, children }: { title: string; children: ReactNode }) {
+function AuthLayout({
+  title,
+  back = true,
+  children,
+}: {
+  title: string;
+  back?: boolean;
+  children: ReactNode;
+}) {
+  const navigate = useNavigate();
   return (
     <div className="min-h-dvh">
-      <header className="bg-navy text-white">
-        <div className="mx-auto flex max-w-md items-center gap-3 px-4 py-4">
-          <img src="/favicon.svg" alt="" className="size-8" />
-          <span className="text-lg font-semibold">FitTrack</span>
-        </div>
+      <header className="mx-auto flex max-w-md items-center gap-2 px-2 py-3">
+        {back ? (
+          <Button
+            variant="ghost"
+            onClick={() => (window.history.length > 1 ? navigate(-1) : navigate('/'))}
+          >
+            ‹ 返回
+          </Button>
+        ) : (
+          <span className="flex min-h-11 items-center gap-2 px-2">
+            <img src="/favicon.svg" alt="" className="size-8" />
+            <span className="text-xl font-bold text-emerald-strong dark:text-emerald">
+              FitTrack
+            </span>
+          </span>
+        )}
       </header>
-      <main className="mx-auto max-w-md px-4 py-8">
-        <h1 className="mb-6 text-2xl font-semibold">{title}</h1>
-        <div className="space-y-5 rounded-2xl bg-white p-6 shadow-sm dark:bg-slate-800">
+      <main className="mx-auto max-w-md px-4 pt-2 pb-8">
+        <h1 className="mb-6 text-2xl font-bold">{title}</h1>
+        <div className="space-y-5 rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-900/5 dark:bg-slate-800 dark:ring-white/10">
           {children}
         </div>
       </main>
@@ -27,7 +47,7 @@ const linkClass = 'text-emerald-strong underline dark:text-emerald';
 
 export function Welcome() {
   return (
-    <AuthLayout title="歡迎使用 FitTrack">
+    <AuthLayout title="歡迎使用 FitTrack" back={false}>
       <p className="leading-relaxed">
         依照你的生活方式，安全地減脂、增重、增肌或維持體重。不用去 Gym 也可以開始。
       </p>

@@ -113,3 +113,17 @@ export function macrosForAdaptive(profile: Profile, caloriesKcal: number, weight
     kidneyDisease: profile.screening.kidneyDisease,
   });
 }
+
+/**
+ * The very first weight the user entered (at onboarding, stored with the initial
+ * target). It never moves, even if a weigh-in from that day is corrected later or
+ * the goal changes. Falls back to the earliest weigh-in.
+ */
+export function startWeightKg(state: AppState): number | null {
+  const initial = [...state.targets]
+    .filter((t) => t.reason === 'initial')
+    .sort((a, b) => a.createdAt.localeCompare(b.createdAt))[0];
+  if (initial) return initial.weightKg;
+  const w = [...state.weights].sort((a, b) => a.measuredAt.localeCompare(b.measuredAt))[0];
+  return w ? w.weightKg : null;
+}

@@ -2,8 +2,17 @@ import { addDays, trendOn, weeklyChangePct } from '@fittrack/engine';
 import { useMemo, useState } from 'react';
 import { WeightChart } from '../components/Charts';
 import { useToast } from '../components/Toast';
-import { Button, Card, CardTitle, Field, inputClass, Notice, PageTitle } from '../components/ui';
-import { addTarget, addWeight, removeWeight } from '../data/actions';
+import {
+  Bar,
+  Button,
+  Card,
+  CardTitle,
+  Field,
+  inputClass,
+  Notice,
+  PageTitle,
+} from '../components/ui';
+import { addTarget, removeWeight, setWeightOn } from '../data/actions';
 import { newId, update, useAppState } from '../data/store';
 import { formatDateZh, localToday } from '../lib/dates';
 import { fmt1, fmtInt } from '../lib/format';
@@ -24,6 +33,15 @@ export function Progress() {
   const [range, setRange] = useState<'7' | '30' | '90'>('30');
   const [w, setW] = useState('');
   const [waist, setWaist] = useState('');
+  const [wDate, setWDate] = useState(today);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [showAll, setShowAll] = useState(false);
+  const resetForm = () => {
+    setEditingId(null);
+    setWDate(today);
+    setW('');
+    setWaist('');
+  };
   const points = trendPoints(s.weights);
   const trend = trendOn(points, today);
   const weekly = weeklyChangePct(points, today);
@@ -45,12 +63,22 @@ export function Progress() {
 
   const kg = Number(w);
   const waistCm = Number(waist);
-  const valid = kg >= 30 && kg <= 300 && (waist.trim() === '' || (waistCm >= 40 && waistCm <= 250));
-  const entries = [...s.weights].sort((a, b) => b.measuredAt.localeCompare(a.measuredAt));
+  const valid =
+    wDate !== '' &&
+    wDate <= today &&
+    kg >= 30 &&
+    kg <= 300 &&
+    (waist.trim() === '' || (waistCm >= 40 && waistCm <= 250));
+  const entries = [...s.weights].sort(
+    (a, b) => b.date.localeCompare(a.date) || b.measuredAt.localeCompare(a.measuredAt),
+  );
 
   const summary = progressSummary(s, today);
   const goalKg = profile?.targetWeightKg;
   const unlocked = summary.badges.filter((b) => b.unlocked).length;
+  const next = summary.badges
+    .filter((b) => !b.unlocked)
+    .sort((a, b) => b.progress.value / b.progress.max - a.progress.value / a.progress.max)[0];
   const goalWord = profile?.goal === 'fat_loss' ? '已減' : '已增';
 
   return (
@@ -137,6 +165,20 @@ export function Progress() {
         >
           成就
         </CardTitle>
+        {next && (
+          <div className="mb-3 rounded-2xl bg-emerald-50 px-4 py-3 text-sm dark:bg-emerald/15">
+            <p>
+              下一個：
+              <strong>
+                {next.icon} {next.title}
+              </strong>{' '}
+              — {next.need}
+            </p>
+            {next.progress.max > 1 && (
+              <Bar value={next.progress.value} max={next.progress.max} color="bg-emerald" />
+            )}
+          </div>
+        )}
         {summary.longest > summary.streak && (
           <p className="mb-3 text-sm text-slate-600 dark:text-slate-300">
             最長連續記錄：{summary.longest} 天
@@ -159,10 +201,16 @@ export function Progress() {
                 <span className="sr-only">{b.unlocked ? '（已獲得）' : '（未獲得）'}</span>
               </p>
               <p className="text-xs text-slate-600 dark:text-slate-300">
-                {b.unlocked
-                  ? '已獲得'
-                  : `${b.need}（${b.progress.max === 1 ? '未完成' : `${fmt1(b.progress.value)} / ${b.progress.max}`}）`}
+                {b.unlocked ? '✓ 已獲得' : b.need}
               </p>
+              {!b.unlocked && b.progress.max > 1 && (
+                <>
+                  <Bar value={b.progress.value} max={b.progress.max} color="bg-amber-400" />
+                  <p className="mt-1 text-right text-[11px] text-slate-600 dark:text-slate-300">
+                    {fmt1(b.progress.value).replace(/\.0$/, '')} / {b.progress.max}
+                  </p>
+                </>
+              )}
             </li>
           ))}
         </ul>
@@ -234,89 +282,143 @@ export function Progress() {
         </Card>
       )}
 
-      <Card>
-        <details>
-          <summary className="flex min-h-11 cursor-pointer items-center justify-between text-lg font-semibold">
-            體重記錄（{entries.length}）
-            <span className="text-sm font-normal text-slate-600 dark:text-slate-300">展開</span>
-          </summary>
-          <div className="mt-3 space-y-4">
-            <form
-              className="grid gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end"
-              onSubmit={(e) => {
-                e.preventDefault();
-                if (!valid) return;
-                update((x) =>
-                  addWeight(x, {
-                    id: newId(),
-                    date: today,
-                    measuredAt: new Date().toISOString(),
-                    weightKg: kg,
-                    ...(waist.trim() !== '' && { waistCm }),
-                  }),
-                );
-                setW('');
-                setWaist('');
-              }}
-            >
-              <Field label="體重（kg）">
-                {(p) => (
-                  <input
-                    {...p}
-                    type="number"
-                    inputMode="decimal"
-                    step="0.1"
-                    value={w}
-                    onChange={(e) => setW(e.target.value)}
-                    className={inputClass}
-                  />
-                )}
-              </Field>
-              <Field label="腰圍（cm，選填）">
-                {(p) => (
-                  <input
-                    {...p}
-                    type="number"
-                    inputMode="decimal"
-                    step="0.1"
-                    value={waist}
-                    onChange={(e) => setWaist(e.target.value)}
-                    className={inputClass}
-                  />
-                )}
-              </Field>
-              <Button type="submit" disabled={!valid}>
-                儲存
-              </Button>
-            </form>
-            <p className="text-xs text-slate-600 dark:text-slate-300">
-              可以補記腰圍。每天只用第一筆記錄計算趨勢。
-            </p>
-            {entries.length === 0 ? (
-              <p className="text-sm text-slate-600 dark:text-slate-300">還沒有記錄。</p>
-            ) : (
-              <ul className="divide-y divide-slate-100 dark:divide-slate-700">
-                {entries.slice(0, 60).map((e) => (
-                  <li key={e.id} className="flex items-center justify-between gap-3 py-2 text-sm">
-                    <span>{formatDateZh(e.date, today)}</span>
-                    <span className="ml-auto font-medium">
-                      {fmt1(e.weightKg)} kg
-                      {e.waistCm !== undefined && ` · 腰圍 ${fmt1(e.waistCm)} cm`}
-                    </span>
-                    <button
-                      type="button"
-                      aria-label={`刪除 ${e.date} 的體重記錄`}
-                      className="flex size-11 items-center justify-center rounded-xl text-slate-400 hover:text-red-600"
-                      onClick={() => update((x) => removeWeight(x, e.id))}
-                    >
-                      ✕
-                    </button>
-                  </li>
-                ))}
-              </ul>
+      <Card className="space-y-4">
+        <CardTitle>{editingId ? '修改體重記錄' : '記錄體重'}</CardTitle>
+        <form
+          className="space-y-3"
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (!valid) return;
+            const old = s.weights.find((x) => x.id === editingId);
+            const entry = {
+              id: editingId ?? newId(),
+              date: wDate,
+              // Past days get a morning timestamp; only "first reading of the day" matters.
+              measuredAt:
+                wDate === today
+                  ? new Date().toISOString()
+                  : new Date(`${wDate}T07:00:00`).toISOString(),
+              weightKg: kg,
+              ...(waist.trim() !== '' && { waistCm }),
+            };
+            update((x) => setWeightOn(old ? removeWeight(x, old.id) : x, entry));
+            toast({ text: editingId ? '已更新' : `已記錄 ${formatDateZh(wDate, today)} 的體重` });
+            resetForm();
+          }}
+        >
+          <Field label="日期">
+            {(p) => (
+              <input
+                {...p}
+                type="date"
+                max={today}
+                value={wDate}
+                onChange={(e) => setWDate(e.target.value)}
+                className={inputClass}
+              />
             )}
+          </Field>
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="體重（kg）">
+              {(p) => (
+                <input
+                  {...p}
+                  type="number"
+                  inputMode="decimal"
+                  step="0.1"
+                  value={w}
+                  onChange={(e) => setW(e.target.value)}
+                  className={inputClass}
+                />
+              )}
+            </Field>
+            <Field label="腰圍（cm，選填）">
+              {(p) => (
+                <input
+                  {...p}
+                  type="number"
+                  inputMode="decimal"
+                  step="0.1"
+                  value={waist}
+                  onChange={(e) => setWaist(e.target.value)}
+                  className={inputClass}
+                />
+              )}
+            </Field>
           </div>
-        </details>
+          {!editingId && s.weights.some((x) => x.date === wDate) && (
+            <p className="text-xs text-amber-800 dark:text-amber-300">
+              這一天已經有記錄，儲存後會取代它。
+            </p>
+          )}
+          <div className="flex gap-2">
+            {editingId && (
+              <Button variant="secondary" onClick={resetForm}>
+                取消
+              </Button>
+            )}
+            <Button type="submit" className="flex-1" disabled={!valid}>
+              {editingId ? '儲存修改' : '儲存'}
+            </Button>
+          </div>
+        </form>
+
+        {entries.length > 0 && (
+          <ul className="divide-y divide-slate-100 border-t border-slate-100 dark:divide-slate-700 dark:border-slate-700">
+            {entries.slice(0, showAll ? undefined : 7).map((e) => (
+              <li key={e.id} className="flex items-center gap-2 py-2 text-sm">
+                <span className="min-w-0 flex-1">
+                  <span className="block font-medium">
+                    {fmt1(e.weightKg)} kg
+                    {e.waistCm !== undefined && (
+                      <span className="font-normal text-slate-600 dark:text-slate-300">
+                        {' '}
+                        · 腰圍 {fmt1(e.waistCm)} cm
+                      </span>
+                    )}
+                  </span>
+                  <span className="block text-xs text-slate-600 dark:text-slate-300">
+                    {formatDateZh(e.date, today)}
+                  </span>
+                </span>
+                <Button
+                  variant="ghost"
+                  className="min-h-9 px-3"
+                  aria-label={`修改 ${e.date} 的體重`}
+                  onClick={() => {
+                    setEditingId(e.id);
+                    setWDate(e.date);
+                    setW(String(e.weightKg));
+                    setWaist(e.waistCm !== undefined ? String(e.waistCm) : '');
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                >
+                  修改
+                </Button>
+                <button
+                  type="button"
+                  aria-label={`刪除 ${e.date} 的體重記錄`}
+                  className="flex size-10 items-center justify-center rounded-2xl text-slate-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950"
+                  onClick={() => {
+                    update((x) => removeWeight(x, e.id));
+                    toast({
+                      text: `已刪除 ${formatDateZh(e.date, today)} 的體重`,
+                      actionLabel: '復原',
+                      onAction: () => update((x) => setWeightOn(x, e)),
+                    });
+                  }}
+                >
+                  ✕
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+        {entries.length > 7 && (
+          <Button variant="ghost" className="w-full" onClick={() => setShowAll((v) => !v)}>
+            {showAll ? '收起' : `顯示全部 ${entries.length} 筆`}
+          </Button>
+        )}
       </Card>
 
       <Card>

@@ -307,7 +307,9 @@ export function Me({ mode = 'home' }: { mode?: 'home' | 'plan' }) {
               {signedIn ? auth.user.email : '訪客（未登入）'}
             </p>
             <p className="text-sm text-emerald-50">
-              {signedIn ? SYNC_TEXT[sync.status] || '已登入' : '資料只保存在這部裝置'}
+              {signedIn
+                ? SYNC_TEXT[sync.status] || '已登入'
+                : '目前資料只存在這部裝置。註冊後換手機也能看到記錄。'}
             </p>
           </div>
         </div>
@@ -334,7 +336,7 @@ export function Me({ mode = 'home' }: { mode?: 'home' | 'plan' }) {
               to="/signup"
               className="inline-flex min-h-11 flex-1 items-center justify-center rounded-2xl bg-white px-4 text-sm font-semibold text-emerald-900"
             >
-              註冊並備份
+              註冊帳號
             </Link>
             <Link
               to="/login"

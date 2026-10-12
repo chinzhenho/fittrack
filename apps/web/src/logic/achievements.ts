@@ -1,7 +1,7 @@
 import { addDays, trendOn } from '@fittrack/engine';
 import type { AppState } from '../data/types';
 import { mealsOn, sumNutrients } from './nutrition';
-import { targetOn, trendPoints } from './targets';
+import { startWeightKg, targetOn, trendPoints } from './targets';
 
 // Streaks and badges for the progress page. Everything is derived from the records,
 // so deleting an entry also takes back a badge it earned.
@@ -64,11 +64,11 @@ export function progressSummary(s: AppState, today: string): ProgressSummary {
   const goal = s.profile?.goal;
 
   const points = trendPoints(s.weights);
-  const first = points[0];
+  const start = startWeightKg(s);
   const trend = trendOn(points, today);
   const direction = goal === 'fat_loss' ? -1 : goal === 'maintain' || !goal ? 0 : 1;
   const towardGoalKg =
-    first && trend !== null && direction !== 0 ? (trend - first.weightKg) * direction : null;
+    start !== null && trend !== null && direction !== 0 ? (trend - start) * direction : null;
 
   const proteinDays = dates.filter((d) => {
     const t = targetOn(s.targets, d);
