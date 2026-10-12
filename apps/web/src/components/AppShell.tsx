@@ -8,7 +8,6 @@ const NAV = [
     label: '飲食',
     icon: 'M7 3v8a3 3 0 006 0V3M10 3v18M17 3c-1.5 2-2 4-2 7h4c0-3-.5-5-2-7zm0 7v11',
   },
-  { to: '/workout', label: '訓練', icon: 'M4 9v6M8 7v10M16 7v10M20 9v6M8 12h8' },
   { to: '/progress', label: '進度', icon: 'M4 19h16M6 15l4-4 3 3 5-6' },
   { to: '/me', label: '我', icon: 'M12 12a4 4 0 100-8 4 4 0 000 8zm-7 9a7 7 0 0114 0' },
 ];
@@ -73,7 +72,7 @@ export function AppShell() {
         aria-label="主選單"
         className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 pb-[env(safe-area-inset-bottom)] shadow-[0_-4px_16px_rgba(15,23,42,0.06)] backdrop-blur lg:hidden dark:border-slate-700 dark:bg-slate-800/95"
       >
-        <ul className="grid grid-cols-5">
+        <ul className="grid grid-cols-4">
           {NAV.map((n) => (
             <li key={n.to}>
               <NavLink

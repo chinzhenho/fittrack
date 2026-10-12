@@ -2,20 +2,12 @@ import { addDays, trendOn, weeklyChangePct } from '@fittrack/engine';
 import { useMemo, useState } from 'react';
 import { WeightChart } from '../components/Charts';
 import { useToast } from '../components/Toast';
-import {
-  Button,
-  Card,
-  CardTitle,
-  Field,
-  inputClass,
-  Notice,
-  PageTitle,
-  Segmented,
-} from '../components/ui';
+import { Button, Card, CardTitle, Field, inputClass, Notice, PageTitle } from '../components/ui';
 import { addTarget, addWeight, removeWeight } from '../data/actions';
 import { newId, update, useAppState } from '../data/store';
 import { formatDateZh, localToday } from '../lib/dates';
 import { fmt1, fmtInt } from '../lib/format';
+import { progressSummary } from '../logic/achievements';
 import { adaptiveFor, macrosForAdaptive, targetOn, trendPoints } from '../logic/targets';
 
 const REFUSAL_TEXT: Record<string, string> = {
@@ -56,96 +48,126 @@ export function Progress() {
   const valid = kg >= 30 && kg <= 300 && (waist.trim() === '' || (waistCm >= 40 && waistCm <= 250));
   const entries = [...s.weights].sort((a, b) => b.measuredAt.localeCompare(a.measuredAt));
 
+  const summary = progressSummary(s, today);
+  const goalKg = profile?.targetWeightKg;
+  const unlocked = summary.badges.filter((b) => b.unlocked).length;
+  const goalWord = profile?.goal === 'fat_loss' ? '已減' : '已增';
+
   return (
     <div className="space-y-4">
-      <PageTitle sub="看趨勢，不看單日：每天的體重會因水分、鹽分和消化而上下波動。">進度</PageTitle>
+      <PageTitle>進度</PageTitle>
+
+      <section className="grid grid-cols-3 gap-2 rounded-3xl bg-gradient-to-br from-emerald-700 to-teal-800 p-4 text-center text-white shadow-md">
+        <div>
+          <p className="text-2xl font-bold">🔥 {summary.streak}</p>
+          <p className="text-xs text-emerald-50">連續記錄（天）</p>
+        </div>
+        <div>
+          <p className="text-2xl font-bold">{summary.daysLogged}</p>
+          <p className="text-xs text-emerald-50">總共記錄（天）</p>
+        </div>
+        <div>
+          <p className="text-2xl font-bold">
+            {summary.towardGoalKg !== null ? fmt1(Math.max(0, summary.towardGoalKg)) : '—'}
+          </p>
+          <p className="text-xs text-emerald-50">
+            {summary.towardGoalKg !== null ? `${goalWord}（kg）` : '維持體重中'}
+          </p>
+        </div>
+      </section>
 
       <Card>
+        <CardTitle
+          action={
+            <div
+              className="flex gap-1 rounded-full bg-slate-100 p-1 dark:bg-slate-700"
+              role="group"
+              aria-label="期間"
+            >
+              {(['7', '30', '90'] as const).map((r) => (
+                <button
+                  key={r}
+                  type="button"
+                  aria-pressed={range === r}
+                  onClick={() => setRange(r)}
+                  className={`min-h-8 rounded-full px-3 text-xs font-medium ${range === r ? 'bg-white text-emerald-900 shadow-sm dark:bg-slate-900 dark:text-emerald-100' : 'text-slate-600 dark:text-slate-300'}`}
+                >
+                  {r} 天
+                </button>
+              ))}
+            </div>
+          }
+        >
+          體重趨勢
+        </CardTitle>
         <div className="mb-3 flex items-end justify-between gap-3">
           <div>
-            <p className="text-xs text-slate-600 dark:text-slate-300">趨勢體重</p>
-            <p className="text-3xl font-semibold">{trend !== null ? `${fmt1(trend)} kg` : '—'}</p>
+            <p className="text-3xl font-bold">
+              {trend !== null ? fmt1(trend) : '—'}
+              <span className="ml-1 text-base font-medium">kg</span>
+            </p>
             <p className="text-sm text-slate-600 dark:text-slate-300">
               {weekly !== null
                 ? `過去 7 天 ${weekly > 0 ? '+' : ''}${fmt1(weekly)}%`
-                : '需要一週的記錄'}
+                : '記錄滿一週後顯示每週變化'}
             </p>
           </div>
-          <Segmented
-            label="期間"
-            value={range}
-            options={[
-              { value: '7', label: '7 天' },
-              { value: '30', label: '30 天' },
-              { value: '90', label: '90 天' },
-            ]}
-            onChange={setRange}
-          />
+          {goalKg !== undefined && (
+            <p className="shrink-0 rounded-full bg-emerald-50 whitespace-nowrap px-3 py-1 text-sm font-medium text-emerald-900 dark:bg-emerald/15 dark:text-emerald-100">
+              🎯 目標 {fmt1(goalKg)} kg
+            </p>
+          )}
         </div>
         <WeightChart points={points} end={today} days={Number(range)} />
         <p className="mt-2 text-xs text-slate-600 dark:text-slate-300">
-          灰點是每天的記錄，綠線是趨勢。
+          灰點是每天的體重，綠線是趨勢。每天會因水分、鹽分上下起伏，看綠線就好。
         </p>
       </Card>
 
       <Card>
-        <CardTitle>記錄體重</CardTitle>
-        <form
-          className="grid gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end"
-          onSubmit={(e) => {
-            e.preventDefault();
-            if (!valid) return;
-            update((x) =>
-              addWeight(x, {
-                id: newId(),
-                date: today,
-                measuredAt: new Date().toISOString(),
-                weightKg: kg,
-                ...(waist.trim() !== '' && { waistCm }),
-              }),
-            );
-            setW('');
-            setWaist('');
-          }}
+        <CardTitle
+          action={
+            <span className="text-sm text-slate-600 dark:text-slate-300">
+              {unlocked} / {summary.badges.length}
+            </span>
+          }
         >
-          <Field label="體重（kg）">
-            {(p) => (
-              <input
-                {...p}
-                type="number"
-                inputMode="decimal"
-                step="0.1"
-                value={w}
-                onChange={(e) => setW(e.target.value)}
-                className={inputClass}
-              />
-            )}
-          </Field>
-          <Field label="腰圍（cm，選填）">
-            {(p) => (
-              <input
-                {...p}
-                type="number"
-                inputMode="decimal"
-                step="0.1"
-                value={waist}
-                onChange={(e) => setWaist(e.target.value)}
-                className={inputClass}
-              />
-            )}
-          </Field>
-          <Button type="submit" disabled={!valid}>
-            儲存
-          </Button>
-        </form>
-        <p className="mt-2 text-xs text-slate-600 dark:text-slate-300">
-          每天只用第一筆記錄計算趨勢；建議早上如廁後、進食前量。
-        </p>
+          成就
+        </CardTitle>
+        {summary.longest > summary.streak && (
+          <p className="mb-3 text-sm text-slate-600 dark:text-slate-300">
+            最長連續記錄：{summary.longest} 天
+          </p>
+        )}
+        <ul className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+          {summary.badges.map((b) => (
+            <li
+              key={b.id}
+              className={`rounded-2xl p-3 ${b.unlocked ? 'bg-amber-50 ring-1 ring-amber-200 dark:bg-amber-500/10 dark:ring-amber-500/30' : 'bg-slate-50 dark:bg-slate-700'}`}
+            >
+              <p
+                className={`text-2xl ${b.unlocked ? '' : 'opacity-40 grayscale'}`}
+                aria-hidden="true"
+              >
+                {b.icon}
+              </p>
+              <p className="mt-1 text-sm font-semibold">
+                {b.title}
+                <span className="sr-only">{b.unlocked ? '（已獲得）' : '（未獲得）'}</span>
+              </p>
+              <p className="text-xs text-slate-600 dark:text-slate-300">
+                {b.unlocked
+                  ? '已獲得'
+                  : `${b.need}（${b.progress.max === 1 ? '未完成' : `${fmt1(b.progress.value)} / ${b.progress.max}`}）`}
+              </p>
+            </li>
+          ))}
+        </ul>
       </Card>
 
       {target && (
         <Card>
-          <CardTitle>動態調整建議</CardTitle>
+          <CardTitle>目標調整建議</CardTitle>
           {adaptiveCooldown ? (
             <p className="text-sm">上一次調整在 {lastAdaptive?.effectiveFrom}，14 天後再評估。</p>
           ) : adaptive?.ok ? (
@@ -210,44 +232,114 @@ export function Progress() {
       )}
 
       <Card>
-        <CardTitle>體重記錄</CardTitle>
-        {entries.length === 0 ? (
-          <p className="text-sm text-slate-600 dark:text-slate-300">還沒有記錄。</p>
-        ) : (
-          <ul className="divide-y divide-slate-100 dark:divide-slate-700">
-            {entries.slice(0, 60).map((e) => (
-              <li key={e.id} className="flex items-center justify-between gap-3 py-2 text-sm">
-                <span>{formatDateZh(e.date, today)}</span>
-                <span className="ml-auto font-medium">
-                  {fmt1(e.weightKg)} kg{e.waistCm !== undefined && ` · 腰圍 ${fmt1(e.waistCm)} cm`}
-                </span>
-                <button
-                  type="button"
-                  aria-label={`刪除 ${e.date} 的體重記錄`}
-                  className="flex size-11 items-center justify-center rounded-xl text-slate-400 hover:text-red-600"
-                  onClick={() => update((x) => removeWeight(x, e.id))}
-                >
-                  ✕
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
+        <details>
+          <summary className="flex min-h-11 cursor-pointer items-center justify-between text-lg font-semibold">
+            體重記錄（{entries.length}）
+            <span className="text-sm font-normal text-slate-600 dark:text-slate-300">展開</span>
+          </summary>
+          <div className="mt-3 space-y-4">
+            <form
+              className="grid gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end"
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (!valid) return;
+                update((x) =>
+                  addWeight(x, {
+                    id: newId(),
+                    date: today,
+                    measuredAt: new Date().toISOString(),
+                    weightKg: kg,
+                    ...(waist.trim() !== '' && { waistCm }),
+                  }),
+                );
+                setW('');
+                setWaist('');
+              }}
+            >
+              <Field label="體重（kg）">
+                {(p) => (
+                  <input
+                    {...p}
+                    type="number"
+                    inputMode="decimal"
+                    step="0.1"
+                    value={w}
+                    onChange={(e) => setW(e.target.value)}
+                    className={inputClass}
+                  />
+                )}
+              </Field>
+              <Field label="腰圍（cm，選填）">
+                {(p) => (
+                  <input
+                    {...p}
+                    type="number"
+                    inputMode="decimal"
+                    step="0.1"
+                    value={waist}
+                    onChange={(e) => setWaist(e.target.value)}
+                    className={inputClass}
+                  />
+                )}
+              </Field>
+              <Button type="submit" disabled={!valid}>
+                儲存
+              </Button>
+            </form>
+            <p className="text-xs text-slate-600 dark:text-slate-300">
+              可以補記腰圍。每天只用第一筆記錄計算趨勢。
+            </p>
+            {entries.length === 0 ? (
+              <p className="text-sm text-slate-600 dark:text-slate-300">還沒有記錄。</p>
+            ) : (
+              <ul className="divide-y divide-slate-100 dark:divide-slate-700">
+                {entries.slice(0, 60).map((e) => (
+                  <li key={e.id} className="flex items-center justify-between gap-3 py-2 text-sm">
+                    <span>{formatDateZh(e.date, today)}</span>
+                    <span className="ml-auto font-medium">
+                      {fmt1(e.weightKg)} kg
+                      {e.waistCm !== undefined && ` · 腰圍 ${fmt1(e.waistCm)} cm`}
+                    </span>
+                    <button
+                      type="button"
+                      aria-label={`刪除 ${e.date} 的體重記錄`}
+                      className="flex size-11 items-center justify-center rounded-xl text-slate-400 hover:text-red-600"
+                      onClick={() => update((x) => removeWeight(x, e.id))}
+                    >
+                      ✕
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </details>
       </Card>
 
       <Card>
-        <CardTitle>目標歷史</CardTitle>
-        <ul className="space-y-1 text-sm">
-          {[...s.targets].reverse().map((t) => (
-            <li key={t.id} className="flex justify-between gap-3">
-              <span>{t.effectiveFrom}</span>
-              <span className="text-slate-600 dark:text-slate-300">
-                {{ initial: '初始', profile_change: '資料更新', adaptive: '動態調整' }[t.reason]}
-              </span>
-              <span className="font-medium">{fmtInt(t.caloriesKcal)} kcal</span>
-            </li>
-          ))}
-        </ul>
+        <details>
+          <summary className="flex min-h-11 cursor-pointer items-center justify-between text-lg font-semibold">
+            每日目標歷史
+            <span className="text-sm font-normal text-slate-600 dark:text-slate-300">展開</span>
+          </summary>
+          <div className="mt-3">
+            <ul className="space-y-1 text-sm">
+              {[...s.targets].reverse().map((t) => (
+                <li key={t.id} className="flex justify-between gap-3">
+                  <span>{t.effectiveFrom}</span>
+                  <span className="text-slate-600 dark:text-slate-300">
+                    {
+                      { initial: '初始', profile_change: '資料更新', adaptive: '動態調整' }[
+                        t.reason
+                      ]
+                    }
+                  </span>
+                  <span className="font-medium">{fmtInt(t.caloriesKcal)} kcal</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </details>
       </Card>
     </div>
   );
