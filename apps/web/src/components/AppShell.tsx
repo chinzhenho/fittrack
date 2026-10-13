@@ -84,11 +84,11 @@ export function AppShell() {
         </ul>
         <SnapButton
           meal={mealForHour(new Date().getHours())}
-          label="AI 快拍：拍照记录食物"
+          label="记录食物"
           className="mt-6 flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-emerald-strong px-4 font-semibold text-white shadow-lg shadow-emerald-600/25 transition hover:bg-emerald-800 dark:bg-emerald dark:text-slate-950"
         >
           <Icon d={CAMERA} />
-          AI 快拍
+          记录食物
         </SnapButton>
       </nav>
 
@@ -116,13 +116,13 @@ export function AppShell() {
           <li className="flex flex-col items-center pb-1.5">
             <SnapButton
               meal={mealForHour(new Date().getHours())}
-              label="AI 快拍：拍照记录食物"
+              label="记录食物"
               className="-mt-7 flex size-15 items-center justify-center rounded-full border-4 border-white bg-emerald-strong text-white shadow-lg shadow-emerald-600/40 transition active:scale-90 dark:border-slate-800 dark:bg-emerald dark:text-slate-950"
             >
               <Icon d={CAMERA} />
             </SnapButton>
             <span className="mt-0.5 text-[11px] font-bold text-emerald-strong dark:text-emerald">
-              AI 快拍
+              记录食物
             </span>
           </li>
           {NAV.slice(2).map((n) => (

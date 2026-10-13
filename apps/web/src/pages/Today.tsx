@@ -249,7 +249,7 @@ export function Today() {
           </div>
           <SnapButton
             meal={nextMeal}
-            label={`拍照记录${MEAL_LABELS[nextMeal]}`}
+            label={`记录${MEAL_LABELS[nextMeal]}`}
             className="flex shrink-0 items-center gap-2 rounded-2xl bg-gradient-to-r from-emerald-600 to-emerald-700 px-4 py-3 text-sm font-extrabold text-white shadow-lg shadow-emerald-600/25 transition active:scale-95"
           >
             <span
@@ -258,7 +258,7 @@ export function Today() {
             >
               📷
             </span>
-            拍照记录食物
+            记录食物
           </SnapButton>
         </div>
         {!hide && (
@@ -273,7 +273,7 @@ export function Today() {
             <SnapButton
               key={m}
               meal={m}
-              label={`拍照记录${MEAL_LABELS[m]}`}
+              label={`记录${MEAL_LABELS[m]}`}
               className="group flex flex-col items-center rounded-xl border border-slate-200 bg-slate-50 p-2 text-center transition hover:border-emerald-200 hover:bg-emerald-50 active:scale-95 dark:border-slate-600 dark:bg-slate-700"
             >
               <span aria-hidden="true" className="text-xl transition group-hover:scale-110">
@@ -303,7 +303,7 @@ export function Today() {
         </div>
         {todayMeals.length === 0 ? (
           <p className="rounded-2xl border-2 border-dashed border-slate-200 p-5 text-center text-sm text-slate-500 dark:border-slate-700 dark:text-slate-400">
-            今天还没有记录。点上面的“拍照记录食物”开始吧。
+            今天还没有记录。点上面的“记录食物”开始吧。
           </p>
         ) : (
           <ul className="space-y-2.5">
