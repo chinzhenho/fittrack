@@ -21,3 +21,9 @@ export function formatDateZh(date: string, today = localToday()): string {
 export function lastNDays(end: string, n: number): string[] {
   return Array.from({ length: n }, (_, i) => addDays(end, i - n + 1));
 }
+
+/** Full date, e.g. "10月13日 周二", without the 今天/昨天 shortcut. */
+export function formatDateFull(date: string): string {
+  const [y, m, d] = date.split('-').map(Number) as [number, number, number];
+  return `${m}月${d}日 周${WEEKDAYS[new Date(y, m - 1, d).getDay()]}`;
+}

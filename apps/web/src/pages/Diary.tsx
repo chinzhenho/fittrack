@@ -2,6 +2,7 @@ import { addDays } from '@fittrack/engine';
 import { useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router';
 import { MEAL_STYLE } from '../components/mealStyle';
+import { MonthCalendar } from '../components/MonthCalendar';
 import { useToast } from '../components/Toast';
 import {
   Bar,
@@ -16,7 +17,7 @@ import {
 import { editMeal, removeMeal, restoreMeal, setDayComplete } from '../data/actions';
 import { update, useAppState } from '../data/store';
 import type { MealItem, MealType } from '../data/types';
-import { formatDateZh, localToday } from '../lib/dates';
+import { formatDateFull, formatDateZh, localToday } from '../lib/dates';
 import { fmt1, fmtInt } from '../lib/format';
 import { MEAL_LABELS, MEAL_TYPES, mealsOn, sumNutrients } from '../logic/nutrition';
 import { targetOn } from '../logic/targets';
@@ -32,6 +33,7 @@ export function Diary() {
   const hide = s.profile?.hideNumbers ?? false;
   const complete = s.completeDays.includes(date);
 
+  const [picking, setPicking] = useState(false);
   const go = (d: string) => setParams(d === today ? {} : { date: d });
 
   return (
@@ -39,18 +41,71 @@ export function Diary() {
       <PageTitle>饮食日记</PageTitle>
       <div className="flex items-center justify-between rounded-3xl bg-white p-2 shadow-sm ring-1 ring-slate-900/5 dark:bg-slate-800 dark:ring-white/10">
         <Button variant="ghost" aria-label="前一天" onClick={() => go(addDays(date, -1))}>
-          ‹ 前一天
+          ‹<span className="hidden sm:inline"> 前一天</span>
         </Button>
-        <span className="font-semibold">{formatDateZh(date, today)}</span>
+        <button
+          type="button"
+          onClick={() => setPicking((v) => !v)}
+          aria-expanded={picking}
+          aria-label={`选择日期，目前是 ${formatDateFull(date)}`}
+          className="flex min-h-11 items-center gap-2 rounded-2xl px-3 hover:bg-slate-50 dark:hover:bg-slate-700"
+        >
+          <span aria-hidden="true">📅</span>
+          <span className="text-left leading-tight">
+            <span className="block font-semibold">
+              {date === today || date === addDays(today, -1)
+                ? formatDateZh(date, today)
+                : formatDateFull(date)}
+            </span>
+            {(date === today || date === addDays(today, -1)) && (
+              <span className="block text-xs text-slate-500 dark:text-slate-400">
+                {formatDateFull(date)}
+              </span>
+            )}
+          </span>
+          <span
+            aria-hidden="true"
+            className={`text-slate-400 transition ${picking ? 'rotate-180' : ''}`}
+          >
+            ▾
+          </span>
+        </button>
         <Button
           variant="ghost"
           aria-label="后一天"
           disabled={date >= today}
           onClick={() => go(addDays(date, 1))}
         >
-          后一天 ›
+          <span className="hidden sm:inline">后一天 </span>›
         </Button>
       </div>
+
+      {picking && (
+        <div className="space-y-2">
+          <MonthCalendar
+            value={date}
+            max={today}
+            logged={new Set(s.meals.map((m) => m.date))}
+            complete={new Set(s.completeDays)}
+            onPick={(d) => {
+              go(d);
+              setPicking(false);
+            }}
+          />
+          {date !== today && (
+            <Button
+              variant="secondary"
+              className="w-full"
+              onClick={() => {
+                go(today);
+                setPicking(false);
+              }}
+            >
+              回到今天
+            </Button>
+          )}
+        </div>
+      )}
 
       {!hide && (
         <Card>
