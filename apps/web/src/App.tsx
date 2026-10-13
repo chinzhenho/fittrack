@@ -13,8 +13,6 @@ import { Me } from './pages/Me';
 import { Onboarding } from './pages/Onboarding';
 import { Progress } from './pages/Progress';
 import { Today } from './pages/Today';
-import { Workout } from './pages/Workout';
-import { WorkoutSession } from './pages/WorkoutSession';
 
 /** Where a visitor without a profile on this device should go. */
 function useEntryRoute(): 'loading' | '/onboarding' | '/welcome' {
@@ -70,8 +68,6 @@ export function AppRoutes() {
         <Route path="/today" element={<Today />} />
         <Route path="/diary" element={<Diary />} />
         <Route path="/diary/add" element={<AddFood />} />
-        <Route path="/workout" element={<Workout />} />
-        <Route path="/workout/start/:templateId" element={<WorkoutSession />} />
         <Route path="/progress" element={<Progress />} />
         <Route path="/me" element={<Me />} />
         <Route path="/me/plan" element={<Me mode="plan" />} />

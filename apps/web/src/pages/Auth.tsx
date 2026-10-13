@@ -444,7 +444,7 @@ export function Signup() {
           )}
         </Field>
         <Check checked={agree} onChange={setAgree}>
-          我同意把我的身体、饮食和训练记录保存到我的账号，并已阅读
+          我同意把我的身体、饮食和体重记录保存到我的账号，并已阅读
           <Link to="/legal/privacy" target="_blank" className={`mx-1 ${linkClass}`}>
             隐私政策
           </Link>

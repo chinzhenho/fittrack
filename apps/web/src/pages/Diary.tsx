@@ -19,7 +19,7 @@ import { update, useAppState } from '../data/store';
 import type { MealItem, MealType } from '../data/types';
 import { formatDateFull, formatDateZh, localToday } from '../lib/dates';
 import { fmt1, fmtInt } from '../lib/format';
-import { MEAL_LABELS, MEAL_TYPES, mealsOn, sumNutrients } from '../logic/nutrition';
+import { calorieGap, MEAL_LABELS, MEAL_TYPES, mealsOn, sumNutrients } from '../logic/nutrition';
 import { targetOn } from '../logic/targets';
 
 export function Diary() {
@@ -32,6 +32,8 @@ export function Diary() {
   const target = targetOn(s.targets, date);
   const hide = s.profile?.hideNumbers ?? false;
   const complete = s.completeDays.includes(date);
+  const gap =
+    target && s.profile ? calorieGap(s.profile.goal, total.kcal, target.caloriesKcal) : null;
 
   const [picking, setPicking] = useState(false);
   const go = (d: string) => setParams(d === today ? {} : { date: d });
@@ -121,11 +123,9 @@ export function Diary() {
             </div>
             {target && (
               <p
-                className={`rounded-full px-3 py-1 text-sm font-semibold ${total.kcal <= target.caloriesKcal ? 'bg-emerald-50 text-emerald-900 dark:bg-emerald/15 dark:text-emerald-100' : 'bg-amber-50 text-amber-900 dark:bg-amber-500/15 dark:text-amber-100'}`}
+                className={`rounded-full px-3 py-1 text-sm font-semibold ${gap?.state === 'over' ? 'bg-amber-50 text-amber-900 dark:bg-amber-500/15 dark:text-amber-100' : 'bg-emerald-50 text-emerald-900 dark:bg-emerald/15 dark:text-emerald-100'}`}
               >
-                {total.kcal <= target.caloriesKcal
-                  ? `还可吃 ${fmtInt(target.caloriesKcal - total.kcal)}`
-                  : `超出 ${fmtInt(total.kcal - target.caloriesKcal)}`}
+                {gap && `${gap.label} ${fmtInt(gap.kcal)}`}
               </p>
             )}
           </div>
@@ -133,7 +133,7 @@ export function Diary() {
             <Bar
               value={total.kcal}
               max={target.caloriesKcal}
-              color={total.kcal > target.caloriesKcal ? 'bg-amber-500' : 'bg-emerald'}
+              color={gap?.state === 'over' ? 'bg-amber-500' : 'bg-emerald'}
             />
           )}
           <div className="mt-4 grid grid-cols-3 gap-3 text-sm">

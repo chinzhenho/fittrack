@@ -69,9 +69,6 @@ describe('app flow', () => {
     fireEvent.click(screen.getByLabelText(/我同意 EatHealthee 使用/));
     next();
     tap(/减脂/);
-    tap(/在家运动/);
-    tap('10–15 分钟');
-    tap(/初学者/);
     tap('男性公式');
     change('出生日期', '1996-01-01');
     change('身高（cm）', '175');
@@ -127,9 +124,6 @@ describe('app flow', () => {
     fireEvent.click(screen.getByLabelText(/我同意 EatHealthee 使用/));
     next();
     tap(/减脂/);
-    tap(/暂时不运动/);
-    tap('不一定');
-    tap(/初学者/);
     tap('女性公式');
     change('出生日期', '2000-05-05');
     change('身高（cm）', '169.6');

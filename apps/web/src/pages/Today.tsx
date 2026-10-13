@@ -1,25 +1,23 @@
 import { addDays, trendOn, weeklyChangePct } from '@fittrack/engine';
 import { useMemo, useState } from 'react';
-import { Link, useNavigate } from 'react-router';
+import { Link } from 'react-router';
 import { Ring } from '../components/Charts';
 import { MEAL_STYLE } from '../components/mealStyle';
 import { Bar, Button, Card, CardTitle, Notice } from '../components/ui';
-import {
-  addActivity,
-  addTarget,
-  addWater,
-  removeWater,
-  setDayComplete,
-  setRestDay,
-  setWeightOn,
-  skipTask,
-} from '../data/actions';
+import { addTarget, setDayComplete, setWeightOn, skipTask } from '../data/actions';
 import { newId, update, useAppState } from '../data/store';
 import { localToday } from '../lib/dates';
 import { fmt1, fmtInt } from '../lib/format';
 import { GOAL_LABELS } from '../lib/messages';
-import { MEAL_LABELS, MEAL_TYPES, mealForHour, mealsOn, sumNutrients } from '../logic/nutrition';
-import { waterOn, WATER_GOAL_ML, WATER_STEP_ML } from '../logic/water';
+import {
+  calorieGap,
+  MEAL_LABELS,
+  MEAL_TYPES,
+  mealForHour,
+  mealsOn,
+  sumNutrients,
+} from '../logic/nutrition';
+import { waterByNow, waterGoalMl, WATER_STEP_ML } from '../logic/water';
 import { SnapButton } from '../components/SnapButton';
 import { useAuth } from '../data/auth';
 import {
@@ -32,15 +30,12 @@ import {
   trendPoints,
 } from '../logic/targets';
 import { tasksFor } from '../logic/tasks';
-import { templateById, templatesFor, type WorkoutTemplate } from '../logic/workouts';
 
 export function Today() {
   const s = useAppState();
   const today = useMemo(() => localToday(), []);
-  const navigate = useNavigate();
   const [weightInput, setWeightInput] = useState('');
   const [editingWeight, setEditingWeight] = useState(false);
-  const [showNoWorkout, setShowNoWorkout] = useState(false);
   const auth = useAuth();
   const profile = s.profile;
   const target = targetOn(s.targets, today);
@@ -51,15 +46,8 @@ export function Today() {
   const trend = trendOn(points, today);
   const weekly = weeklyChangePct(points, today);
   const tasks = tasksFor(s, today);
-  const isRest = s.restDays.includes(today);
   const hide = profile.hideNumbers;
-  const remaining = target.caloriesKcal - eaten.kcal;
-
-  const suggested =
-    templatesFor(profile.lifestyleMode)
-      .filter((t) => t.id !== 'stretch-10')
-      .filter((t) => profile.minutesPerDay === 0 || t.minutes <= Math.max(profile.minutesPerDay, 5))
-      .at(-1) ?? templateById('home-5');
+  const gap = calorieGap(profile.goal, eaten.kcal, target.caloriesKcal);
 
   const saveWeight = () => {
     const kg = Number(weightInput);
@@ -123,9 +111,9 @@ export function Today() {
       : null;
   const doneCount = tasks.filter((t) => t.done).length;
   const nextMeal = mealForHour(hour);
-  const waterMl = waterOn(s.water, today);
-  const waterGoal = WATER_GOAL_ML[profile.formulaSex];
-  const lastWater = s.water.filter((w) => w.date === today).at(-1);
+  const waterGoal = waterGoalMl(target.tdeeKcal);
+  const now = new Date();
+  const waterNow = waterByNow(waterGoal, now.getHours(), now.getMinutes());
   const initial = auth.status === 'signedIn' ? (auth.user.email?.[0] ?? '🙂').toUpperCase() : '🙂';
 
   return (
@@ -180,11 +168,10 @@ export function Today() {
                     🔥 今日热量
                   </span>
                   <p className="mt-2 flex items-baseline gap-1.5">
-                    <span className="text-4xl font-black tracking-tight">
-                      {fmtInt(Math.abs(remaining))}
-                    </span>
+                    <span className="text-4xl font-black tracking-tight">{fmtInt(gap.kcal)}</span>
                     <span className="text-sm font-medium text-emerald-50">
-                      kcal {remaining >= 0 ? '还可以吃' : '超出目标'}
+                      kcal {gap.label}
+                      {gap.state === 'reached' ? ' 🎉' : ''}
                     </span>
                   </p>
                   <p className="mt-1 text-xs text-emerald-50">
@@ -197,7 +184,7 @@ export function Today() {
                     max={target.caloriesKcal}
                     label={`已摄取 ${fmtInt(eaten.kcal)} / ${fmtInt(target.caloriesKcal)} kcal`}
                     trackClass="stroke-white/20"
-                    barClass={remaining >= 0 ? 'stroke-white' : 'stroke-amber-300'}
+                    barClass={gap.state === 'over' ? 'stroke-amber-300' : 'stroke-white'}
                     size="size-24"
                   />
                   <span className="absolute inset-0 flex flex-col items-center justify-center">
@@ -240,59 +227,41 @@ export function Today() {
           )}
 
           <Card className="p-4">
-            <div className="mb-2 flex items-center justify-between gap-3">
-              <span className="flex items-center gap-2 text-sm font-bold">
-                <span
-                  aria-hidden="true"
-                  className="flex size-7 items-center justify-center rounded-lg bg-sky-100 text-sky-600 dark:bg-sky-500/20"
-                >
-                  💧
-                </span>
-                喝水
-              </span>
-              <span className="text-sm font-bold text-sky-700 dark:text-sky-300">
-                {fmtInt(waterMl)} / {fmtInt(waterGoal)} ml
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-700">
-                <div
-                  className="h-full rounded-full bg-sky-500 transition-all duration-300"
-                  style={{ width: `${Math.min(100, (waterMl / waterGoal) * 100)}%` }}
-                />
-              </div>
-              {lastWater && (
-                <button
-                  type="button"
-                  aria-label="撤销上一杯"
-                  onClick={() => update((x) => removeWater(x, lastWater.id))}
-                  className="flex size-10 items-center justify-center rounded-xl text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700"
-                >
-                  −
-                </button>
-              )}
-              <button
-                type="button"
-                onClick={() =>
-                  update((x) =>
-                    addWater(x, {
-                      id: newId(),
-                      date: today,
-                      ml: WATER_STEP_ML,
-                      at: new Date().toISOString(),
-                    }),
-                  )
-                }
-                className="min-h-10 rounded-xl border border-sky-200 bg-sky-50 px-3 text-sm font-bold text-sky-700 transition active:scale-95 dark:border-sky-500/30 dark:bg-sky-500/15 dark:text-sky-200"
+            <div className="flex items-start gap-3">
+              <span
+                aria-hidden="true"
+                className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-sky-100 text-xl dark:bg-sky-500/20"
               >
-                +{WATER_STEP_ML} ml
-              </button>
+                💧
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-bold">今天建议喝水</p>
+                {profile.screening.kidneyDisease ? (
+                  <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
+                    你有肾脏方面的状况，喝水量请按医生的建议。
+                  </p>
+                ) : (
+                  <>
+                    <p className="mt-0.5 text-2xl font-black text-sky-700 dark:text-sky-300">
+                      约 {fmtInt(waterGoal)} ml
+                      <span className="ml-1.5 text-sm font-semibold text-slate-500 dark:text-slate-400">
+                        ≈ {Math.round(waterGoal / WATER_STEP_ML)} 杯
+                      </span>
+                    </p>
+                    <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
+                      {waterNow > 0
+                        ? `现在大约应喝到 ${fmtInt(waterNow)} ml，记得每 1–2 小时喝一杯。`
+                        : '早上起床先喝一杯水，之后每 1–2 小时喝一杯。'}
+                    </p>
+                    <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                      按你每天的消耗计算（每杯 {WATER_STEP_ML} ml）。天气热、出汗或运动时要多喝
+                      {profile.screening.pregnantOrLactating ? '；怀孕或哺乳期间需要再多一些' : ''}
+                      。
+                    </p>
+                  </>
+                )}
+              </div>
             </div>
-            <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
-              {waterMl >= waterGoal
-                ? '🎉 今天的喝水目标完成了！'
-                : `一杯约 ${WATER_STEP_ML} ml。天气热或运动时要多喝。`}
-            </p>
           </Card>
         </div>
 
@@ -415,20 +384,7 @@ export function Today() {
                     )
                   )}
                 </div>
-                {(t.id === 'walk_10' || t.id === 'walk_20') && !t.done && t.progress ? (
-                  <Button
-                    variant="secondary"
-                    className="min-h-9 shrink-0 px-3"
-                    onClick={() => {
-                      const left = (t.progress?.max ?? 0) - (t.progress?.value ?? 0);
-                      update((x) =>
-                        addActivity(x, { id: newId(), date: today, type: 'walk', minutes: left }),
-                      );
-                    }}
-                  >
-                    走了
-                  </Button>
-                ) : t.id === 'log_weight' && !t.done ? (
+                {t.id === 'log_weight' && !t.done ? (
                   <Button
                     variant="secondary"
                     className="min-h-9 shrink-0 px-3"
@@ -603,124 +559,7 @@ export function Today() {
       </div>
 
       <WeekCard today={today} hide={hide} />
-      {profile.lifestyleMode !== 'nutrition_first' && (
-        <ActivityCard
-          {...{ isRest, today, suggested, showNoWorkout, setShowNoWorkout, navigate }}
-          caution={profile.screening.exerciseCaution}
-        />
-      )}
     </div>
-  );
-}
-
-function ActivityCard({
-  isRest,
-  today,
-  suggested,
-  caution,
-  showNoWorkout,
-  setShowNoWorkout,
-  navigate,
-}: {
-  isRest: boolean;
-  today: string;
-  suggested: WorkoutTemplate | undefined;
-  caution: boolean;
-  showNoWorkout: boolean;
-  setShowNoWorkout: (f: (v: boolean) => boolean) => void;
-  navigate: (to: string) => void;
-}) {
-  return (
-    <Card>
-      <CardTitle>今天的活动</CardTitle>
-      {caution && (
-        <p className="mb-3 text-sm text-amber-800 dark:text-amber-300">
-          你曾表示需要限制运动：开始前请先咨询医生，并选择低冲击的活动。
-        </p>
-      )}
-      {isRest ? (
-        <div className="space-y-3 text-sm">
-          <p>今天是休息日，休息也是计划的一部分。想动一动的话，可以做 10 分钟伸展。</p>
-          <div className="flex flex-wrap gap-2">
-            <Button variant="secondary" onClick={() => navigate('/workout/start/stretch-10')}>
-              伸展 10 分钟
-            </Button>
-            <Button variant="ghost" onClick={() => update((x) => setRestDay(x, today, false))}>
-              取消休息日
-            </Button>
-          </div>
-        </div>
-      ) : (
-        <div className="space-y-3">
-          {suggested && (
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className="font-medium">{suggested.name}</p>
-                <p className="text-xs text-slate-600 dark:text-slate-300">{suggested.note}</p>
-              </div>
-              <Button onClick={() => navigate(`/workout/start/${suggested.id}`)}>开始</Button>
-            </div>
-          )}
-          <Button
-            variant="secondary"
-            className="w-full"
-            onClick={() => setShowNoWorkout((v) => !v)}
-            aria-expanded={showNoWorkout}
-          >
-            我现在不想运动
-          </Button>
-          {showNoWorkout && (
-            <ul className="grid gap-2 text-sm">
-              <li>
-                <Button
-                  variant="ghost"
-                  className="w-full justify-start"
-                  onClick={() => navigate('/workout/start/home-5')}
-                >
-                  我只有 5 分钟
-                </Button>
-              </li>
-              <li>
-                <Button
-                  variant="ghost"
-                  className="w-full justify-start"
-                  onClick={() => navigate('/workout/start/home-15-low')}
-                >
-                  我想在家轻松活动
-                </Button>
-              </li>
-              <li>
-                <Button
-                  variant="ghost"
-                  className="w-full justify-start"
-                  onClick={() => navigate('/workout/start/walk-20')}
-                >
-                  我不想健身，只想出去走走
-                </Button>
-              </li>
-              <li>
-                <Button
-                  variant="ghost"
-                  className="w-full justify-start"
-                  onClick={() => update((x) => setRestDay(x, today, true))}
-                >
-                  我今天很累，想休息
-                </Button>
-              </li>
-              <li>
-                <Button
-                  variant="ghost"
-                  className="w-full justify-start"
-                  onClick={() => navigate('/workout')}
-                >
-                  我想换一个训练
-                </Button>
-              </li>
-            </ul>
-          )}
-        </div>
-      )}
-    </Card>
   );
 }
 

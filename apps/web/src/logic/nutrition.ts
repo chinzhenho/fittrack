@@ -1,4 +1,5 @@
 import type { Food, MealItem, MealType, Nutrients } from '../data/types';
+import type { Goal } from '@fittrack/engine';
 
 export const MEAL_TYPES: MealType[] = ['breakfast', 'lunch', 'dinner', 'snack'];
 
@@ -84,4 +85,29 @@ export function mealForHour(hour: number): MealType {
   if (hour >= 11 && hour < 16) return 'lunch';
   if (hour >= 17 && hour < 22) return 'dinner';
   return 'snack';
+}
+
+/** Whether the goal needs a calorie surplus (eat at least the target) rather than a ceiling. */
+export function isGainGoal(goal: Goal): boolean {
+  return goal === 'weight_gain' || goal === 'muscle_gain';
+}
+
+/**
+ * Wording for the gap to the daily calorie target. Losing or maintaining weight
+ * treats the target as a ceiling; gaining treats it as an amount to reach.
+ */
+export function calorieGap(
+  goal: Goal,
+  eatenKcal: number,
+  targetKcal: number,
+): { label: string; kcal: number; state: 'room' | 'over' | 'need' | 'reached' } {
+  const left = targetKcal - eatenKcal;
+  if (isGainGoal(goal)) {
+    return left > 0
+      ? { label: '还需要吃', kcal: left, state: 'need' }
+      : { label: '已达到目标', kcal: -left, state: 'reached' };
+  }
+  return left >= 0
+    ? { label: '还可以吃', kcal: left, state: 'room' }
+    : { label: '超出目标', kcal: -left, state: 'over' };
 }

@@ -1,6 +1,6 @@
 import { addDays } from '@fittrack/engine';
-import type { AppState, LifestyleMode } from '../data/types';
-import { mealsOn, sumNutrients } from './nutrition';
+import type { AppState } from '../data/types';
+import { isGainGoal, mealsOn, sumNutrients } from './nutrition';
 import { targetOn } from './targets';
 
 // Daily "small wins" (spec 7.1 and 18.3). Completion is computed from the records,
@@ -13,12 +13,7 @@ export type TaskId =
   | 'protein_target'
   | 'kcal_within'
   | 'mark_complete'
-  | 'log_weight'
-  | 'walk_10'
-  | 'walk_20'
-  | 'home_short'
-  | 'planned_workout'
-  | 'stretch';
+  | 'log_weight';
 
 export interface Task {
   id: TaskId;
@@ -43,19 +38,10 @@ const COPY: Record<TaskId, { title: string; hint: string; link?: string }> = {
   },
   mark_complete: { title: '确认今天全部记录了', hint: '完整的日子会让建议更准确' },
   log_weight: { title: '记录今天的体重', hint: '早上如厕后、吃东西前量最准' },
-  walk_10: { title: '散步 10 分钟', hint: '走路也算数', link: '/workout' },
-  walk_20: { title: '快走 20 分钟', hint: '能说话但不能唱歌的节奏', link: '/workout' },
-  home_short: { title: '完成 5 或 10 分钟训练', hint: '在家就能做', link: '/workout' },
-  planned_workout: { title: '完成今天的训练', hint: '记录重量和次数', link: '/workout' },
-  stretch: { title: '伸展 10 分钟', hint: '休息日也可以照顾身体', link: '/workout' },
 };
 
 function isDone(id: TaskId, s: AppState, date: string): boolean {
   const meals = mealsOn(s.meals, date);
-  const sessions = s.sessions.filter((x) => x.date === date && x.endedAt);
-  const activityMin = s.activities
-    .filter((a) => a.date === date)
-    .reduce((t, a) => t + a.minutes, 0);
   switch (id) {
     case 'log_meal':
       return meals.length > 0;
@@ -72,58 +58,30 @@ function isDone(id: TaskId, s: AppState, date: string): boolean {
       return t !== null && sumNutrients(meals).proteinG >= t.proteinG;
     }
     case 'kcal_within': {
-      // Judged only once dinner is in, so the day is not "done" at breakfast.
       const t = targetOn(s.targets, date);
-      return (
-        t !== null &&
-        meals.some((x) => x.meal === 'dinner') &&
-        sumNutrients(meals).kcal <= t.caloriesKcal
-      );
+      if (t === null) return false;
+      const kcal = sumNutrients(meals).kcal;
+      // Gaining: done once the target is reached. Losing or maintaining: judged only
+      // once dinner is in, so the day is not "done" at breakfast.
+      if (s.profile && isGainGoal(s.profile.goal)) return kcal >= t.caloriesKcal;
+      return meals.some((x) => x.meal === 'dinner') && kcal <= t.caloriesKcal;
     }
     case 'mark_complete':
       return s.completeDays.includes(date);
     case 'log_weight':
       return s.weights.some((w) => w.date === date);
-    case 'walk_10':
-      return activityMin >= 10;
-    case 'walk_20':
-      return activityMin >= 20;
-    case 'home_short':
-      return sessions.some((x) => x.templateId === 'home-5' || x.templateId === 'home-10');
-    case 'planned_workout':
-      return sessions.some((x) => x.templateId !== 'stretch-10');
-    case 'stretch':
-      return sessions.some((x) => x.templateId === 'stretch-10');
-  }
-}
-
-function activityTask(mode: LifestyleMode, restDay: boolean, easy: boolean): TaskId {
-  if (restDay) return 'stretch';
-  switch (mode) {
-    case 'nutrition_first':
-      // No exercise chosen: a measurable eating goal instead of an unverifiable walk.
-      return 'kcal_within';
-    case 'home':
-      return 'home_short';
-    case 'gym':
-      return easy ? 'home_short' : 'planned_workout';
-    case 'outdoor':
-      return easy ? 'walk_10' : 'walk_20';
-    case 'mixed':
-      return easy ? 'walk_10' : 'home_short';
   }
 }
 
 function taskIdsFor(s: AppState, date: string, easy: boolean): TaskId[] {
   const p = s.profile;
   if (!p) return [];
-  const rest = s.restDays.includes(date);
-  const act = activityTask(p.lifestyleMode, rest, easy);
-  if (easy) return ['log_meal', act];
+  // The app is about eating, so the third goal is staying within the calorie target.
+  if (easy) return ['log_meal', 'kcal_within'];
   // With numbers hidden the user does not want to weigh in, so ask for a complete day instead.
   return p.hideNumbers
-    ? ['log_three', 'protein_meal', act, 'mark_complete']
-    : ['log_three', 'protein_target', act, 'log_weight'];
+    ? ['log_three', 'protein_meal', 'kcal_within', 'mark_complete']
+    : ['log_three', 'protein_target', 'kcal_within', 'log_weight'];
 }
 
 /** Completion rate over the 7 days before `date` (spec 7.1: < 30% -> only 2 easy tasks). */
@@ -147,6 +105,9 @@ export function tasksFor(s: AppState, date: string): Task[] {
   return taskIdsFor(s, date, easy).map((id) => ({
     id,
     ...COPY[id],
+    ...(id === 'kcal_within' &&
+      s.profile &&
+      isGainGoal(s.profile.goal) && { title: '热量吃够目标', hint: '增重需要每天吃够热量' }),
     done: isDone(id, s, date),
     skipped: skipped.includes(id),
     ...progressFor(id, s, date),
@@ -155,7 +116,6 @@ export function tasksFor(s: AppState, date: string): Task[] {
 
 function progressFor(id: TaskId, s: AppState, date: string): Pick<Task, 'progress'> {
   const meals = mealsOn(s.meals, date);
-  const minutes = s.activities.filter((a) => a.date === date).reduce((t, a) => t + a.minutes, 0);
   switch (id) {
     case 'log_three': {
       const n = (['breakfast', 'lunch', 'dinner'] as const).filter((m) =>
@@ -176,11 +136,6 @@ function progressFor(id: TaskId, s: AppState, date: string): Pick<Task, 'progres
       return {
         progress: { value: kcal, max: t.caloriesKcal, text: `${kcal} / ${t.caloriesKcal} kcal` },
       };
-    }
-    case 'walk_10':
-    case 'walk_20': {
-      const max = id === 'walk_10' ? 10 : 20;
-      return { progress: { value: minutes, max, text: `${minutes} / ${max} 分钟` } };
     }
     default:
       return {};

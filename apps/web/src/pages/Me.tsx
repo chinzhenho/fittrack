@@ -25,7 +25,7 @@ import { saveProfile, setHideNumbers } from '../data/actions';
 import { useAuth } from '../data/auth';
 import { deleteCloudData, signOut, useSync, type SyncStatus } from '../data/sync';
 import { getState, isPersistent, newId, replaceState, update, useAppState } from '../data/store';
-import { emptyState, type DietTag, type LifestyleMode, type Profile } from '../data/types';
+import { emptyState, type DietTag, type Profile } from '../data/types';
 import { localToday } from '../lib/dates';
 import { fmt1, fmtInt } from '../lib/format';
 import { setTheme, useTheme, type Theme } from '../lib/theme';
@@ -34,7 +34,6 @@ import {
   DIET_LABELS,
   fieldMessage,
   GOAL_LABELS,
-  MODE_LABELS,
   rejectMessage,
   SEX_LABELS,
 } from '../lib/messages';
@@ -152,16 +151,6 @@ export function Me({ mode = 'home' }: { mode?: 'home' | 'plan' }) {
               onChange={(v) => set('ratePctPerWeek', Number(v))}
             />
           )}
-          <Segmented
-            label="生活方式模式"
-            hint="切换模式不会影响热量公式，只会改变建议的任务和训练"
-            value={draft.lifestyleMode}
-            options={(Object.keys(MODE_LABELS) as LifestyleMode[]).map((m) => ({
-              value: m,
-              label: MODE_LABELS[m].name,
-            }))}
-            onChange={(m) => set('lifestyleMode', m)}
-          />
         </Card>
 
         <Card className="space-y-5">
@@ -240,12 +229,6 @@ export function Me({ mode = 'home' }: { mode?: 'home' | 'plan' }) {
               onChange={(v) => set('screening', { ...draft.screening, kidneyDisease: v })}
             >
               有肾脏疾病
-            </Check>
-            <Check
-              checked={draft.screening.exerciseCaution}
-              onChange={(v) => set('screening', { ...draft.screening, exerciseCaution: v })}
-            >
-              医生曾建议我限制运动，或我有心脏、关节等问题
             </Check>
           </fieldset>
           <fieldset className="space-y-1">
@@ -358,24 +341,8 @@ export function Me({ mode = 'home' }: { mode?: 'home' | 'plan' }) {
                 <span className="block font-medium">我的计划</span>
                 <span className="block truncate text-xs text-slate-600 dark:text-slate-300">
                   {GOAL_LABELS[profile.goal]}
-                  {profile.goal !== 'maintain' && ` · 每周 ${profile.ratePctPerWeek}%`} ·{' '}
-                  {MODE_LABELS[profile.lifestyleMode].name} · 身高 {profile.heightCm} cm
-                </span>
-              </span>
-              <span aria-hidden="true" className="text-slate-400">
-                ›
-              </span>
-            </Link>
-          </li>
-          <li>
-            <Link to="/workout" className={row}>
-              <span aria-hidden="true" className="text-xl">
-                🏃
-              </span>
-              <span className="min-w-0 flex-1">
-                <span className="block font-medium">运动与训练</span>
-                <span className="block text-xs text-slate-600 dark:text-slate-300">
-                  在家、Gym、散步的训练和记录
+                  {profile.goal !== 'maintain' && ` · 每周 ${profile.ratePctPerWeek}%`} · 身高{' '}
+                  {profile.heightCm} cm
                 </span>
               </span>
               <span aria-hidden="true" className="text-slate-400">
@@ -450,8 +417,8 @@ export function Me({ mode = 'home' }: { mode?: 'home' | 'plan' }) {
         ) : (
           <Notice tone="warn" title="确定删除？">
             {signedIn
-              ? '你账号里的所有饮食、体重、训练记录和设置都会从云端和这部设备永久删除，无法撤销，然后自动退出登录。建议先导出备份。'
-              : '所有饮食、体重、训练记录和设置都会被永久删除，无法撤销。建议先导出备份。'}
+              ? '你账号里的所有饮食、体重记录和设置都会从云端和这部设备永久删除，无法撤销，然后自动退出登录。建议先导出备份。'
+              : '所有饮食、体重记录和设置都会被永久删除，无法撤销。建议先导出备份。'}
             <div className="mt-3 flex gap-2">
               <Button
                 variant="danger"

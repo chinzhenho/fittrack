@@ -1,6 +1,5 @@
 import { nutrientsFor } from '../logic/nutrition';
 import type {
-  ActivityLog,
   AppState,
   Food,
   MealItem,
@@ -9,7 +8,6 @@ import type {
   TargetVersion,
   WaterEntry,
   WeightEntry,
-  WorkoutSession,
 } from './types';
 
 // Pure state transitions. Each takes the state and returns a new one; the UI wraps
@@ -120,10 +118,6 @@ export function setDayComplete(s: AppState, date: string, complete: boolean): Ap
   return { ...s, completeDays: toggle(s.completeDays, date, complete) };
 }
 
-export function setRestDay(s: AppState, date: string, rest: boolean): AppState {
-  return { ...s, restDays: toggle(s.restDays, date, rest) };
-}
-
 export function skipTask(s: AppState, date: string, taskId: string, skip: boolean): AppState {
   return {
     ...s,
@@ -142,19 +136,6 @@ export function setWeightOn(s: AppState, entry: WeightEntry): AppState {
 
 export function removeWeight(s: AppState, id: string): AppState {
   return { ...s, weights: s.weights.filter((w) => w.id !== id) };
-}
-
-export function addActivity(s: AppState, log: ActivityLog): AppState {
-  return { ...s, activities: [...s.activities, log] };
-}
-
-export function saveSession(s: AppState, session: WorkoutSession): AppState {
-  const others = s.sessions.filter((x) => x.id !== session.id);
-  return { ...s, sessions: [...others, session] };
-}
-
-export function removeSession(s: AppState, id: string): AppState {
-  return { ...s, sessions: s.sessions.filter((x) => x.id !== id) };
 }
 
 export function addWater(s: AppState, entry: WaterEntry): AppState {

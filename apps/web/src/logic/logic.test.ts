@@ -1,15 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import {
-  addActivity,
-  addWeight,
-  editMeal,
-  logFood,
-  saveSession,
-  setDayComplete,
-  setWeightOn,
-} from '../data/actions';
+import { addWeight, editMeal, logFood, setDayComplete, setWeightOn } from '../data/actions';
 import { BUILT_IN_FOODS, SEED_FOODS } from '../data/foods';
-import { emptyState, type AppState, type Profile, type WorkoutSession } from '../data/types';
+import { emptyState, type AppState, type Profile } from '../data/types';
 import {
   nutrientsFor,
   recentFoodIds,
@@ -19,7 +11,6 @@ import {
 } from './nutrition';
 import { needsRecompute, startWeightKg, targetOn } from './targets';
 import { recentCompletion, tasksFor } from './tasks';
-import { newRecords, TEMPLATES, EXERCISES } from './workouts';
 
 const rice = SEED_FOODS.find((f) => f.id === 'usda-168878')!;
 const chicken = SEED_FOODS.find((f) => f.id === 'usda-171477')!;
@@ -252,7 +243,7 @@ describe('daily tasks', () => {
     expect(tasks.map((x) => x.id)).toEqual([
       'log_three',
       'protein_target',
-      'home_short',
+      'kcal_within',
       'log_weight',
     ]);
     expect(tasks.find((x) => x.id === 'log_three')?.progress?.text).toBe('1 / 3 餐');
@@ -339,48 +330,12 @@ describe('daily tasks', () => {
 
   it('switches to two easy tasks after a week under 30% completion', () => {
     expect(recentCompletion(base, '2026-10-11')).toBe(0);
-    expect(tasksFor(base, '2026-10-11').map((x) => x.id)).toEqual(['log_meal', 'home_short']);
+    expect(tasksFor(base, '2026-10-11').map((x) => x.id)).toEqual(['log_meal', 'kcal_within']);
   });
 
   it('has no history before the user joined', () => {
     const fresh = { ...base, profile: { ...profile, consentedAt: '2026-10-11T00:00:00.000Z' } };
     expect(recentCompletion(fresh, '2026-10-11')).toBeNull();
     expect(tasksFor(fresh, '2026-10-11')).toHaveLength(4);
-  });
-
-  it('counts walking minutes and rest days', () => {
-    let s: AppState = {
-      ...base,
-      profile: { ...profile, lifestyleMode: 'outdoor', consentedAt: '2026-10-11T00:00:00.000Z' },
-    };
-    s = addActivity(s, { id: 'x', date: '2026-10-11', type: 'walk', minutes: 20 });
-    expect(tasksFor(s, '2026-10-11').find((x) => x.id === 'walk_20')?.done).toBe(true);
-    s = { ...s, restDays: ['2026-10-11'] };
-    expect(tasksFor(s, '2026-10-11').map((x) => x.id)).toContain('stretch');
-  });
-});
-
-describe('workouts', () => {
-  it('every template references a known exercise', () => {
-    const ids = new Set(EXERCISES.map((e) => e.id));
-    for (const t of TEMPLATES) for (const i of t.items) expect(ids.has(i.exerciseId)).toBe(true);
-    expect(TEMPLATES).toHaveLength(10);
-  });
-
-  it('detects a new heaviest weight against earlier sessions', () => {
-    const session = (id: string, kg: number, ended = true): WorkoutSession => ({
-      id,
-      date: '2026-10-11',
-      templateId: 'db-a',
-      startedAt: 't',
-      ...(ended && { endedAt: 't2' }),
-      sets: [{ exerciseId: 'goblet-squat', reps: 10, weightKg: kg, done: true }],
-      painExerciseIds: [],
-    });
-    const s = saveSession(saveSession(base, session('a', 10)), session('b', 12));
-    expect(s.sessions).toHaveLength(2);
-    expect(newRecords(session('c', 14, false), s.sessions)).toEqual(['goblet-squat']);
-    expect(newRecords(session('c', 12, false), s.sessions)).toEqual([]);
-    expect(newRecords(session('c', 20, false), [])).toEqual([]);
   });
 });

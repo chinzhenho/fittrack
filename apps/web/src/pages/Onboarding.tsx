@@ -27,7 +27,6 @@ import {
   DIET_LABELS,
   fieldMessage,
   GOAL_LABELS,
-  MODE_LABELS,
   rejectMessage,
   SEX_LABELS,
 } from '../lib/messages';
@@ -110,26 +109,11 @@ export function toProfile(d: Draft, today: string, now: string): Profile {
 }
 
 type StepId =
-  | 'start'
-  | 'goal'
-  | 'mode'
-  | 'minutes'
-  | 'experience'
-  | 'sex'
-  | 'body'
-  | 'activity'
-  | 'health'
-  | 'rate'
-  | 'target'
-  | 'diet'
-  | 'plan';
+  'start' | 'goal' | 'sex' | 'body' | 'activity' | 'health' | 'rate' | 'target' | 'diet' | 'plan';
 
 const ALL_STEPS: StepId[] = [
   'start',
   'goal',
-  'mode',
-  'minutes',
-  'experience',
   'sex',
   'body',
   'activity',
@@ -145,14 +129,6 @@ const GOAL_ICONS: Record<Goal, string> = {
   maintain: '⚖️',
   muscle_gain: '💪',
   weight_gain: '🍚',
-};
-
-const MODE_ICONS: Record<LifestyleMode, string> = {
-  nutrition_first: '🥗',
-  home: '🏠',
-  gym: '🏋️',
-  outdoor: '🏃',
-  mixed: '🔀',
 };
 
 /** One question, answered by tapping a card; picking an answer moves on right away. */
@@ -284,15 +260,11 @@ export function Onboarding() {
   };
 
   const weight = Number(d.weightKg);
-  const anyHealth =
-    d.pregnantOrLactating || d.eatingDisorderHistory || d.kidneyDisease || d.exerciseCaution;
+  const anyHealth = d.pregnantOrLactating || d.eatingDisorderHistory || d.kidneyDisease;
 
   const TITLES: Record<StepId, string> = {
     start: '欢迎！先花 1 分钟设置',
     goal: '你目前最主要的目标是？',
-    mode: '你比较喜欢哪种方式？',
-    minutes: '每天愿意花多少时间？',
-    experience: '你目前的运动经验？',
     sex: '用哪个计算公式？',
     body: '你的身体资料',
     activity: '你平时的活动量？',
@@ -303,7 +275,6 @@ export function Onboarding() {
     plan: '你的计划',
   };
   const HINTS: Partial<Record<StepId, string>> = {
-    mode: '之后随时可以切换，记录不会消失',
     sex: 'Mifflin–St Jeor 公式分男性与女性版本；中性为两者平均',
     activity: '工作加运动一起算',
     health: '只用于安全检查，让建议不会对你造成风险。可以选多项。',
@@ -313,9 +284,7 @@ export function Onboarding() {
   };
 
   // Steps answered by tapping a card have no bottom button.
-  const tapStep = ['goal', 'mode', 'minutes', 'experience', 'sex', 'activity', 'rate'].includes(
-    step,
-  );
+  const tapStep = ['goal', 'sex', 'activity', 'rate'].includes(step);
 
   return (
     <div className="min-h-dvh">
@@ -412,45 +381,6 @@ export function Onboarding() {
             />
           )}
 
-          {step === 'mode' && (
-            <Choices
-              value={shown(d.mode)}
-              options={(Object.keys(MODE_LABELS) as LifestyleMode[]).map((m) => ({
-                value: m,
-                label: MODE_LABELS[m].name,
-                sub: MODE_LABELS[m].hint,
-                icon: MODE_ICONS[m],
-              }))}
-              onPick={(m) => pick('mode', m)}
-            />
-          )}
-
-          {step === 'minutes' && (
-            <Choices
-              value={shown(String(d.minutesPerDay))}
-              options={[
-                { value: '5', label: '5 分钟' },
-                { value: '15', label: '10–15 分钟' },
-                { value: '30', label: '20–30 分钟' },
-                { value: '45', label: '45 分钟以上' },
-                { value: '0', label: '不一定' },
-              ]}
-              onPick={(v) => pick('minutesPerDay', Number(v))}
-            />
-          )}
-
-          {step === 'experience' && (
-            <Choices<Experience>
-              value={shown(d.experience)}
-              options={[
-                { value: 'beginner', label: '初学者', sub: '很少运动' },
-                { value: 'occasional', label: '偶尔运动' },
-                { value: 'regular', label: '已有规律习惯' },
-              ]}
-              onPick={(v) => pick('experience', v)}
-            />
-          )}
-
           {step === 'sex' && (
             <Choices
               value={shown(d.formulaSex)}
@@ -537,15 +467,7 @@ export function Onboarding() {
                 <Check checked={d.kidneyDisease} onChange={(v) => set('kidneyDisease', v)}>
                   有肾脏疾病
                 </Check>
-                <Check checked={d.exerciseCaution} onChange={(v) => set('exerciseCaution', v)}>
-                  医生曾建议我限制运动，或我有心脏、关节等问题
-                </Check>
               </Card>
-              {d.exerciseCaution && (
-                <Notice tone="warn">
-                  开始运动前，建议先咨询医生。我们会优先推荐低冲击的活动。
-                </Notice>
-              )}
               {d.kidneyDisease && (
                 <Notice tone="warn">
                   蛋白质目标会固定为每公斤 0.8 g，请按医生或营养师的建议调整。
