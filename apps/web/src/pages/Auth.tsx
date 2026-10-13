@@ -5,26 +5,65 @@ import {
   Button,
   Check,
   Field,
-  inputClass,
+  EmailInput,
   Notice,
   PasswordInput,
+  PasswordStrength,
 } from '../components/ui';
 import { authErrorMessage, clearRecovering, isRecovering, useAuth } from '../data/auth';
 import { supabase } from '../data/supabase';
+
+function Brand() {
+  return (
+    <span className="flex items-center gap-2">
+      <img src="/brand/favicon.svg" alt="" className="size-8" />
+      <span className="text-lg font-extrabold tracking-tight">
+        Eat<span className="text-emerald-600 dark:text-emerald-400">Healthee</span>
+      </span>
+    </span>
+  );
+}
+
+/** Log in / Register switch shown at the top of both forms. */
+function AuthTabs({ active }: { active: 'login' | 'signup' }) {
+  const tab = (to: string, label: string, on: boolean) => (
+    <Link
+      to={to}
+      replace
+      aria-current={on ? 'page' : undefined}
+      className={`flex min-h-10 items-center justify-center rounded-xl text-sm font-semibold transition ${on ? 'bg-white text-slate-900 shadow-sm dark:bg-slate-700 dark:text-white' : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-100'}`}
+    >
+      {label}
+    </Link>
+  );
+  return (
+    <nav
+      aria-label="登录或注册"
+      className="grid grid-cols-2 rounded-2xl bg-slate-100 p-1 dark:bg-slate-900"
+    >
+      {tab('/login', '登录', active === 'login')}
+      {tab('/signup', '注册', active === 'signup')}
+    </nav>
+  );
+}
 
 function AuthLayout({
   title,
   subtitle,
   back = true,
+  tabs,
+  footer,
   children,
 }: {
   title: string;
   subtitle?: string;
   back?: boolean;
+  tabs?: 'login' | 'signup';
+  footer?: ReactNode;
   children: ReactNode;
 }) {
   return (
-    <div className="min-h-dvh bg-[#fbfaf3] lg:grid lg:grid-cols-2 dark:bg-slate-900">
+    <div className="min-h-dvh bg-white sm:bg-gradient-to-b sm:from-emerald-50 sm:via-white sm:to-[#e8f8f0] lg:grid lg:grid-cols-2 dark:bg-slate-900 dark:sm:from-slate-900 dark:sm:via-slate-900 dark:sm:to-slate-900">
       <aside className="relative hidden overflow-hidden bg-gradient-to-br from-emerald-700 to-teal-800 p-12 text-white lg:flex lg:flex-col lg:justify-between">
         <span className="flex items-center gap-3">
           <img src="/brand/favicon.svg" alt="" className="size-10" />
@@ -54,18 +93,30 @@ function AuthLayout({
         />
       </aside>
 
-      <div className="flex min-h-dvh flex-col px-5 py-4 lg:justify-center lg:px-12">
-        <div className="mx-auto w-full max-w-md">
-          {back && <BackButton fallback="/" />}
-          <div className="mt-6 flex flex-col items-center text-center lg:hidden">
-            <img src="/brand/icon-512.png" alt="" className="size-20 rounded-3xl" />
+      <div className="flex min-h-dvh flex-col px-5 pt-4 pb-8 sm:justify-center lg:px-12">
+        <div className="mx-auto flex w-full max-w-md flex-1 flex-col sm:flex-none">
+          <div className="flex min-h-11 items-center justify-between">
+            {back ? <BackButton fallback="/" /> : <span />}
+            <span className="lg:hidden">
+              <Brand />
+            </span>
           </div>
-          <div className="mt-4 animate-rise rounded-3xl bg-white p-6 shadow-lg ring-1 ring-slate-900/5 sm:p-8 dark:bg-slate-800 dark:ring-white/10">
-            <h1 className="text-2xl font-bold">{title}</h1>
+          <div className="mt-6 flex flex-1 animate-rise flex-col sm:mt-4 sm:flex-none sm:rounded-3xl sm:bg-white sm:p-8 sm:shadow-xl sm:ring-1 sm:shadow-emerald-900/5 sm:ring-slate-900/5 dark:sm:bg-slate-800 dark:sm:ring-white/10">
+            <h1 className="text-[1.75rem] font-black tracking-tight">{title}</h1>
             {subtitle && (
               <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">{subtitle}</p>
             )}
+            {tabs && (
+              <div className="mt-5">
+                <AuthTabs active={tabs} />
+              </div>
+            )}
             <div className="mt-6 space-y-5">{children}</div>
+            {footer && (
+              <div className="mt-auto pt-8 text-center text-sm text-slate-600 sm:mt-6 sm:pt-0 dark:text-slate-300">
+                {footer}
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -73,7 +124,26 @@ function AuthLayout({
   );
 }
 
-const linkClass = 'text-emerald-strong underline dark:text-emerald';
+const submitClass = 'min-h-12 w-full text-base shadow-lg shadow-emerald-600/25 active:scale-[0.98]';
+
+function ArrowRight() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      className="size-5"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M5 12h14M13 6l6 6-6 6" />
+    </svg>
+  );
+}
+
+const linkClass = 'font-semibold text-emerald-strong hover:underline dark:text-emerald';
 
 const FEATURES = [
   { icon: '📷', title: '拍照算热量', text: '拍下整份食物，AI 认出每样菜并估算份量和热量。' },
@@ -106,11 +176,15 @@ function RotatingGoal() {
 
 export function Welcome() {
   return (
-    <div className="min-h-dvh bg-[#fbfaf3] text-navy dark:bg-slate-900 dark:text-slate-100">
-      <div className="mx-auto grid max-w-5xl gap-8 px-5 py-8 lg:min-h-dvh lg:grid-cols-[1.1fr_1fr] lg:items-center lg:gap-14 lg:py-12">
-        <section className="text-center lg:text-left">
-          <div className="relative mx-auto w-fit animate-float rounded-[2rem] bg-[#fbfaf3] p-2 lg:mx-0">
-            <img src="/brand/icon-512.png" alt="" className="size-28 sm:size-36 lg:size-44" />
+    <div className="min-h-dvh bg-gradient-to-b from-emerald-50 via-white to-[#e8f8f0] text-navy dark:from-slate-900 dark:via-slate-900 dark:to-slate-900 dark:text-slate-100">
+      <div className="mx-auto flex min-h-dvh max-w-5xl flex-col px-5 pt-10 pb-8 lg:grid lg:grid-cols-[1.1fr_1fr] lg:items-center lg:gap-14 lg:py-12">
+        <section className="flex flex-1 flex-col items-center justify-center text-center lg:items-start lg:text-left">
+          <div className="relative animate-float">
+            <img
+              src="/brand/icon-512.png"
+              alt=""
+              className="size-32 rounded-[2rem] bg-[#fbfaf3] shadow-xl shadow-emerald-700/15 sm:size-40"
+            />
             <span
               aria-hidden="true"
               className="pointer-events-none absolute inset-x-[18%] h-1 animate-scan rounded-full bg-gradient-to-r from-transparent via-emerald-400 to-transparent shadow-[0_0_12px_2px_rgba(16,185,129,0.6)]"
@@ -119,12 +193,12 @@ export function Welcome() {
           <img
             src="/brand/wordmark.png"
             alt="EatHealthee：Snap · Track · Be Healthier"
-            className="mx-auto mt-3 w-full max-w-sm animate-rise rounded-2xl bg-[#fbfaf3] lg:mx-0"
+            className="mt-6 w-full max-w-xs animate-rise rounded-2xl mix-blend-multiply dark:rounded-2xl dark:bg-[#fbfaf3] dark:mix-blend-normal"
             style={{ animationDelay: '0.1s' }}
           />
           <h1 className="sr-only">欢迎使用 EatHealthee</h1>
           <p
-            className="mx-auto mt-5 max-w-md animate-rise text-lg leading-relaxed text-slate-700 lg:mx-0 dark:text-slate-200"
+            className="mt-4 max-w-sm animate-rise leading-relaxed text-slate-600 dark:text-slate-300"
             style={{ animationDelay: '0.2s' }}
           >
             拍一张照，就知道吃了多少。
@@ -132,24 +206,22 @@ export function Welcome() {
             按你的生活方式，安全地
             <RotatingGoal />。
           </p>
-          <ul className="mt-6 grid grid-cols-2 gap-3 text-left">
+          <ul className="mt-7 grid w-full max-w-md grid-cols-2 gap-2.5 text-left">
             {FEATURES.map((f, i) => (
               <li
                 key={f.title}
-                style={{ animationDelay: `${0.3 + i * 0.1}s` }}
-                className="flex animate-rise flex-col gap-2 rounded-2xl bg-white p-3 shadow-sm sm:flex-row sm:gap-3 sm:p-4 ring-1 ring-slate-900/5 transition duration-300 hover:-translate-y-1 hover:shadow-md dark:bg-slate-800 dark:ring-white/10"
+                style={{ animationDelay: `${0.3 + i * 0.08}s` }}
+                className="animate-rise rounded-2xl border border-emerald-200/70 bg-white/80 p-3 shadow-sm backdrop-blur transition duration-300 hover:-translate-y-1 hover:shadow-md dark:border-slate-700 dark:bg-slate-800/80"
               >
                 <span
                   aria-hidden="true"
-                  className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-xl sm:size-11 dark:bg-emerald/15"
+                  className="mb-1.5 flex size-9 items-center justify-center rounded-xl bg-emerald-100 text-lg dark:bg-emerald/20"
                 >
                   {f.icon}
                 </span>
-                <span>
-                  <span className="block font-semibold">{f.title}</span>
-                  <span className="block text-xs text-slate-600 sm:text-sm dark:text-slate-300">
-                    {f.text}
-                  </span>
+                <span className="block text-sm font-bold">{f.title}</span>
+                <span className="block text-xs leading-snug text-slate-500 dark:text-slate-400">
+                  {f.text}
                 </span>
               </li>
             ))}
@@ -157,43 +229,33 @@ export function Welcome() {
         </section>
 
         <section
-          className="animate-rise rounded-3xl bg-white p-6 shadow-lg ring-1 ring-slate-900/5 lg:p-8 dark:bg-slate-800 dark:ring-white/10"
-          style={{ animationDelay: '0.5s' }}
+          className="mx-auto mt-8 w-full max-w-md animate-rise space-y-3 lg:mt-0 lg:rounded-3xl lg:bg-white lg:p-8 lg:shadow-xl lg:ring-1 lg:ring-slate-900/5 dark:lg:bg-slate-800"
+          style={{ animationDelay: '0.6s' }}
         >
-          <h2 className="text-2xl font-bold">开始使用</h2>
-          <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
+          <h2 className="hidden text-2xl font-black lg:block">开始使用</h2>
+          <p className="hidden pb-2 text-sm text-slate-600 lg:block dark:text-slate-300">
             完全免费，1 分钟完成设置。
           </p>
-          <div className="mt-6 grid gap-3">
-            <Link
-              to="/signup"
-              className="flex min-h-12 items-center justify-center rounded-2xl bg-emerald-strong px-4 font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-emerald-800 hover:shadow-md dark:bg-emerald dark:text-slate-950"
-            >
-              注册账号
-            </Link>
-            <Link
-              to="/login"
-              className="flex min-h-12 items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 font-semibold hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-700"
-            >
-              已有账号，登录
-            </Link>
-            <div className="my-1 flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
-              <span className="h-px flex-1 bg-slate-200 dark:bg-slate-600" />或
-              <span className="h-px flex-1 bg-slate-200 dark:bg-slate-600" />
-            </div>
-            <Link
-              to="/onboarding"
-              className="flex min-h-11 items-center justify-center rounded-2xl px-4 text-sm font-medium text-emerald-strong hover:bg-emerald-50 dark:text-emerald dark:hover:bg-emerald/10"
-            >
-              先不登录，直接试用 ›
-            </Link>
-          </div>
-          <ul className="mt-6 space-y-2 border-t border-slate-100 pt-5 text-sm text-slate-600 dark:border-slate-700 dark:text-slate-300">
-            <li>✓ 有账号：换手机或电脑登录，记录都还在</li>
-            <li>✓ 不登录：资料只存在这部设备，之后可随时注册上传</li>
-            <li>✓ 你的资料只属于你，可随时导出或删除</li>
-          </ul>
-          <p className="mt-5 text-xs text-slate-500 dark:text-slate-400">
+          <Link
+            to="/signup"
+            className="flex min-h-13 items-center justify-center gap-2 rounded-2xl bg-emerald-strong px-4 py-3.5 font-semibold text-white shadow-lg shadow-emerald-600/25 transition hover:bg-emerald-800 active:scale-[0.98] dark:bg-emerald dark:text-slate-950"
+          >
+            免费开始使用
+            <ArrowRight />
+          </Link>
+          <Link
+            to="/login"
+            className="flex min-h-12 items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 font-medium text-slate-700 transition hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
+          >
+            我已经有账号
+          </Link>
+          <Link
+            to="/onboarding"
+            className="flex min-h-11 items-center justify-center text-sm font-medium text-emerald-strong hover:underline dark:text-emerald"
+          >
+            先不登录，直接试用 ›
+          </Link>
+          <p className="pt-1 text-center text-xs leading-relaxed text-slate-500 dark:text-slate-400">
             使用即表示你同意
             <Link to="/legal/disclaimer" className="mx-1 underline">
               健康免责声明
@@ -202,7 +264,7 @@ export function Welcome() {
             <Link to="/legal/privacy" className="ml-1 underline">
               隐私政策
             </Link>
-            。
+            。不登录时，资料只存在这部设备。
           </p>
         </section>
       </div>
@@ -240,22 +302,31 @@ export function Login() {
   };
 
   return (
-    <AuthLayout title="欢迎回来" subtitle="登录你的 EatHealthee 账号，记录会自动同步。">
+    <AuthLayout
+      title="欢迎回来"
+      subtitle="登录后，记录会在你的所有设备同步。"
+      tabs="login"
+      footer={
+        <>
+          还没有账号？
+          <Link to="/signup" replace className={linkClass}>
+            免费注册
+          </Link>
+        </>
+      }
+    >
       <form className="space-y-4" onSubmit={submit}>
         <Field label="Email">
-          {(p) => (
-            <input
-              {...p}
-              type="email"
-              autoComplete="email"
-              required
-              value={f.email}
-              onChange={(e) => f.setEmail(e.target.value)}
-              className={inputClass}
-            />
-          )}
+          {(p) => <EmailInput {...p} value={f.email} onChange={f.setEmail} />}
         </Field>
-        <Field label="密码">
+        <Field
+          label="密码"
+          labelAction={
+            <Link to="/reset-password" className={`text-sm ${linkClass}`}>
+              忘记密码？
+            </Link>
+          }
+        >
           {(p) => (
             <PasswordInput
               {...p}
@@ -270,18 +341,11 @@ export function Login() {
             {f.error}
           </p>
         )}
-        <Button type="submit" className="min-h-12 w-full text-base" disabled={f.busy}>
+        <Button type="submit" className={submitClass} disabled={f.busy}>
           {f.busy ? '登录中…' : '登录'}
+          {!f.busy && <ArrowRight />}
         </Button>
       </form>
-      <div className="flex justify-between text-sm">
-        <Link to="/reset-password" className={linkClass}>
-          忘记密码？
-        </Link>
-        <Link to="/signup" className={linkClass}>
-          注册账号
-        </Link>
-      </div>
     </AuthLayout>
   );
 }
@@ -319,7 +383,7 @@ export function Signup() {
 
   if (sentTo) {
     return (
-      <AuthLayout title="请确认你的 Email">
+      <AuthLayout title="请确认你的 Email" back={false}>
         <Notice title="确认信已寄出">
           我们寄了一封确认信到 <strong>{sentTo}</strong>。请打开信件并点击链接，就会自动登录。
         </Notice>
@@ -331,33 +395,34 @@ export function Signup() {
   }
 
   return (
-    <AuthLayout title="注册账号" subtitle="免费注册，换手机也能看到你的所有记录。">
+    <AuthLayout
+      title="创建免费账号"
+      subtitle="换手机也能看到你的所有记录。"
+      tabs="signup"
+      footer={
+        <>
+          已有账号？
+          <Link to="/login" replace className={linkClass}>
+            登录
+          </Link>
+        </>
+      }
+    >
       <form className="space-y-4" onSubmit={submit}>
         <Field label="Email" error={f.email && !emailOk ? '请输入有效的 Email。' : null}>
-          {(p) => (
-            <input
-              {...p}
-              type="email"
-              autoComplete="email"
-              required
-              value={f.email}
-              onChange={(e) => f.setEmail(e.target.value)}
-              className={inputClass}
-            />
-          )}
+          {(p) => <EmailInput {...p} value={f.email} onChange={f.setEmail} />}
         </Field>
-        <Field
-          label="密码"
-          hint="至少 8 个字元"
-          error={f.password && !passwordOk ? '密码至少要 8 个字元。' : null}
-        >
+        <Field label="设置密码" error={f.password && !passwordOk ? '密码至少要 8 个字元。' : null}>
           {(p) => (
-            <PasswordInput
-              {...p}
-              autoComplete="new-password"
-              value={f.password}
-              onChange={f.setPassword}
-            />
+            <>
+              <PasswordInput
+                {...p}
+                autoComplete="new-password"
+                value={f.password}
+                onChange={f.setPassword}
+              />
+              <PasswordStrength value={f.password} />
+            </>
           )}
         </Field>
         <Field label="再输入一次密码" error={confirm && !matches ? '两次输入的密码不一样。' : null}>
@@ -383,18 +448,13 @@ export function Signup() {
         )}
         <Button
           type="submit"
-          className="w-full"
+          className={submitClass}
           disabled={f.busy || !emailOk || !passwordOk || !matches || !agree}
         >
-          {f.busy ? '注册中…' : '注册'}
+          {f.busy ? '注册中…' : '注册，开始记录'}
+          {!f.busy && <ArrowRight />}
         </Button>
       </form>
-      <p className="text-sm">
-        已有账号？
-        <Link to="/login" className={linkClass}>
-          登录
-        </Link>
-      </p>
     </AuthLayout>
   );
 }
@@ -427,17 +487,7 @@ export function ResetPassword() {
       ) : (
         <form className="space-y-4" onSubmit={submit}>
           <Field label="注册时用的 Email">
-            {(p) => (
-              <input
-                {...p}
-                type="email"
-                autoComplete="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className={inputClass}
-              />
-            )}
+            {(p) => <EmailInput {...p} value={email} onChange={setEmail} />}
           </Field>
           {error && (
             <p role="alert" className="text-sm text-red-700 dark:text-red-400">
@@ -446,14 +496,14 @@ export function ResetPassword() {
           )}
           <Button
             type="submit"
-            className="min-h-12 w-full text-base"
+            className={submitClass}
             disabled={busy || !EMAIL_RE.test(email.trim())}
           >
             寄出重置链接
           </Button>
         </form>
       )}
-      <p className="text-sm">
+      <p className="text-center text-sm">
         <Link to="/login" className={linkClass}>
           返回登录
         </Link>
@@ -497,16 +547,18 @@ export function UpdatePassword() {
       <form className="space-y-4" onSubmit={submit}>
         <Field
           label="新密码"
-          hint="至少 8 个字元"
           error={password && password.length < 8 ? '密码至少要 8 个字元。' : null}
         >
           {(p) => (
-            <PasswordInput
-              {...p}
-              autoComplete="new-password"
-              value={password}
-              onChange={setPassword}
-            />
+            <>
+              <PasswordInput
+                {...p}
+                autoComplete="new-password"
+                value={password}
+                onChange={setPassword}
+              />
+              <PasswordStrength value={password} />
+            </>
           )}
         </Field>
         {error && (
@@ -514,11 +566,7 @@ export function UpdatePassword() {
             {error}
           </p>
         )}
-        <Button
-          type="submit"
-          className="min-h-12 w-full text-base"
-          disabled={busy || password.length < 8}
-        >
+        <Button type="submit" className={submitClass} disabled={busy || password.length < 8}>
           保存新密码
         </Button>
       </form>

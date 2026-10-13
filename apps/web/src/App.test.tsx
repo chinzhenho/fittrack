@@ -28,21 +28,24 @@ describe('app flow', () => {
   it('sends new visitors to the welcome page with sign-up, log-in and guest options', async () => {
     renderAt('/today');
     expect(await screen.findByRole('heading', { name: '欢迎使用 EatHealthee' })).toBeTruthy();
-    expect(screen.getByRole('link', { name: '注册账号' })).toBeTruthy();
-    expect(screen.getByRole('link', { name: '已有账号，登录' })).toBeTruthy();
+    expect(screen.getByRole('link', { name: /免费开始使用/ })).toBeTruthy();
+    expect(screen.getByRole('link', { name: '我已经有账号' })).toBeTruthy();
     expect(screen.getByRole('link', { name: /先不登录，直接试用/ })).toBeTruthy();
   });
 
   it('validates the sign-up form before contacting the server', async () => {
     renderAt('/signup');
-    const submit = (await screen.findByRole('button', { name: '注册' })) as HTMLButtonElement;
+    const submit = (await screen.findByRole('button', {
+      name: /注册，开始记录/,
+    })) as HTMLButtonElement;
     change('Email', 'not-an-email');
-    change('密码', 'short');
+    change('设置密码', 'short');
     expect(screen.getByText('请输入有效的 Email。')).toBeTruthy();
     expect(screen.getByText('密码至少要 8 个字元。')).toBeTruthy();
+    expect(screen.getByText('密码太短')).toBeTruthy();
     expect(submit.disabled).toBe(true);
     change('Email', 'a@example.com');
-    change('密码', 'longenough1');
+    change('设置密码', 'longenough1');
     change('再输入一次密码', 'different1');
     expect(screen.getByText('两次输入的密码不一样。')).toBeTruthy();
     change('再输入一次密码', 'longenough1');

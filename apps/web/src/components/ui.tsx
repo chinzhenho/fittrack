@@ -54,11 +54,14 @@ export function Field({
   label,
   error,
   hint,
+  labelAction,
   children,
 }: {
   label: string;
   error?: string | null | undefined;
   hint?: string;
+  /** Small link or button shown at the right end of the label row. */
+  labelAction?: ReactNode;
   children: (props: {
     id: string;
     'aria-describedby'?: string;
@@ -70,9 +73,12 @@ export function Field({
   const describe = error || hint ? { 'aria-describedby': msgId } : {};
   return (
     <div>
-      <label htmlFor={id} className="text-sm font-medium">
-        {label}
-      </label>
+      <div className="flex items-center justify-between gap-3">
+        <label htmlFor={id} className="text-sm font-medium">
+          {label}
+        </label>
+        {labelAction}
+      </div>
       {children({ id, ...describe, ...(error ? { 'aria-invalid': true } : {}) })}
       {error ? (
         <p id={msgId} className="mt-1 text-sm text-red-700 dark:text-red-400">
@@ -269,8 +275,11 @@ export function PasswordInput({
         spellCheck={false}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className={`${inputClass} pr-12`}
+        className={`${inputClass} pr-12 pl-11`}
       />
+      <span className={inputIconClass} aria-hidden="true">
+        <LockIcon />
+      </span>
       <button
         type="button"
         onClick={() => setShow((v) => !v)}
@@ -294,6 +303,101 @@ export function PasswordInput({
           {show && <path d="M4 4l16 16" />}
         </svg>
       </button>
+    </div>
+  );
+}
+
+/** Positions a decorative icon inside the left edge of an input (use with pl-11). */
+export const inputIconClass =
+  'pointer-events-none absolute top-1/2 left-4 mt-[0.1875rem] -translate-y-1/2 text-slate-400';
+
+function StrokeIcon({ d }: { d: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      className="size-5"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d={d} />
+    </svg>
+  );
+}
+
+export const MailIcon = () => (
+  <StrokeIcon d="M4 6h16a1 1 0 011 1v10a1 1 0 01-1 1H4a1 1 0 01-1-1V7a1 1 0 011-1zm-1 1l9 6 9-6" />
+);
+export const LockIcon = () => (
+  <StrokeIcon d="M7 11V8a5 5 0 0110 0v3M6 11h12a1 1 0 011 1v8a1 1 0 01-1 1H6a1 1 0 01-1-1v-8a1 1 0 011-1z" />
+);
+
+/** Email field with a mail icon. */
+export function EmailInput({
+  value,
+  onChange,
+  ...field
+}: {
+  id: string;
+  'aria-describedby'?: string;
+  'aria-invalid'?: boolean;
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <div className="relative">
+      <input
+        {...field}
+        type="email"
+        autoComplete="email"
+        inputMode="email"
+        autoCapitalize="none"
+        spellCheck={false}
+        required
+        placeholder="you@example.com"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className={`${inputClass} pl-11`}
+      />
+      <span className={inputIconClass} aria-hidden="true">
+        <MailIcon />
+      </span>
+    </div>
+  );
+}
+
+/** Three-bar password strength: length 8+ is the minimum; mixing character kinds adds strength. */
+export function passwordStrength(pw: string): 0 | 1 | 2 | 3 {
+  if (pw.length === 0) return 0;
+  if (pw.length < 8) return 1;
+  const kinds = [/[a-z]/, /[A-Z]/, /\d/, /[^A-Za-z0-9]/].filter((r) => r.test(pw)).length;
+  return pw.length >= 12 || kinds >= 3 ? 3 : 2;
+}
+
+export function PasswordStrength({ value }: { value: string }) {
+  const level = passwordStrength(value);
+  const meta = [
+    { text: '至少 8 个字元', color: '' },
+    { text: '太短', color: 'bg-rose-500 text-rose-600' },
+    { text: '可以', color: 'bg-amber-500 text-amber-600' },
+    { text: '很强', color: 'bg-emerald-500 text-emerald-700' },
+  ][level]!;
+  const bar = meta.color.split(' ')[0] ?? '';
+  return (
+    <div className="mt-2 flex items-center gap-1.5" aria-live="polite">
+      {[1, 2, 3].map((i) => (
+        <span
+          key={i}
+          className={`h-1.5 flex-1 rounded-full transition-colors ${i <= level ? bar : 'bg-slate-200 dark:bg-slate-700'}`}
+        />
+      ))}
+      <span
+        className={`ml-1 w-20 shrink-0 text-right text-xs font-semibold ${level ? (meta.color.split(' ')[1] ?? '') : 'text-slate-500'}`}
+      >
+        {level ? `密码${meta.text}` : meta.text}
+      </span>
     </div>
   );
 }
