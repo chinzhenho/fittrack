@@ -121,7 +121,7 @@ export function Disclaimer() {
 
 export function Privacy() {
   return (
-    <InfoPage title="隐私政策" updated="2026-10-13">
+    <InfoPage title="隐私政策" updated="2026-10-14">
       <p>这份政策说明 EatHealthee 目前版本如何处理你的资料。</p>
       <h2>我们收集什么</h2>
       <p>
@@ -147,14 +147,16 @@ export function Privacy() {
       </p>
       <h2>用途</h2>
       <p>
-        只用于计算热量目标、营养建议、趋势和每日任务，以及在你的设备之间同步。我们不出售资料，也不使用广告追踪。
+        只用于计算热量目标、营养建议、趋势和健康洞察，以及在你的设备之间同步。我们不出售资料，也不使用广告追踪。
       </p>
       <h2>你的权利</h2>
       <ul>
-        <li>随时在“我”页面查看和修改资料。</li>
+        <li>随时在“我的”页面查看和修改资料。</li>
         <li>随时导出全部资料（JSON）。</li>
-        <li>随时删除全部资料；登录时会同时从云端删除。</li>
-        <li>删除登录账号本身（Email 和密码）的功能即将加入。</li>
+        <li>随时删除所有健康记录（保留账号和计划）；登录时会同时从云端删除。</li>
+        <li>
+          随时永久删除账号：登录 Email、密码、云端的全部资料和拍照次数记录都会一并删除，无法恢复。
+        </li>
       </ul>
       <h2>未来变更</h2>
       <p>政策有重要变更时，我们会在网站内通知你。</p>
@@ -183,6 +185,78 @@ export function Credits() {
       </p>
       <h2>基本食材营养资料</h2>
       <p>U.S. Department of Agriculture, FoodData Central（SR Legacy），公有领域（CC0）。</p>
+    </InfoPage>
+  );
+}
+
+const FAQ: { q: string; a: ReactNode }[] = [
+  {
+    q: '每日热量目标是怎么算的？',
+    a: (
+      <>
+        用 Mifflin–St Jeor
+        公式算出基础代谢，乘上活动系数得到每日消耗，再按你的目标和速度加减，并且不会低于安全下限。详细步骤见
+        <Link
+          to="/how-we-calculate"
+          className="font-semibold text-emerald-strong dark:text-emerald"
+        >
+          计算方法
+        </Link>
+        ，你自己的数字可以在“我的 → 每日营养目标”查看。
+      </>
+    ),
+  },
+  {
+    q: '为什么体重每天都上下起伏？',
+    a: '水分、盐分、饮食分量、排便和生理周期都会让体重一天内变动 1–2 kg。所以“我的成长”用平滑后的趋势线来看长期变化。',
+  },
+  {
+    q: '“已完整记录”是什么？一定要标记吗？',
+    a: '当你把一天吃的东西都记下来后，在饮食页标记“已完整记录”。只有这些日子会用来判断热量是否达标和计算目标调整建议，避免只记了一部分的日子影响结果。不标记也可以正常使用。',
+  },
+  {
+    q: 'AI 拍照估算准确吗？',
+    a: 'AI 会先认出食物，能对应到资料库（新加坡 SG FoodID、美国 USDA）时使用资料库的营养数字，否则使用 AI 的估算。分量和隐藏的油、糖很难从照片看出，保存前请检查并修改份量。每个账号每天可以分析 8 张照片。',
+  },
+  {
+    q: '目标调整建议什么时候会出现？',
+    a: '开始目标 14 天后，如果最近 3 周有足够的完整记录和体重记录，系统会根据实际摄取和体重趋势推算你的真实消耗，提出新的目标。只有你按“采用建议”才会改变。',
+  },
+  {
+    q: '为什么没有提醒通知？',
+    a: '目前 EatHealthee 没有推送通知功能，也不会在背景发送提醒。可以用手机的闹钟或提醒事项在用餐时间提醒自己。',
+  },
+  {
+    q: '隐藏数字后，资料还在吗？',
+    a: '在。隐藏数字只是不在画面上显示热量和体重，资料仍会照常保存、同步和导出。',
+  },
+  {
+    q: '资料保存在哪里？换手机会不见吗？',
+    a: '登录后资料会同步到你的账号，换手机登录就能取回。没有登录时，资料只保存在这部设备的浏览器中。',
+  },
+  {
+    q: '怎么删除我的资料或账号？',
+    a: '单笔饮食或体重记录可以在饮食页和“我的成长 → 体重记录”删除。要删除全部健康记录或整个账号，请到“我的 → 隐私与数据”或“账号与安全”。删除账号无法恢复，建议先导出备份。',
+  },
+];
+
+export function Faq() {
+  return (
+    <InfoPage title="常见问题" updated="2026-10-14">
+      {FAQ.map((f) => (
+        <details
+          key={f.q}
+          className="group border-b border-slate-100 pb-3 last:border-0 dark:border-slate-700"
+        >
+          <summary className="flex min-h-11 cursor-pointer items-center justify-between gap-3 font-semibold">
+            {f.q}
+            <span aria-hidden="true" className="text-slate-400 transition group-open:rotate-90">
+              ›
+            </span>
+          </summary>
+          <p className="text-slate-700 dark:text-slate-200">{f.a}</p>
+        </details>
+      ))}
     </InfoPage>
   );
 }

@@ -135,6 +135,18 @@ export interface WaterEntry {
   at: string;
 }
 
+/**
+ * A weekly challenge the user accepted. Never deleted: skipping sets `skipped`, and the
+ * newest record for a week wins, so syncing two devices cannot resurrect a skipped one.
+ */
+export interface ChallengeRecord {
+  id: string;
+  challenge: string;
+  weekStart: string;
+  acceptedAt: string;
+  skipped?: boolean;
+}
+
 export interface AppState {
   schemaVersion: 1;
   /** ISO time of the last local change; decides which copy is newer when syncing. */
@@ -152,6 +164,11 @@ export interface AppState {
   sessions: WorkoutSession[];
   activities: ActivityLog[];
   water: WaterEntry[];
+  challenges: ChallengeRecord[];
+  /** Insight keys ("insightId:weekMonday") the user chose to hide. */
+  dismissedInsights: string[];
+  /** Dates on which the user chose to keep the current target over a suggestion. */
+  adaptiveKeptOn: string[];
 }
 
 export const emptyState: AppState = {
@@ -169,4 +186,7 @@ export const emptyState: AppState = {
   sessions: [],
   activities: [],
   water: [],
+  challenges: [],
+  dismissedInsights: [],
+  adaptiveKeptOn: [],
 };

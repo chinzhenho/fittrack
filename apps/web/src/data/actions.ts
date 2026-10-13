@@ -1,6 +1,7 @@
 import { nutrientsFor } from '../logic/nutrition';
 import type {
   AppState,
+  ChallengeRecord,
   Food,
   MealItem,
   MealType,
@@ -142,4 +143,41 @@ export function addWater(s: AppState, entry: WaterEntry): AppState {
 
 export function removeWater(s: AppState, id: string): AppState {
   return { ...s, water: s.water.filter((w) => w.id !== id) };
+}
+
+export function acceptChallenge(s: AppState, record: ChallengeRecord): AppState {
+  return { ...s, challenges: [...s.challenges.filter((c) => c.id !== record.id), record] };
+}
+
+export function dismissInsight(s: AppState, key: string): AppState {
+  return s.dismissedInsights.includes(key)
+    ? s
+    : { ...s, dismissedInsights: [...s.dismissedInsights, key] };
+}
+
+export function keepTarget(s: AppState, date: string): AppState {
+  return s.adaptiveKeptOn.includes(date)
+    ? s
+    : { ...s, adaptiveKeptOn: [...s.adaptiveKeptOn, date] };
+}
+
+/**
+ * Removes every health record (food, weight, water, habits and their settings) but keeps
+ * the profile, the plan with its target history, and the user's own foods.
+ */
+export function clearHealthRecords(s: AppState): AppState {
+  return {
+    ...s,
+    meals: [],
+    weights: [],
+    completeDays: [],
+    water: [],
+    challenges: [],
+    dismissedInsights: [],
+    adaptiveKeptOn: [],
+    restDays: [],
+    skippedTasks: {},
+    sessions: [],
+    activities: [],
+  };
 }

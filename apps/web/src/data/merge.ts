@@ -38,6 +38,9 @@ export function mergeStates(a: AppState, b: AppState): AppState {
     sessions: byId(older.sessions, newer.sessions),
     activities: byId(older.activities, newer.activities),
     water: byId(older.water ?? [], newer.water ?? []),
+    challenges: byId(older.challenges ?? [], newer.challenges ?? []),
+    dismissedInsights: union(older.dismissedInsights ?? [], newer.dismissedInsights ?? []),
+    adaptiveKeptOn: union(older.adaptiveKeptOn ?? [], newer.adaptiveKeptOn ?? []),
   };
 }
 

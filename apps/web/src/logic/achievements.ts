@@ -1,5 +1,6 @@
 import { addDays, trendOn } from '@fittrack/engine';
 import type { AppState } from '../data/types';
+import { completedChallenges } from './habits';
 import { mealsOn, sumNutrients } from './nutrition';
 import { startWeightKg, targetOn, trendPoints } from './targets';
 
@@ -75,6 +76,7 @@ export function progressSummary(s: AppState, today: string): ProgressSummary {
     return t !== null && sumNutrients(mealsOn(s.meals, d)).proteinG >= t.proteinG;
   }).length;
   const weighIns = new Set(s.weights.map((w) => w.date)).size;
+  const challenges = completedChallenges(s);
   const goalKg = s.profile?.targetWeightKg;
   const reached =
     goalKg !== undefined &&
@@ -106,6 +108,8 @@ export function progressSummary(s: AppState, today: string): ProgressSummary {
     badge('streak30', '🏆', '习惯养成', '连续 30 天记录饮食', longest, 30),
     badge('protein7', '💪', '蛋白质达人', '7 天蛋白质吃够', proteinDays, 7),
     badge('weigh10', '⚖️', '持续追踪', '记录体重 10 天', weighIns, 10),
+    badge('challenge1', '🏅', '挑战成功', '完成 1 次每周挑战', challenges, 1),
+    badge('challenge4', '🎖️', '挑战常客', '完成 4 次每周挑战', challenges, 4),
   ];
   if (direction !== 0) {
     const kg = Math.max(0, towardGoalKg ?? 0);

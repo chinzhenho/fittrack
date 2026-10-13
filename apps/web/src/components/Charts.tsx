@@ -40,7 +40,8 @@ export function Ring({
   );
 }
 
-/** Daily weights as dots plus the trend line (spec 4.5). */
+const md = (d: string) => `${Number(d.slice(5, 7))}/${Number(d.slice(8))}`;
+
 function useWidth<T extends HTMLElement>() {
   const ref = useRef<T>(null);
   const [width, setWidth] = useState(320);
@@ -75,13 +76,14 @@ export function WeightChart({
   goalKg?: number | undefined;
 }) {
   const [ref, W] = useWidth<HTMLDivElement>();
+  const [selected, setSelected] = useState<string | null>(null);
   const start = addDays(end, -(days - 1));
   const inRange = points.filter((p) => p.date >= start && p.date <= end);
   if (inRange.length === 0) {
     return (
       <div ref={ref}>
         <p className="py-8 text-center text-sm text-slate-600 dark:text-slate-300">
-          这段期间还没有体重记录。
+          这段期间没有体重记录，可以切换到更长的期间。
         </p>
       </div>
     );
@@ -105,6 +107,7 @@ export function WeightChart({
     .map((p, i) => `${i ? 'L' : 'M'}${x(p.date).toFixed(1)} ${y(p.trendKg).toFixed(1)}`)
     .join(' ');
   const ticks = [lo, (lo + hi) / 2, hi];
+  const sel = inRange.find((p) => p.date === selected);
   const refLine = (v: number, label: string, cls: string) => (
     <g>
       <line
@@ -148,15 +151,6 @@ export function WeightChart({
         ))}
         {startKg != null && refLine(startKg, '起点', 'stroke-slate-400')}
         {showGoal && refLine(goalKg, '目标', 'stroke-emerald-strong dark:stroke-emerald')}
-        {inRange.map((p) => (
-          <circle
-            key={p.date}
-            cx={x(p.date)}
-            cy={y(p.weightKg)}
-            r="3.5"
-            className="fill-slate-400 dark:fill-slate-500"
-          />
-        ))}
         <path
           d={line}
           fill="none"
@@ -165,11 +159,72 @@ export function WeightChart({
           strokeLinejoin="round"
           strokeLinecap="round"
         />
+        {inRange.map((p) => (
+          <g
+            key={p.date}
+            role="button"
+            tabIndex={0}
+            aria-label={`${md(p.date)} 体重 ${p.weightKg.toFixed(1)} kg，趋势 ${p.trendKg.toFixed(1)} kg`}
+            className="cursor-pointer outline-none"
+            onClick={() => setSelected((v) => (v === p.date ? null : p.date))}
+            onFocus={() => setSelected(p.date)}
+            onBlur={() => setSelected(null)}
+          >
+            <circle cx={x(p.date)} cy={y(p.weightKg)} r="12" fill="transparent" />
+            <circle
+              cx={x(p.date)}
+              cy={y(p.weightKg)}
+              r={selected === p.date ? 5.5 : 3.5}
+              className={
+                selected === p.date
+                  ? 'fill-emerald-strong stroke-white dark:fill-emerald'
+                  : 'fill-slate-400 dark:fill-slate-500'
+              }
+              strokeWidth="2"
+            />
+          </g>
+        ))}
+        {sel &&
+          (() => {
+            const bw = 128;
+            const bx = Math.min(Math.max(x(sel.date) - bw / 2, pad.l), W - pad.r - bw);
+            const by = y(sel.weightKg) > 70 ? y(sel.weightKg) - 58 : y(sel.weightKg) + 14;
+            return (
+              <g pointerEvents="none">
+                <rect
+                  x={bx}
+                  y={by}
+                  width={bw}
+                  height="44"
+                  rx="10"
+                  className="fill-slate-900 dark:fill-white"
+                  opacity="0.92"
+                />
+                <text
+                  x={bx + 10}
+                  y={by + 18}
+                  fontSize="12"
+                  fontWeight="700"
+                  className="fill-white dark:fill-slate-900"
+                >
+                  {md(sel.date)} · {sel.weightKg.toFixed(1)} kg
+                </text>
+                <text
+                  x={bx + 10}
+                  y={by + 34}
+                  fontSize="11"
+                  className="fill-slate-300 dark:fill-slate-600"
+                >
+                  趋势 {sel.trendKg.toFixed(1)} kg
+                </text>
+              </g>
+            );
+          })()}
         <text x={pad.l} y={H - 6} fontSize="11" className="fill-slate-500">
-          {start.slice(5).replace('-', '/')}
+          {md(start)}
         </text>
         <text x={W - pad.r} y={H - 6} fontSize="11" textAnchor="end" className="fill-slate-500">
-          {end.slice(5).replace('-', '/')}
+          {md(end)}
         </text>
       </svg>
     </div>

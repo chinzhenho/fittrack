@@ -1,4 +1,5 @@
 import { useSyncExternalStore } from 'react';
+import { clearHealthRecords } from './actions';
 import { getAuth, onAuthChange } from './auth';
 import { decideSync, mergeStates } from './merge';
 import { getState, replaceState, subscribe } from './store';
@@ -167,6 +168,10 @@ export async function signOut(): Promise<void> {
   clearTimeout(timer);
   if (isDirty()) await push();
   await supabase.auth.signOut();
+  clearBrowserCopy();
+}
+
+function clearBrowserCopy() {
   replaceState(emptyState);
   try {
     localStorage.removeItem(META_KEY);
@@ -175,18 +180,44 @@ export async function signOut(): Promise<void> {
   }
 }
 
-/** Deletes the cloud copy of this user's data, then signs out and clears this browser. */
-export async function deleteCloudData(): Promise<string | null> {
+/**
+ * Deletes all health records but keeps the account, profile and plan. Signed in, the
+ * cloud copy is updated first; the browser copy changes only when that succeeded, so a
+ * failure never shows as deleted.
+ */
+export async function deleteHealthRecords(): Promise<string | null> {
+  const next: AppState = { ...clearHealthRecords(getState()), updatedAt: new Date().toISOString() };
+  if (!userId) {
+    replaceState(next);
+    return null;
+  }
+  clearTimeout(timer);
+  const { error } = await supabase
+    .from('user_state')
+    .upsert({ user_id: userId, state: next, updated_at: next.updatedAt });
+  if (error) return '删除失败，请检查网络后再试。你的记录没有被删除。';
+  writeMeta(next.updatedAt);
+  replaceState(next);
+  setInfo({ status: 'synced' });
+  return null;
+}
+
+/**
+ * Permanently deletes the account and all its cloud data (public.delete_my_account,
+ * supabase/migrations/20261014000000_delete_account.sql), then clears this browser.
+ */
+export async function deleteAccount(): Promise<string | null> {
   if (!userId) return '尚未登录。';
   clearTimeout(timer);
-  const { error } = await supabase.from('user_state').delete().eq('user_id', userId);
-  if (error) return '删除失败，请检查网络后再试。';
-  await supabase.auth.signOut();
-  replaceState(emptyState);
-  try {
-    localStorage.removeItem(META_KEY);
-  } catch {
-    /* ignore */
+  const { error } = await supabase.rpc('delete_my_account');
+  if (error) {
+    return error.code === 'PGRST202'
+      ? '服务器还没有启用删除账号功能。你的账号和资料都没有被删除。'
+      : '删除失败，请检查网络后再试。你的账号和资料都没有被删除。';
   }
+  // The user no longer exists, so the server may refuse the sign-out call; the local
+  // session is removed either way.
+  await supabase.auth.signOut({ scope: 'local' });
+  clearBrowserCopy();
   return null;
 }
