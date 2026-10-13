@@ -123,13 +123,6 @@ export function setDayComplete(s: AppState, date: string, complete: boolean): Ap
   return { ...s, completeDays: toggle(s.completeDays, date, complete) };
 }
 
-export function skipTask(s: AppState, date: string, taskId: string, skip: boolean): AppState {
-  return {
-    ...s,
-    skippedTasks: { ...s.skippedTasks, [date]: toggle(s.skippedTasks[date] ?? [], taskId, skip) },
-  };
-}
-
 export function addWeight(s: AppState, entry: WeightEntry): AppState {
   return { ...s, weights: [...s.weights, entry] };
 }

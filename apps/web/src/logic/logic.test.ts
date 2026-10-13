@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { addWeight, editMeal, logFood, setDayComplete, setWeightOn } from '../data/actions';
+import { addWeight, editMeal, logFood, setWeightOn } from '../data/actions';
 import { BUILT_IN_FOODS, SEED_FOODS } from '../data/foods';
 import { emptyState, type AppState, type Profile } from '../data/types';
 import {
@@ -10,7 +10,6 @@ import {
   validateCustomFood,
 } from './nutrition';
 import { needsRecompute, startWeightKg, targetOn } from './targets';
-import { recentCompletion, tasksFor } from './tasks';
 
 const rice = SEED_FOODS.find((f) => f.id === 'usda-168878')!;
 const chicken = SEED_FOODS.find((f) => f.id === 'usda-171477')!;
@@ -222,120 +221,5 @@ describe('targets', () => {
       s = addWeight(s, { id: `w${i}`, date: d, measuredAt: `${d}T01:00:00Z`, weightKg: 72 });
     }
     expect(needsRecompute(s, '2026-10-30')).toBe(true);
-  });
-});
-
-describe('daily tasks', () => {
-  it('builds four tasks for the home mode and computes completion from records', () => {
-    const joinedToday = {
-      ...base,
-      profile: { ...profile, consentedAt: '2026-10-11T00:00:00.000Z' },
-    };
-    let s = logFood(joinedToday, {
-      id: 'a',
-      date: '2026-10-11',
-      meal: 'breakfast',
-      food: chicken,
-      grams: 100,
-      now: 't',
-    });
-    const tasks = tasksFor(s, '2026-10-11');
-    expect(tasks.map((x) => x.id)).toEqual([
-      'log_three',
-      'protein_target',
-      'kcal_within',
-      'log_weight',
-    ]);
-    expect(tasks.find((x) => x.id === 'log_three')?.progress?.text).toBe('1 / 3 餐');
-    expect(tasks.find((x) => x.id === 'log_three')?.done).toBe(false);
-    s = setDayComplete(s, '2026-10-11', true);
-    expect(s.completeDays).toEqual(['2026-10-11']);
-    s = addWeight(s, { id: 'w', date: '2026-10-11', measuredAt: 't', weightKg: 74 });
-    expect(tasksFor(s, '2026-10-11').find((x) => x.id === 'log_weight')?.done).toBe(true);
-  });
-
-  it('protein task compares the day total with the protein target', () => {
-    const target = {
-      id: 't',
-      effectiveFrom: '2026-10-01',
-      createdAt: '1',
-      reason: 'initial' as const,
-      formulaVersion: '1.0.0',
-      weightKg: 75,
-      bmrKcal: 1698.75,
-      tdeeKcal: 2335.78,
-      calorieFloorKcal: 1698.75,
-      caloriesKcal: 1920,
-      proteinG: 120,
-      carbsG: 241,
-      fatG: 53,
-      clamps: [],
-    };
-    const s0: AppState = {
-      ...base,
-      targets: [target],
-      profile: { ...profile, consentedAt: '2026-10-11T00:00:00.000Z' },
-    };
-    const meal = (id: string, grams: number) => ({
-      id,
-      date: '2026-10-11',
-      meal: 'lunch' as const,
-      food: chicken,
-      grams,
-      now: 't',
-    });
-    const s1 = logFood(s0, meal('a', 200)); // 62 g protein
-    const p1 = tasksFor(s1, '2026-10-11').find((x) => x.id === 'protein_target');
-    expect(p1?.progress?.text).toBe('62 / 120 g');
-    expect(p1?.done).toBe(false);
-    const s2 = logFood(s1, meal('b', 200)); // 124 g in total
-    expect(tasksFor(s2, '2026-10-11').find((x) => x.id === 'protein_target')?.done).toBe(true);
-  });
-
-  it('nutrition-first users get a calorie goal judged after dinner', () => {
-    const target = {
-      id: 't',
-      effectiveFrom: '2026-10-01',
-      createdAt: '1',
-      reason: 'initial' as const,
-      formulaVersion: '1.0.0',
-      weightKg: 75,
-      bmrKcal: 1698.75,
-      tdeeKcal: 2335.78,
-      calorieFloorKcal: 1698.75,
-      caloriesKcal: 1920,
-      proteinG: 120,
-      carbsG: 241,
-      fatG: 53,
-      clamps: [],
-    };
-    const s0: AppState = {
-      ...base,
-      targets: [target],
-      profile: {
-        ...profile,
-        lifestyleMode: 'nutrition_first',
-        consentedAt: '2026-10-11T00:00:00.000Z',
-      },
-    };
-    const eat = (s: AppState, id: string, meal: 'lunch' | 'dinner', grams: number) =>
-      logFood(s, { id, date: '2026-10-11', meal, food: chicken, grams, now: 't' });
-    const task = (s: AppState) => tasksFor(s, '2026-10-11').find((x) => x.id === 'kcal_within');
-    const lunch = eat(s0, 'a', 'lunch', 300); // 495 kcal, no dinner yet
-    expect(task(lunch)?.done).toBe(false);
-    expect(task(lunch)?.progress?.text).toBe('495 / 1920 kcal');
-    expect(task(eat(lunch, 'b', 'dinner', 300))?.done).toBe(true); // 990 kcal
-    expect(task(eat(lunch, 'c', 'dinner', 1000))?.done).toBe(false); // 2145 kcal
-  });
-
-  it('switches to two easy tasks after a week under 30% completion', () => {
-    expect(recentCompletion(base, '2026-10-11')).toBe(0);
-    expect(tasksFor(base, '2026-10-11').map((x) => x.id)).toEqual(['log_meal', 'kcal_within']);
-  });
-
-  it('has no history before the user joined', () => {
-    const fresh = { ...base, profile: { ...profile, consentedAt: '2026-10-11T00:00:00.000Z' } };
-    expect(recentCompletion(fresh, '2026-10-11')).toBeNull();
-    expect(tasksFor(fresh, '2026-10-11')).toHaveLength(4);
   });
 });

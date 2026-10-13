@@ -3,6 +3,7 @@ import { useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router';
 import { MEAL_STYLE } from '../components/mealStyle';
 import { MonthCalendar } from '../components/MonthCalendar';
+import { WaterCard } from '../components/WaterCard';
 import { useToast } from '../components/Toast';
 import {
   Bar,
@@ -158,6 +159,10 @@ export function Diary() {
             ))}
           </div>
         </Card>
+      )}
+
+      {date === today && s.profile && target && (
+        <WaterCard profile={s.profile} tdeeKcal={target.tdeeKcal} />
       )}
 
       {MEAL_TYPES.map((meal) => {

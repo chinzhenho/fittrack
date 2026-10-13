@@ -1,6 +1,7 @@
 import { addDays, trendOn, weeklyChangePct } from '@fittrack/engine';
 import { useMemo, useState } from 'react';
 import { WeightChart } from '../components/Charts';
+import { WeekCard } from '../components/WeekCard';
 import { useToast } from '../components/Toast';
 import {
   Bar,
@@ -109,6 +110,8 @@ export function Progress() {
           </p>
         </div>
       </section>
+
+      <WeekCard today={today} hide={false} />
 
       <Card>
         <CardTitle
