@@ -49,8 +49,8 @@ const FEATURES = [
   { icon: '📷', title: '拍照算热量', text: '拍下整份食物，AI 认出每样菜并估算份量和热量。' },
   {
     icon: '🍛',
-    title: '认得本地菜',
-    text: 'Nasi lemak、鸡饭、roti canai 都认得，常见菜式按化验数据算热量。',
+    title: 'AI 认得本地菜',
+    text: 'Nasi lemak、鸡饭、roti canai 等马来西亚菜，AI 都认得并计算热量。',
   },
   { icon: '🎯', title: '安全的目标', text: '按你的身体和生活方式计算，不用去 Gym 也能开始。' },
   { icon: '📈', title: '看见进步', text: '体重趋势、连续记录和成就，让你更容易坚持。' },
