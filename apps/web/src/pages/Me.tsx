@@ -9,6 +9,8 @@ import { useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { useToast } from '../components/Toast';
 import {
+  BackArrow,
+  backButtonClass,
   Button,
   Card,
   CardTitle,
@@ -125,11 +127,8 @@ export function Me({ mode = 'home' }: { mode?: 'home' | 'plan' }) {
   if (mode === 'plan') {
     return (
       <div className="space-y-4">
-        <Link
-          to="/me"
-          className="inline-flex min-h-11 items-center text-sm font-medium text-emerald-strong dark:text-emerald"
-        >
-          ‹ 我
+        <Link to="/me" className={backButtonClass}>
+          <BackArrow />我
         </Link>
         <PageTitle sub="改完按最下面的“保存并重新计算”">我的计划</PageTitle>
         <Card className="space-y-5">
@@ -441,17 +440,6 @@ export function Me({ mode = 'home' }: { mode?: 'home' | 'plan' }) {
               >
                 更改密码
               </Link>
-              <Button
-                variant="secondary"
-                disabled={busy}
-                onClick={async () => {
-                  setBusy(true);
-                  await signOut();
-                  navigate('/welcome', { replace: true });
-                }}
-              >
-                退出登录
-              </Button>
             </>
           )}
         </div>
@@ -513,6 +501,26 @@ export function Me({ mode = 'home' }: { mode?: 'home' | 'plan' }) {
           ))}
         </ul>
       </Card>
+
+      {signedIn && (
+        <div className="pb-4">
+          <Button
+            variant="danger"
+            className="w-full"
+            disabled={busy}
+            onClick={async () => {
+              setBusy(true);
+              await signOut();
+              navigate('/welcome', { replace: true });
+            }}
+          >
+            {busy ? '正在退出…' : '退出登录'}
+          </Button>
+          <p className="mt-2 text-center text-xs text-slate-600 dark:text-slate-300">
+            退出前会先把记录同步到账号，之后在任何设备登录都能取回。
+          </p>
+        </div>
+      )}
     </div>
   );
 }

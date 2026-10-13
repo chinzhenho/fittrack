@@ -7,7 +7,16 @@ import {
 } from '@fittrack/engine';
 import { useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
-import { Button, Card, Check, Field, inputClass, Notice } from '../components/ui';
+import {
+  BackArrow,
+  backButtonClass,
+  Button,
+  Card,
+  Check,
+  Field,
+  inputClass,
+  Notice,
+} from '../components/ui';
 import { completeOnboarding } from '../data/actions';
 import { useAuth } from '../data/auth';
 import { newId, update } from '../data/store';
@@ -313,9 +322,10 @@ export function Onboarding() {
       <header className="sticky top-0 z-10 bg-mist/95 backdrop-blur dark:bg-slate-900/95">
         <div className="mx-auto flex max-w-xl items-center gap-2 px-2 py-2">
           {index > 0 ? (
-            <Button variant="ghost" onClick={goBack} aria-label="上一步">
-              ‹ 上一步
-            </Button>
+            <button type="button" onClick={goBack} className={backButtonClass}>
+              <BackArrow />
+              上一步
+            </button>
           ) : (
             <span className="flex min-h-11 items-center gap-2 px-2">
               <img src="/brand/favicon.svg" alt="" className="size-8" />

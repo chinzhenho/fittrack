@@ -1,4 +1,4 @@
-import { useId, type ButtonHTMLAttributes, type ReactNode } from 'react';
+import { useId, useState, type ButtonHTMLAttributes, type ReactNode } from 'react';
 import { useNavigate } from 'react-router';
 
 export function Card({ children, className = '' }: { children: ReactNode; className?: string }) {
@@ -203,16 +203,97 @@ export function Bar({
   );
 }
 
-/** "‹ 返回" to the previous page, or `fallback` when the page was opened directly. */
-export function BackButton({ fallback = '/today' }: { fallback?: string }) {
+export const backButtonClass =
+  'inline-flex min-h-11 items-center gap-1.5 rounded-full border border-slate-200 bg-white pr-4 pl-3 text-sm font-semibold text-slate-800 shadow-sm transition hover:border-emerald hover:text-emerald-strong dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:hover:text-emerald';
+
+export function BackArrow() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      className="size-5"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M15 5l-7 7 7 7" />
+    </svg>
+  );
+}
+
+/** Back to the previous page, or `fallback` when the page was opened directly. */
+export function BackButton({
+  fallback = '/today',
+  label = '返回',
+}: {
+  fallback?: string;
+  label?: string;
+}) {
   const navigate = useNavigate();
   return (
     <button
       type="button"
       onClick={() => (window.history.length > 1 ? navigate(-1) : navigate(fallback))}
-      className="-ml-2 inline-flex min-h-11 items-center rounded-2xl px-2 text-sm font-medium text-emerald-strong hover:bg-emerald-50 dark:text-emerald dark:hover:bg-emerald/10"
+      className={backButtonClass}
     >
-      ‹ 返回
+      <BackArrow />
+      {label}
     </button>
+  );
+}
+
+/** Password field with a show/hide (eye) toggle. */
+export function PasswordInput({
+  value,
+  onChange,
+  autoComplete,
+  ...field
+}: {
+  id: string;
+  'aria-describedby'?: string;
+  'aria-invalid'?: boolean;
+  value: string;
+  onChange: (value: string) => void;
+  autoComplete: 'current-password' | 'new-password';
+}) {
+  const [show, setShow] = useState(false);
+  return (
+    <div className="relative">
+      <input
+        {...field}
+        type={show ? 'text' : 'password'}
+        autoComplete={autoComplete}
+        autoCapitalize="none"
+        spellCheck={false}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className={`${inputClass} pr-12`}
+      />
+      <button
+        type="button"
+        onClick={() => setShow((v) => !v)}
+        aria-label={show ? '隐藏密码' : '显示密码'}
+        aria-pressed={show}
+        className="absolute top-1/2 right-1 flex size-11 -translate-y-1/2 items-center justify-center rounded-xl text-slate-500 hover:text-emerald-strong dark:text-slate-300"
+        style={{ marginTop: '0.1875rem' }}
+      >
+        <svg
+          viewBox="0 0 24 24"
+          className="size-5"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" />
+          <circle cx="12" cy="12" r="3" />
+          {show && <path d="M4 4l16 16" />}
+        </svg>
+      </button>
+    </div>
   );
 }

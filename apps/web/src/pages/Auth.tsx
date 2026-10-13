@@ -1,44 +1,74 @@
 import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router';
-import { Button, Check, Field, inputClass, Notice } from '../components/ui';
+import {
+  BackButton,
+  Button,
+  Check,
+  Field,
+  inputClass,
+  Notice,
+  PasswordInput,
+} from '../components/ui';
 import { authErrorMessage, clearRecovering, isRecovering, useAuth } from '../data/auth';
 import { supabase } from '../data/supabase';
 
 function AuthLayout({
   title,
+  subtitle,
   back = true,
   children,
 }: {
   title: string;
+  subtitle?: string;
   back?: boolean;
   children: ReactNode;
 }) {
-  const navigate = useNavigate();
   return (
-    <div className="min-h-dvh">
-      <header className="mx-auto flex max-w-md items-center gap-2 px-2 py-3">
-        {back ? (
-          <Button
-            variant="ghost"
-            onClick={() => (window.history.length > 1 ? navigate(-1) : navigate('/'))}
-          >
-            ‹ 返回
-          </Button>
-        ) : (
-          <span className="flex min-h-11 items-center gap-2 px-2">
-            <img src="/brand/favicon.svg" alt="" className="size-9" />
-            <span className="text-xl font-bold text-emerald-strong dark:text-emerald">
-              EatHealthee
-            </span>
-          </span>
-        )}
-      </header>
-      <main className="mx-auto max-w-md px-4 pt-2 pb-8">
-        <h1 className="mb-6 text-2xl font-bold">{title}</h1>
-        <div className="space-y-5 rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-900/5 dark:bg-slate-800 dark:ring-white/10">
-          {children}
+    <div className="min-h-dvh bg-[#fbfaf3] lg:grid lg:grid-cols-2 dark:bg-slate-900">
+      <aside className="relative hidden overflow-hidden bg-gradient-to-br from-emerald-700 to-teal-800 p-12 text-white lg:flex lg:flex-col lg:justify-between">
+        <span className="flex items-center gap-3">
+          <img src="/brand/favicon.svg" alt="" className="size-10" />
+          <span className="text-2xl font-bold">EatHealthee</span>
+        </span>
+        <div>
+          <img
+            src="/brand/icon-512.png"
+            alt=""
+            className="size-48 animate-float rounded-[2.5rem] bg-[#fbfaf3] p-3 shadow-2xl"
+          />
+          <p className="mt-8 text-3xl leading-snug font-bold">
+            拍一张照，
+            <br />
+            就知道吃了多少。
+          </p>
+          <ul className="mt-6 space-y-3 text-emerald-50">
+            <li>📷 AI 拍照算热量，认得本地菜</li>
+            <li>🎯 按你的身体计算安全的目标</li>
+            <li>📈 体重趋势和成就，让你坚持下去</li>
+          </ul>
         </div>
-      </main>
+        <p className="text-sm text-emerald-100">Snap · Track · Be Healthier</p>
+        <span
+          aria-hidden="true"
+          className="pointer-events-none absolute -right-24 -bottom-24 size-80 rounded-full bg-white/10"
+        />
+      </aside>
+
+      <div className="flex min-h-dvh flex-col px-5 py-4 lg:justify-center lg:px-12">
+        <div className="mx-auto w-full max-w-md">
+          {back && <BackButton fallback="/" />}
+          <div className="mt-6 flex flex-col items-center text-center lg:hidden">
+            <img src="/brand/icon-512.png" alt="" className="size-20 rounded-3xl" />
+          </div>
+          <div className="mt-4 animate-rise rounded-3xl bg-white p-6 shadow-lg ring-1 ring-slate-900/5 sm:p-8 dark:bg-slate-800 dark:ring-white/10">
+            <h1 className="text-2xl font-bold">{title}</h1>
+            {subtitle && (
+              <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">{subtitle}</p>
+            )}
+            <div className="mt-6 space-y-5">{children}</div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
@@ -210,7 +240,7 @@ export function Login() {
   };
 
   return (
-    <AuthLayout title="登录">
+    <AuthLayout title="欢迎回来" subtitle="登录你的 EatHealthee 账号，记录会自动同步。">
       <form className="space-y-4" onSubmit={submit}>
         <Field label="Email">
           {(p) => (
@@ -227,14 +257,11 @@ export function Login() {
         </Field>
         <Field label="密码">
           {(p) => (
-            <input
+            <PasswordInput
               {...p}
-              type="password"
               autoComplete="current-password"
-              required
               value={f.password}
-              onChange={(e) => f.setPassword(e.target.value)}
-              className={inputClass}
+              onChange={f.setPassword}
             />
           )}
         </Field>
@@ -243,7 +270,7 @@ export function Login() {
             {f.error}
           </p>
         )}
-        <Button type="submit" className="w-full" disabled={f.busy}>
+        <Button type="submit" className="min-h-12 w-full text-base" disabled={f.busy}>
           {f.busy ? '登录中…' : '登录'}
         </Button>
       </form>
@@ -304,7 +331,7 @@ export function Signup() {
   }
 
   return (
-    <AuthLayout title="注册账号">
+    <AuthLayout title="注册账号" subtitle="免费注册，换手机也能看到你的所有记录。">
       <form className="space-y-4" onSubmit={submit}>
         <Field label="Email" error={f.email && !emailOk ? '请输入有效的 Email。' : null}>
           {(p) => (
@@ -325,27 +352,21 @@ export function Signup() {
           error={f.password && !passwordOk ? '密码至少要 8 个字元。' : null}
         >
           {(p) => (
-            <input
+            <PasswordInput
               {...p}
-              type="password"
               autoComplete="new-password"
-              required
               value={f.password}
-              onChange={(e) => f.setPassword(e.target.value)}
-              className={inputClass}
+              onChange={f.setPassword}
             />
           )}
         </Field>
         <Field label="再输入一次密码" error={confirm && !matches ? '两次输入的密码不一样。' : null}>
           {(p) => (
-            <input
+            <PasswordInput
               {...p}
-              type="password"
               autoComplete="new-password"
-              required
               value={confirm}
-              onChange={(e) => setConfirm(e.target.value)}
-              className={inputClass}
+              onChange={setConfirm}
             />
           )}
         </Field>
@@ -398,7 +419,7 @@ export function ResetPassword() {
   };
 
   return (
-    <AuthLayout title="重置密码">
+    <AuthLayout title="重置密码" subtitle="输入注册时的 Email，我们会寄重置链接给你。">
       {sent ? (
         <Notice>
           如果这个 Email 有注册，你会收到一封重置密码的信。请点击信中的链接设置新密码。
@@ -423,7 +444,11 @@ export function ResetPassword() {
               {error}
             </p>
           )}
-          <Button type="submit" className="w-full" disabled={busy || !EMAIL_RE.test(email.trim())}>
+          <Button
+            type="submit"
+            className="min-h-12 w-full text-base"
+            disabled={busy || !EMAIL_RE.test(email.trim())}
+          >
             寄出重置链接
           </Button>
         </form>
@@ -476,13 +501,11 @@ export function UpdatePassword() {
           error={password && password.length < 8 ? '密码至少要 8 个字元。' : null}
         >
           {(p) => (
-            <input
+            <PasswordInput
               {...p}
-              type="password"
               autoComplete="new-password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className={inputClass}
+              onChange={setPassword}
             />
           )}
         </Field>
@@ -491,7 +514,11 @@ export function UpdatePassword() {
             {error}
           </p>
         )}
-        <Button type="submit" className="w-full" disabled={busy || password.length < 8}>
+        <Button
+          type="submit"
+          className="min-h-12 w-full text-base"
+          disabled={busy || password.length < 8}
+        >
           保存新密码
         </Button>
       </form>
