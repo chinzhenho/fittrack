@@ -26,7 +26,7 @@ function AuthLayout({
           </Button>
         ) : (
           <span className="flex min-h-11 items-center gap-2 px-2">
-            <img src="/favicon.svg" alt="" className="size-8" />
+            <img src="/brand/icon-64.png" alt="" className="size-9 rounded-xl" />
             <span className="text-xl font-bold text-emerald-strong dark:text-emerald">
               EatHealthee
             </span>
@@ -47,34 +47,62 @@ const linkClass = 'text-emerald-strong underline dark:text-emerald';
 
 export function Welcome() {
   return (
-    <AuthLayout title="欢迎使用 EatHealthee" back={false}>
-      <p className="leading-relaxed">
-        依照你的生活方式，安全地减脂、增重、增肌或维持体重。不用去 Gym 也可以开始。
+    <div className="mx-auto flex min-h-dvh max-w-md flex-col px-4 py-8">
+      <div className="rounded-3xl bg-[#fbfaf3] px-6 pt-8 pb-6 text-center shadow-sm ring-1 ring-slate-900/5">
+        <img src="/brand/icon-512.png" alt="" className="mx-auto size-40" />
+        <img
+          src="/brand/wordmark.png"
+          alt="EatHealthee：Snap · Track · Be Healthier"
+          className="mx-auto mt-2 w-full max-w-xs"
+        />
+        <h1 className="sr-only">欢迎使用 EatHealthee</h1>
+        <ul className="mt-6 grid grid-cols-4 gap-2 text-xs text-slate-700">
+          {[
+            { icon: '📷', label: '拍照识别' },
+            { icon: '🧮', label: '计算营养' },
+            { icon: '📋', label: '记录饮食' },
+            { icon: '💚', label: '健康管理' },
+          ].map((f) => (
+            <li key={f.label} className="flex flex-col items-center gap-1">
+              <span
+                aria-hidden="true"
+                className="flex size-12 items-center justify-center rounded-2xl bg-emerald-50 text-2xl"
+              >
+                {f.icon}
+              </span>
+              {f.label}
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <p className="mt-6 text-center leading-relaxed">
+        拍照算热量，按你的生活方式安全地减脂、增重、增肌或维持体重。不用去 Gym 也可以开始。
       </p>
-      <div className="grid gap-3">
+      <div className="mt-6 grid gap-3">
         <Link
           to="/signup"
-          className="flex min-h-11 items-center justify-center rounded-xl bg-emerald px-4 text-sm font-semibold text-navy"
+          className="flex min-h-12 items-center justify-center rounded-2xl bg-emerald-strong px-4 font-semibold text-white shadow-sm hover:bg-emerald-800 dark:bg-emerald dark:text-slate-950"
         >
           注册账号
         </Link>
         <Link
           to="/login"
-          className="flex min-h-11 items-center justify-center rounded-xl border border-slate-300 px-4 text-sm dark:border-slate-500"
+          className="flex min-h-12 items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 font-medium dark:border-slate-600 dark:bg-slate-800"
         >
           已有账号，登录
         </Link>
         <Link
           to="/onboarding"
-          className="flex min-h-11 items-center justify-center rounded-xl px-4 text-sm text-slate-600 dark:text-slate-300"
+          className="flex min-h-11 items-center justify-center rounded-2xl px-4 text-sm text-slate-600 dark:text-slate-300"
         >
           先不登录，直接试用
         </Link>
       </div>
-      <p className="text-xs leading-relaxed text-slate-600 dark:text-slate-300">
+      <p className="mt-4 text-center text-xs leading-relaxed text-slate-600 dark:text-slate-300">
         有账号：换手机或电脑登录，记录都还在。不登录：资料只存在这部设备，之后可以随时注册并上传。
       </p>
-    </AuthLayout>
+    </div>
   );
 }
 
