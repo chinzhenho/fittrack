@@ -6,7 +6,3 @@ packages:
 onlyBuiltDependencies:
   - esbuild
   - workerd
-
-# Not needed (protobufjs' script only prints a version notice).
-ignoredBuiltDependencies:
-  - protobufjs
