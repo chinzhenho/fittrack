@@ -16,7 +16,11 @@ import { supabase } from '../data/supabase';
 function Brand() {
   return (
     <span className="flex items-center gap-2">
-      <img src="/brand/favicon.svg" alt="" className="size-8" />
+      <img
+        src="/brand/icon-192.png"
+        alt=""
+        className="size-8 rounded-xl bg-[#fbfaf3] ring-1 ring-black/5"
+      />
       <span className="text-lg font-extrabold tracking-tight">
         Eat<span className="text-emerald-600 dark:text-emerald-400">Healthee</span>
       </span>
@@ -66,14 +70,18 @@ function AuthLayout({
     <div className="min-h-dvh bg-white sm:bg-gradient-to-b sm:from-emerald-50 sm:via-white sm:to-[#e8f8f0] lg:grid lg:grid-cols-2 dark:bg-slate-900 dark:sm:from-slate-900 dark:sm:via-slate-900 dark:sm:to-slate-900">
       <aside className="relative hidden overflow-hidden bg-gradient-to-br from-emerald-700 to-teal-800 p-12 text-white lg:flex lg:flex-col lg:justify-between">
         <span className="flex items-center gap-3">
-          <img src="/brand/favicon.svg" alt="" className="size-10" />
+          <img
+            src="/brand/icon-192.png"
+            alt=""
+            className="size-10 rounded-xl bg-[#fbfaf3] ring-1 ring-black/5"
+          />
           <span className="text-2xl font-bold">EatHealthee</span>
         </span>
         <div>
           <img
             src="/brand/icon-512.png"
             alt=""
-            className="size-48 animate-float rounded-[2.5rem] bg-[#fbfaf3] p-3 shadow-2xl"
+            className="size-48 animate-float rounded-[2.5rem] shadow-2xl ring-4 ring-white/25"
           />
           <p className="mt-8 text-3xl leading-snug font-bold">
             拍一张照，

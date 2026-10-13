@@ -328,7 +328,11 @@ export function Onboarding() {
             </button>
           ) : (
             <span className="flex min-h-11 items-center gap-2 px-2">
-              <img src="/brand/favicon.svg" alt="" className="size-8" />
+              <img
+                src="/brand/icon-192.png"
+                alt=""
+                className="size-8 rounded-xl bg-[#fbfaf3] ring-1 ring-black/5"
+              />
               <span className="text-lg font-bold text-emerald-strong dark:text-emerald">
                 EatHealthee
               </span>
