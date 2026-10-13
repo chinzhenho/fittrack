@@ -33,6 +33,10 @@ export interface Food {
 }
 
 export interface Profile {
+  /** Optional display name used in greetings. */
+  nickname?: string;
+  /** Optional emoji avatar. */
+  avatar?: string;
   formulaSex: FormulaSex;
   birthDate: string;
   heightCm: number;

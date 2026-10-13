@@ -21,7 +21,7 @@ import {
   PageTitle,
   Segmented,
 } from '../components/ui';
-import { saveProfile, setHideNumbers } from '../data/actions';
+import { saveProfile, setHideNumbers, updateProfileDetails } from '../data/actions';
 import { useAuth } from '../data/auth';
 import { deleteCloudData, signOut, useSync, type SyncStatus } from '../data/sync';
 import { getState, isPersistent, newId, replaceState, update, useAppState } from '../data/store';
@@ -54,7 +54,9 @@ const SYNC_TEXT: Record<SyncStatus, string> = {
   error: '同步失败，稍后会自动重试。',
 };
 
-export function Me({ mode = 'home' }: { mode?: 'home' | 'plan' }) {
+const AVATARS = ['🥗', '🍎', '🥑', '🍳', '🍜', '🍛', '🥦', '🍓', '💪', '🏃', '🧘', '😊'];
+
+export function Me({ mode = 'home' }: { mode?: 'home' | 'plan' | 'profile' }) {
   const s = useAppState();
   const toast = useToast();
   const navigate = useNavigate();
@@ -63,6 +65,9 @@ export function Me({ mode = 'home' }: { mode?: 'home' | 'plan' }) {
   const profile = s.profile;
   const [draft, setDraft] = useState<Profile | null>(profile);
   const [heightText, setHeightText] = useState(String(profile?.heightCm ?? ''));
+  const [targetText, setTargetText] = useState(
+    profile?.targetWeightKg !== undefined ? String(profile.targetWeightKg) : '',
+  );
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [busy, setBusy] = useState(false);
   const auth = useAuth();
@@ -73,15 +78,41 @@ export function Me({ mode = 'home' }: { mode?: 'home' | 'plan' }) {
   const weight = latestWeight(s.weights)?.weightKg ?? 0;
   const target = targetOn(s.targets, today);
   const set = <K extends keyof Profile>(k: K, v: Profile[K]) => setDraft({ ...draft, [k]: v });
+  // The profile as it would be saved: typed height and target weight applied, empty
+  // optional texts removed (exactOptionalPropertyTypes: no undefined values).
+  const candidate: Profile = (() => {
+    const rest: Profile = { ...draft };
+    delete rest.targetWeightKg;
+    delete rest.nickname;
+    const nickname = draft.nickname?.trim().slice(0, 20);
+    return {
+      ...rest,
+      heightCm: Number(heightText),
+      ...(targetText.trim() !== '' &&
+        draft.goal !== 'maintain' && {
+          targetWeightKg: Number(targetText),
+        }),
+      ...(nickname && { nickname }),
+    };
+  })();
   // Fields managed elsewhere (display toggle, dates) do not count as an edit.
   const comparable = (p: Profile) =>
     JSON.stringify({ ...p, hideNumbers: false, goalStartDate: '', consentedAt: '' });
-  const changed = comparable({ ...draft, heightCm: Number(heightText) }) !== comparable(profile);
+  const changed = comparable(candidate) !== comparable(profile);
+  // Name, avatar and target weight do not change the calorie target.
+  const forTarget = (p: Profile) => {
+    const rest: Profile = { ...p };
+    delete rest.nickname;
+    delete rest.avatar;
+    delete rest.targetWeightKg;
+    return comparable(rest);
+  };
+  const targetChanges = forTarget(candidate) !== forTarget(profile);
 
   let preview: ReturnType<typeof planFor> | null = null;
   let invalid: string | null = null;
   try {
-    preview = planFor({ ...draft, heightCm: Number(heightText) }, weight, today);
+    preview = planFor(candidate, weight, today);
   } catch (e) {
     if (e instanceof EngineInputError) invalid = e.field;
     else throw e;
@@ -89,9 +120,16 @@ export function Me({ mode = 'home' }: { mode?: 'home' | 'plan' }) {
 
   const save = () => {
     if (!preview?.ok) return;
+    if (!targetChanges) {
+      update((x) =>
+        updateProfileDetails(x, { ...candidate, goalStartDate: profile.goalStartDate }),
+      );
+      toast({ text: '已保存' });
+      navigate('/me');
+      return;
+    }
     const next: Profile = {
-      ...draft,
-      heightCm: Number(heightText),
+      ...candidate,
       goalStartDate:
         draft.goal !== profile.goal || draft.ratePctPerWeek !== profile.ratePctPerWeek
           ? today
@@ -123,40 +161,86 @@ export function Me({ mode = 'home' }: { mode?: 'home' | 'plan' }) {
     URL.revokeObjectURL(url);
   };
 
-  if (mode === 'plan') {
+  const saveBar = (label: string) => (
+    <>
+      {changed && preview && !preview.ok && (
+        <Notice tone="warn" title={rejectMessage(preview.reason).title}>
+          {rejectMessage(preview.reason).body}
+        </Notice>
+      )}
+      {changed && targetChanges && preview?.ok && target && (
+        <Notice>
+          保存后每日目标会由 {fmtInt(target.caloriesKcal)} kcal 变为{' '}
+          {fmtInt(preview.plan.caloriesKcal)} kcal。旧的记录和目标历史会保留。
+        </Notice>
+      )}
+      <Button
+        className="min-h-12 w-full text-base"
+        disabled={!changed || !preview?.ok}
+        onClick={save}
+      >
+        {label}
+      </Button>
+    </>
+  );
+
+  if (mode === 'profile') {
+    const avatarNow =
+      draft.avatar ?? (signedIn ? (auth.user.email?.[0] ?? '🙂').toUpperCase() : '🙂');
     return (
       <div className="space-y-4">
         <Link to="/me" className={backButtonClass}>
           <BackArrow />我
         </Link>
-        <PageTitle sub="改完按最下面的“保存并重新计算”">我的计划</PageTitle>
+        <PageTitle sub="昵称和头像只用来显示；身体资料用来计算你的每日目标。">个人资料</PageTitle>
+
         <Card className="space-y-5">
-          <CardTitle>目标与生活方式</CardTitle>
-          <Segmented
-            label="目标"
-            value={draft.goal}
-            options={(Object.keys(GOAL_LABELS) as Goal[]).map((g) => ({
-              value: g,
-              label: GOAL_LABELS[g],
-            }))}
-            onChange={(g) =>
-              setDraft({ ...draft, goal: g, ratePctPerWeek: RATE_PCT_PER_WEEK[g].default })
-            }
-          />
-          {draft.goal !== 'maintain' && (
-            <Segmented
-              label="每周体重变化"
-              value={String(draft.ratePctPerWeek)}
-              options={RATE_OPTIONS[draft.goal].map((r) => ({ value: String(r), label: `${r}%` }))}
-              onChange={(v) => set('ratePctPerWeek', Number(v))}
-            />
-          )}
+          <div className="flex items-center gap-4">
+            <span
+              aria-hidden="true"
+              className="flex size-20 shrink-0 items-center justify-center rounded-full border-4 border-emerald-500 bg-emerald-50 text-4xl font-bold text-emerald-800 dark:bg-emerald/15 dark:text-emerald-100"
+            >
+              {avatarNow}
+            </span>
+            <div className="min-w-0 flex-1">
+              <Field label="昵称（选填）">
+                {(p) => (
+                  <input
+                    {...p}
+                    maxLength={20}
+                    placeholder="例如：小明"
+                    value={draft.nickname ?? ''}
+                    onChange={(e) => setDraft({ ...draft, nickname: e.target.value })}
+                    className={inputClass}
+                  />
+                )}
+              </Field>
+            </div>
+          </div>
+          <fieldset>
+            <legend className="text-sm font-medium">头像</legend>
+            <div className="mt-2 grid grid-cols-6 gap-2">
+              {AVATARS.map((a) => (
+                <button
+                  key={a}
+                  type="button"
+                  aria-label={`头像 ${a}`}
+                  aria-pressed={draft.avatar === a}
+                  onClick={() => setDraft({ ...draft, avatar: a })}
+                  className={`flex aspect-square items-center justify-center rounded-2xl text-2xl transition ${draft.avatar === a ? 'bg-emerald-100 ring-2 ring-emerald-strong dark:bg-emerald/20 dark:ring-emerald' : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-700'}`}
+                >
+                  {a}
+                </button>
+              ))}
+            </div>
+          </fieldset>
         </Card>
 
         <Card className="space-y-5">
           <CardTitle>身体资料</CardTitle>
           <Segmented
             label="计算公式"
+            hint="Mifflin–St Jeor 公式分男性与女性版本；中性为两者平均"
             value={draft.formulaSex}
             options={(Object.keys(SEX_LABELS) as FormulaSex[]).map((x) => ({
               value: x,
@@ -197,9 +281,77 @@ export function Me({ mode = 'home' }: { mode?: 'home' | 'plan' }) {
               )}
             </Field>
           </div>
-          <p className="text-xs text-slate-600 dark:text-slate-300">
-            体重请在“进度”页面记录，计算会使用最新的体重（{weight} kg）。
-          </p>
+          {draft.goal !== 'maintain' && (
+            <Field
+              label="目标体重（kg，选填）"
+              hint="只用来显示进度，不影响每日热量"
+              error={
+                invalid === 'targetWeightKg'
+                  ? draft.goal === 'fat_loss'
+                    ? '目标体重需低于现在的体重。'
+                    : '目标体重需高于现在的体重。'
+                  : null
+              }
+            >
+              {(p) => (
+                <input
+                  {...p}
+                  type="number"
+                  inputMode="decimal"
+                  step="0.1"
+                  value={targetText}
+                  onChange={(e) => setTargetText(e.target.value)}
+                  className={inputClass}
+                />
+              )}
+            </Field>
+          )}
+          <div className="flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-3 text-sm dark:bg-slate-700">
+            <span>
+              目前体重 <strong>{weight} kg</strong>
+            </span>
+            <Link to="/progress" className="font-semibold text-emerald-strong dark:text-emerald">
+              去记录体重 ›
+            </Link>
+          </div>
+          {saveBar('保存个人资料')}
+        </Card>
+      </div>
+    );
+  }
+
+  if (mode === 'plan') {
+    return (
+      <div className="space-y-4">
+        <Link to="/me" className={backButtonClass}>
+          <BackArrow />我
+        </Link>
+        <PageTitle sub="改完按最下面的“保存并重新计算”">我的计划</PageTitle>
+        <Card className="space-y-5">
+          <CardTitle>目标与生活方式</CardTitle>
+          <Segmented
+            label="目标"
+            value={draft.goal}
+            options={(Object.keys(GOAL_LABELS) as Goal[]).map((g) => ({
+              value: g,
+              label: GOAL_LABELS[g],
+            }))}
+            onChange={(g) =>
+              setDraft({ ...draft, goal: g, ratePctPerWeek: RATE_PCT_PER_WEEK[g].default })
+            }
+          />
+          {draft.goal !== 'maintain' && (
+            <Segmented
+              label="每周体重变化"
+              value={String(draft.ratePctPerWeek)}
+              options={RATE_OPTIONS[draft.goal].map((r) => ({ value: String(r), label: `${r}%` }))}
+              onChange={(v) => set('ratePctPerWeek', Number(v))}
+            />
+          )}
+        </Card>
+
+        <Card className="space-y-5">
+          <CardTitle>生活与健康</CardTitle>
           <Segmented
             label="日常活动水平"
             value={draft.activityLevel}
@@ -249,26 +401,13 @@ export function Me({ mode = 'home' }: { mode?: 'home' | 'plan' }) {
             ))}
           </fieldset>
 
-          {changed && preview && !preview.ok && (
-            <Notice tone="warn" title={rejectMessage(preview.reason).title}>
-              {rejectMessage(preview.reason).body}
-            </Notice>
-          )}
-          {changed && preview?.ok && target && (
-            <Notice>
-              保存后每日目标会由 {fmtInt(target.caloriesKcal)} kcal 变为{' '}
-              {fmtInt(preview.plan.caloriesKcal)} kcal。旧的记录和目标历史会保留。
-            </Notice>
-          )}
-          <Button className="w-full" disabled={!changed || !preview?.ok} onClick={save}>
-            保存并重新计算
-          </Button>
+          {saveBar('保存并重新计算')}
         </Card>
       </div>
     );
   }
 
-  const initial = signedIn ? (auth.user.email?.[0] ?? '?').toUpperCase() : '🙂';
+  const initial = profile.avatar ?? (signedIn ? (auth.user.email?.[0] ?? '?').toUpperCase() : '🙂');
   const row =
     'flex min-h-14 w-full items-center gap-3 px-1 text-left hover:bg-slate-50 dark:hover:bg-slate-700 rounded-2xl';
 
@@ -286,7 +425,7 @@ export function Me({ mode = 'home' }: { mode?: 'home' | 'plan' }) {
           </span>
           <div className="min-w-0">
             <p className="truncate text-lg font-semibold">
-              {signedIn ? auth.user.email : '访客（未登录）'}
+              {profile.nickname ?? (signedIn ? auth.user.email : '访客（未登录）')}
             </p>
             <p className="text-sm text-emerald-50">
               {signedIn
@@ -332,6 +471,22 @@ export function Me({ mode = 'home' }: { mode?: 'home' | 'plan' }) {
 
       <Card className="p-3">
         <ul>
+          <li>
+            <Link to="/me/profile" className={row}>
+              <span aria-hidden="true" className="text-xl">
+                🙂
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block font-medium">个人资料</span>
+                <span className="block truncate text-xs text-slate-600 dark:text-slate-300">
+                  昵称、头像、身高、出生日期、目标体重
+                </span>
+              </span>
+              <span aria-hidden="true" className="text-slate-400">
+                ›
+              </span>
+            </Link>
+          </li>
           <li>
             <Link to="/me/plan" className={row}>
               <span aria-hidden="true" className="text-xl">

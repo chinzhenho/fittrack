@@ -114,7 +114,9 @@ export function Today() {
   const waterGoal = waterGoalMl(target.tdeeKcal);
   const now = new Date();
   const waterNow = waterByNow(waterGoal, now.getHours(), now.getMinutes());
-  const initial = auth.status === 'signedIn' ? (auth.user.email?.[0] ?? '🙂').toUpperCase() : '🙂';
+  const initial =
+    profile.avatar ??
+    (auth.status === 'signedIn' ? (auth.user.email?.[0] ?? '🙂').toUpperCase() : '🙂');
 
   return (
     <div className="space-y-4">
@@ -136,7 +138,8 @@ export function Today() {
               })}
             </p>
             <h1 className="text-[1.6rem] leading-tight font-black tracking-tight">
-              {greeting} <span className="text-xl">🥗</span>
+              {greeting}
+              {profile.nickname ? `，${profile.nickname}` : ''} <span className="text-xl">🥗</span>
             </h1>
           </div>
         </div>

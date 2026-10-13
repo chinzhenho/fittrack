@@ -71,6 +71,7 @@ export function AppRoutes() {
         <Route path="/progress" element={<Progress />} />
         <Route path="/me" element={<Me />} />
         <Route path="/me/plan" element={<Me mode="plan" />} />
+        <Route path="/me/profile" element={<Me mode="profile" />} />
       </Route>
       <Route path="*" element={<Navigate to="/today" replace />} />
     </Routes>

@@ -26,6 +26,11 @@ export function saveProfile(s: AppState, profile: Profile, target: TargetVersion
   return { ...s, profile, targets: [...s.targets, target] };
 }
 
+/** Profile changes that do not affect the calorie target (name, avatar, target weight). */
+export function updateProfileDetails(s: AppState, profile: Profile): AppState {
+  return { ...s, profile };
+}
+
 export function addTarget(s: AppState, target: TargetVersion): AppState {
   return { ...s, targets: [...s.targets, target] };
 }
