@@ -27,7 +27,7 @@ afterEach(cleanup);
 describe('app flow', () => {
   it('sends new visitors to the welcome page with sign-up, log-in and guest options', async () => {
     renderAt('/today');
-    expect(await screen.findByRole('heading', { name: '欢迎使用 FitTrack' })).toBeTruthy();
+    expect(await screen.findByRole('heading', { name: '欢迎使用 EatHealthee' })).toBeTruthy();
     expect(screen.getByRole('link', { name: '注册账号' })).toBeTruthy();
     expect(screen.getByRole('link', { name: '已有账号，登录' })).toBeTruthy();
     expect(screen.getByRole('link', { name: '先不登录，直接试用' })).toBeTruthy();
@@ -57,7 +57,7 @@ describe('app flow', () => {
     expect(button.disabled).toBe(true);
     fireEvent.click(screen.getByLabelText('我年满 18 岁'));
     fireEvent.click(screen.getByLabelText(/我已阅读并接受/));
-    fireEvent.click(screen.getByLabelText(/我同意 FitTrack 使用/));
+    fireEvent.click(screen.getByLabelText(/我同意 EatHealthee 使用/));
     expect(button.disabled).toBe(false);
   });
 
@@ -65,7 +65,7 @@ describe('app flow', () => {
     renderAt('/onboarding');
     fireEvent.click(screen.getByLabelText('我年满 18 岁'));
     fireEvent.click(screen.getByLabelText(/我已阅读并接受/));
-    fireEvent.click(screen.getByLabelText(/我同意 FitTrack 使用/));
+    fireEvent.click(screen.getByLabelText(/我同意 EatHealthee 使用/));
     next();
     tap(/减脂/);
     tap(/在家运动/);
@@ -124,7 +124,7 @@ describe('app flow', () => {
     renderAt('/onboarding');
     fireEvent.click(screen.getByLabelText('我年满 18 岁'));
     fireEvent.click(screen.getByLabelText(/我已阅读并接受/));
-    fireEvent.click(screen.getByLabelText(/我同意 FitTrack 使用/));
+    fireEvent.click(screen.getByLabelText(/我同意 EatHealthee 使用/));
     next();
     tap(/减脂/);
     tap(/暂时不运动/);

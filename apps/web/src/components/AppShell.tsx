@@ -38,7 +38,9 @@ export function AppShell() {
       >
         <div className="mb-8 flex items-center gap-2 px-3">
           <img src="/favicon.svg" alt="" className="size-8" />
-          <span className="text-xl font-bold text-emerald-strong dark:text-emerald">FitTrack</span>
+          <span className="text-xl font-bold text-emerald-strong dark:text-emerald">
+            EatHealthee
+          </span>
         </div>
         <ul className="space-y-1">
           {NAV.map((n) => (

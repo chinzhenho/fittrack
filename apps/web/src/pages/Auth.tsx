@@ -28,7 +28,7 @@ function AuthLayout({
           <span className="flex min-h-11 items-center gap-2 px-2">
             <img src="/favicon.svg" alt="" className="size-8" />
             <span className="text-xl font-bold text-emerald-strong dark:text-emerald">
-              FitTrack
+              EatHealthee
             </span>
           </span>
         )}
@@ -47,7 +47,7 @@ const linkClass = 'text-emerald-strong underline dark:text-emerald';
 
 export function Welcome() {
   return (
-    <AuthLayout title="欢迎使用 FitTrack" back={false}>
+    <AuthLayout title="欢迎使用 EatHealthee" back={false}>
       <p className="leading-relaxed">
         依照你的生活方式，安全地减脂、增重、增肌或维持体重。不用去 Gym 也可以开始。
       </p>

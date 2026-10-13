@@ -99,7 +99,7 @@ export function HowWeCalculate() {
 export function Disclaimer() {
   return (
     <InfoPage title="健康免责声明" updated="2026-10-11">
-      <p>FitTrack 是健康与生活习惯管理工具，不是医疗器材，不提供医疗诊断、治疗或处方。</p>
+      <p>EatHealthee 是健康与生活习惯管理工具，不是医疗器材，不提供医疗诊断、治疗或处方。</p>
       <ul>
         <li>
           所有热量、营养素和运动建议都是根据公开公式和你提供的资料所作的估算，可能与你的实际情况不同。
@@ -118,7 +118,7 @@ export function Disclaimer() {
 export function Privacy() {
   return (
     <InfoPage title="隐私政策" updated="2026-10-13">
-      <p>这份政策说明 FitTrack 目前版本如何处理你的资料。</p>
+      <p>这份政策说明 EatHealthee 目前版本如何处理你的资料。</p>
       <h2>我们收集什么</h2>
       <p>
         你在设置和使用时输入的资料：出生日期、身高、体重、腰围、目标、活动水平、健康筛查答案、饮食偏好、饮食记录和训练记录。根据马来西亚《2010
@@ -170,8 +170,8 @@ export function Credits() {
         <a href={SG_FOODID_URL} className="break-all underline" target="_blank" rel="noreferrer">
           {SG_FOODID_URL}
         </a>
-        . The information is provided &quot;as is&quot; without warranty. FitTrack is not endorsed
-        by or affiliated with the Health Promotion Board.
+        . The information is provided &quot;as is&quot; without warranty. EatHealthee is not
+        endorsed by or affiliated with the Health Promotion Board.
       </p>
       <p>
         本网站的本地菜式营养数值取自新加坡保健促进局 SG FoodID

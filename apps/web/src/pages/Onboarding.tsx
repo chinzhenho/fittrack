@@ -322,7 +322,7 @@ export function Onboarding() {
             <span className="flex min-h-11 items-center gap-2 px-2">
               <img src="/favicon.svg" alt="" className="size-7" />
               <span className="text-lg font-bold text-emerald-strong dark:text-emerald">
-                FitTrack
+                EatHealthee
               </span>
             </span>
           )}
@@ -350,7 +350,7 @@ export function Onboarding() {
           {step === 'start' && (
             <Card className="space-y-5">
               <p className="leading-relaxed">
-                FitTrack 依照你的生活方式，帮你安全地减脂、增重、增肌或维持体重。不用去 Gym
+                EatHealthee 依照你的生活方式，帮你安全地减脂、增重、增肌或维持体重。不用去 Gym
                 也可以开始。
               </p>
               <Notice>
@@ -381,7 +381,7 @@ export function Onboarding() {
                   </Link>
                 </Check>
                 <Check checked={d.healthConsent} onChange={(v) => set('healthConsent', v)}>
-                  我同意 FitTrack 使用我提供的身体与健康资料来计算建议
+                  我同意 EatHealthee 使用我提供的身体与健康资料来计算建议
                 </Check>
               </div>
             </Card>
