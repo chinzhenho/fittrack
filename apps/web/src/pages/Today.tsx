@@ -347,7 +347,7 @@ export function Today() {
         )}
       </section>
 
-      <WaterCard profile={profile} tdeeKcal={target.tdeeKcal} />
+      <WaterCard profile={profile} weightKg={current} />
 
       {weighing && (
         <WeightSheet

@@ -37,6 +37,8 @@ export interface Profile {
   nickname?: string;
   /** Optional emoji avatar. */
   avatar?: string;
+  /** Activity level for the drinking guide; 'normal' when not set. */
+  waterActivity?: 'low' | 'normal' | 'high';
   formulaSex: FormulaSex;
   birthDate: string;
   heightCm: number;

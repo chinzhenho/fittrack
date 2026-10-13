@@ -2,19 +2,13 @@ import { describe, expect, it } from 'vitest';
 import { addWater, removeWater } from '../data/actions';
 import { mergeStates } from '../data/merge';
 import { emptyState } from '../data/types';
-import { waterByNow, waterGoalMl, waterOn } from './water';
+import { waterOn, waterRangeMl } from './water';
 
-describe('water goal', () => {
-  it('follows about 1 ml per kcal of TDEE, 80% from drinks, within 1.5-3.5 L', () => {
-    expect(waterGoalMl(2336)).toBe(1850); // 1868.8 -> nearest 50
-    expect(waterGoalMl(1400)).toBe(1500); // floor
-    expect(waterGoalMl(5000)).toBe(3500); // ceiling
-  });
-
-  it('spreads the goal from 07:00 to 21:00 in whole glasses', () => {
-    expect(waterByNow(1850, 6)).toBe(0);
-    expect(waterByNow(1850, 14)).toBe(750); // half the day: 925 -> 3 glasses
-    expect(waterByNow(1850, 22)).toBe(1750); // whole goal, in glasses
+describe('water guide', () => {
+  it('uses body weight times the activity factor as a range', () => {
+    expect(waterRangeMl(59.4, 'normal')).toEqual([2079, 2376]); // 35-40 ml/kg
+    expect(waterRangeMl(75, 'low')).toEqual([2250, 2625]); // 30-35 ml/kg
+    expect(waterRangeMl(75, 'high')).toEqual([3000, 3375]); // 40-45 ml/kg
   });
 });
 

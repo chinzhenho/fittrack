@@ -1,29 +1,23 @@
 import type { WaterEntry } from '../data/types';
 
-// Personal daily drinking-water guide. Total water need is about 1 ml per kcal of
-// energy expenditure for adults (US National Research Council, Recommended Dietary
-// Allowances, 10th ed., 1989), so it scales with each person's weight, height, age,
-// sex and activity through their TDEE. About 20% of water normally comes from food
-// (EFSA 2010), so drinks cover ~80%. Kept within 1.5-3.5 L and rounded to 50 ml.
-// Heat, sweating and exercise raise the need; kidney or heart disease may limit it.
-export const WATER_STEP_ML = 250;
-const FROM_DRINKS = 0.8;
-const MIN_ML = 1500;
-const MAX_ML = 3500;
+// Daily drinking guide by body weight, the common practical rule of roughly
+// 30-45 ml per kg depending on activity and climate (e.g. 30-35 ml/kg for
+// sedentary adults in air-conditioned settings). It is a range, not a target to
+// count; kidney or heart disease may need a different amount set by a doctor.
+export type WaterActivity = 'low' | 'normal' | 'high';
 
-export function waterGoalMl(tdeeKcal: number): number {
-  const ml = Math.round((tdeeKcal * FROM_DRINKS) / 50) * 50;
-  return Math.min(MAX_ML, Math.max(MIN_ML, ml));
-}
+export const WATER_ACTIVITY: Record<WaterActivity, { label: string; mlPerKg: number }> = {
+  low: { label: '冷气房久坐、轻度活动', mlPerKg: 30 },
+  normal: { label: '一般活动量', mlPerKg: 35 },
+  high: { label: '常运动、户外或容易出汗', mlPerKg: 40 },
+};
 
-/**
- * How much of the day's goal should be drunk by `hour` (local, 0-23), spreading
- * drinks evenly from 07:00 to 21:00. Rounded down to whole glasses.
- */
-export function waterByNow(goalMl: number, hour: number, minute = 0): number {
-  const t = hour + minute / 60;
-  const share = Math.min(1, Math.max(0, (t - 7) / 14));
-  return Math.floor((goalMl * share) / WATER_STEP_ML) * WATER_STEP_ML;
+export const WATER_CUP_ML = 250;
+
+/** Recommended range in ml: weight x factor to weight x (factor + 5). */
+export function waterRangeMl(weightKg: number, activity: WaterActivity): [number, number] {
+  const f = WATER_ACTIVITY[activity].mlPerKg;
+  return [Math.round(weightKg * f), Math.round(weightKg * (f + 5))];
 }
 
 export function waterOn(entries: WaterEntry[], date: string): number {
