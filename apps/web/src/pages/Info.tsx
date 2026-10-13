@@ -1,5 +1,5 @@
 import { FORMULA_VERSION } from '@fittrack/engine';
-import { useEffect, useState, type ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import { Link } from 'react-router';
 import { BackButton, Card } from '../components/ui';
 import { SG_FOODID_ACCESSED, SG_FOODID_URL } from '../data/foodsSg';
@@ -27,7 +27,7 @@ function InfoPage({
 
 export function HowWeCalculate() {
   return (
-    <InfoPage title="计算方法与资料来源" updated="2026-10-12">
+    <InfoPage title="计算方法与资料来源" updated="2026-10-13">
       <p>
         所有数字都由公开、可检查的公式计算（公式版本 {FORMULA_VERSION}
         ）。它们是估算，不是你身体的精确测量。
@@ -78,14 +78,18 @@ export function HowWeCalculate() {
         数据库；基本食材来自美国农业部 USDA FoodData Central（SR
         Legacy，公有领域）。每项都标示来源编号。自订食物由你按包装标签输入，只有你看得到。
       </p>
-      <h2>拍照辨识</h2>
+      <h2>AI 拍照算热量</h2>
       <p>
-        拍照功能用一个在你设备上运行的图像分类模型（MobileNetV3），只判断照片是哪一道菜，不会估算份量。热量来自你选择的菜式和份量，请按实际情况调整克数。模型在
-        131 张测试照片上的首选准确率约 80%，所以每次都请你确认结果。
+        照片由 AI 视觉模型分析（Google Gemini 免费版；忙碌时依次改用备用模型，最后是 Cloudflare
+        Workers AI）。AI
+        会列出每样食物并估算克数。如果某样食物是上面数据库里的菜式，热量按数据库的化验数值计算，只有份量是
+        AI 估的；其他食物的热量也是 AI
+        估算。系统会剔除不合理的数字（例如营养素重量超过食物本身），并用蛋白质、碳水、脂肪（4/4/9
+        kcal/g）检查热量。照片估算份量的误差可能有两三成，所以每次都请你确认和调整。
       </p>
       <p>
         <Link to="/legal/credits" className="underline">
-          资料与图片来源
+          资料来源
         </Link>
       </p>
     </InfoPage>
@@ -113,7 +117,7 @@ export function Disclaimer() {
 
 export function Privacy() {
   return (
-    <InfoPage title="隐私政策" updated="2026-10-12">
+    <InfoPage title="隐私政策" updated="2026-10-13">
       <p>这份政策说明 FitTrack 目前版本如何处理你的资料。</p>
       <h2>我们收集什么</h2>
       <p>
@@ -131,7 +135,11 @@ export function Privacy() {
         代为保存，服务器位于新加坡。数据库设有权限规则，每个账号只能读写自己的资料。设备上也会保留一份副本，让你离线时也能使用。注册时你会被要求明确同意这项保存。
       </p>
       <p>
-        <strong>拍照辨识：</strong>照片只在你的设备上由浏览器分析，不会上传，也不会被保存。
+        <strong>AI 拍照：</strong>
+        只在你按下拍照并同意后，照片才会在手机上缩小（并去掉位置等资料）后，经我们的服务器转交
+        Google Gemini 或 Cloudflare Workers AI
+        分析。我们不保存照片，只保存你确认后的食物记录。Google 的免费服务条款容许 Google
+        使用上传内容改进其产品，请不要拍到人脸或个人资料。为了公平使用免费额度，我们会记录每个账号每天用了几次（不记录照片内容）。
       </p>
       <h2>用途</h2>
       <p>
@@ -151,26 +159,9 @@ export function Privacy() {
   );
 }
 
-interface PhotoCredit {
-  c: string;
-  t: string;
-  a: string;
-  l: string;
-  u: string;
-}
-
 export function Credits() {
-  const [photos, setPhotos] = useState<PhotoCredit[] | null>(null);
-  const [failed, setFailed] = useState(false);
-  useEffect(() => {
-    fetch('/models/food-v1/credits.json')
-      .then((r) => (r.ok ? (r.json() as Promise<PhotoCredit[]>) : Promise.reject(new Error())))
-      .then(setPhotos)
-      .catch(() => setFailed(true));
-  }, []);
-
   return (
-    <InfoPage title="资料与图片来源" updated="2026-10-12">
+    <InfoPage title="资料来源" updated="2026-10-13">
       <h2>本地菜式营养资料</h2>
       <p>
         Contains information from the Singapore Food Insights Database (SG FoodID), Health Promotion
@@ -188,30 +179,6 @@ export function Credits() {
       </p>
       <h2>基本食材营养资料</h2>
       <p>U.S. Department of Agriculture, FoodData Central（SR Legacy），公有领域（CC0）。</p>
-      <h2>拍照辨识模型的训练图片</h2>
-      <p>
-        模型使用来自 Wikimedia Commons 和 Openverse 的公开授权照片训练（CC0、公有领域、CC BY、CC
-        BY-SA）。照片没有包含在网站中，只有训练后的模型。以下按授权条款列出每张照片的作者与来源。
-      </p>
-      {failed && <p>无法载入图片清单，请稍后再试。</p>}
-      {!photos && !failed && <p>载入中…</p>}
-      {photos && (
-        <details>
-          <summary className="min-h-11 cursor-pointer">
-            显示全部 {photos.length} 张照片的来源
-          </summary>
-          <ul className="mt-2 text-xs break-words">
-            {photos.map((p) => (
-              <li key={p.u}>
-                <a href={p.u} className="underline" target="_blank" rel="noreferrer">
-                  {p.t.replace(/^File:/, '')}
-                </a>{' '}
-                — {p.a || '作者不详'}，{p.l}
-              </li>
-            ))}
-          </ul>
-        </details>
-      )}
     </InfoPage>
   );
 }

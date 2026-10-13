@@ -21,14 +21,14 @@ export interface Food {
   nameEn: string;
   aliases: string[];
   per100g: Nutrients;
-  source: 'usda' | 'sgfoodid' | 'user';
+  source: 'usda' | 'sgfoodid' | 'user' | 'ai';
   /** e.g. "USDA FDC 168878" */
   sourceRef: string;
   /** What the dish contains, from the data source (English). */
   description?: string;
   /** Typical servings; grams are the edible amount. */
   servings?: { label: string; grams: number }[];
-  /** Photo-recognition class this food belongs to (ml/ model labels). */
+  /** Dish family, e.g. nasi_lemak, used to group variants. */
   dishClass?: string;
 }
 

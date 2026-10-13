@@ -26,3 +26,6 @@ supabase/.branches/
 Thumbs.db
 .vscode/*
 !.vscode/extensions.json
+
+# Wrangler local dev state
+.wrangler/

@@ -675,17 +675,3 @@ function toFood(r: Raw): Food {
 }
 
 export const SG_FOODS: Food[] = RAW.map(toFood);
-
-/** Chinese names of the photo model's dish classes (public/models/food-v1/meta.json labels). */
-export const DISH_LABELS: Record<string, string> = {
-  char_kway_teow: '炒粿条',
-  chicken_rice: '鸡饭',
-  laksa: '叻沙',
-  mee_goreng: 'Mee goreng（炒面）',
-  nasi_goreng: 'Nasi goreng（炒饭）',
-  nasi_lemak: 'Nasi lemak（椰浆饭）',
-  rendang: '仁当（Rendang）',
-  roti_canai: 'Roti canai（印度煎饼）',
-  satay: '沙爹',
-  wonton_noodles: '云吞面',
-};

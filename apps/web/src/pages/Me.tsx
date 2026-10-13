@@ -497,7 +497,7 @@ export function Me({ mode = 'home' }: { mode?: 'home' | 'plan' }) {
             { to: '/how-we-calculate', icon: '🧮', label: '计算方法与资料来源' },
             { to: '/legal/disclaimer', icon: '🩺', label: '健康免责声明' },
             { to: '/legal/privacy', icon: '🔒', label: '隐私政策' },
-            { to: '/legal/credits', icon: '📚', label: '资料与图片来源' },
+            { to: '/legal/credits', icon: '📚', label: '资料来源' },
           ].map((x) => (
             <li key={x.to}>
               <Link to={x.to} className={row}>

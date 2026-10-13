@@ -1,22 +1,10 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { AppRoutes } from './App';
 import { ToastProvider } from './components/Toast';
 import { getState, replaceState } from './data/store';
 import { emptyState } from './data/types';
-
-vi.mock('./ml/foodRecognizer', () => ({
-  recognizeFood: vi.fn(() =>
-    Promise.resolve([
-      { label: 'nasi_lemak', probability: 0.9 },
-      { label: 'rendang', probability: 0.06 },
-      { label: 'chicken_rice', probability: 0.02 },
-    ]),
-  ),
-}));
-URL.createObjectURL = () => 'blob:test';
-URL.revokeObjectURL = () => undefined;
 
 function renderAt(path: string) {
   return render(
@@ -110,25 +98,26 @@ describe('app flow', () => {
 
     cleanup();
     renderAt('/diary/add?meal=lunch');
-    change('搜索食物', 'tauhu');
-    fireEvent.click(screen.getByRole('button', { name: /板豆腐/ }));
+    // Manual entry from a nutrition label (tofu, per 100 g), then 150 g logged.
+    fireEvent.click(screen.getByRole('button', { name: '＋ 输入' }));
+    change('名称', '板豆腐');
+    change('热量（kcal）', '144');
+    change('蛋白质（g）', '17.3');
+    change('碳水化合物（g）', '2.78');
+    change('脂肪（g）', '8.72');
+    fireEvent.click(screen.getByRole('button', { name: '保存并选择' }));
     change('份量（g）', '150');
     fireEvent.click(screen.getByRole('button', { name: '加入午餐' }));
     const meal = getState().meals[0];
-    expect(meal).toMatchObject({ meal: 'lunch', grams: 150, foodId: 'usda-172475' });
+    expect(meal).toMatchObject({ meal: 'lunch', grams: 150, name: '板豆腐' });
     expect(meal?.nutrients.kcal).toBeCloseTo(216, 10);
 
-    // Photo -> recognised dish -> SG FoodID variant -> one serving logged.
+    // The food now appears under 最近吃过 and can be logged again in one tap.
     cleanup();
     renderAt('/diary/add?meal=dinner');
-    const photo = new File(['x'], 'food.jpg', { type: 'image/jpeg' });
-    fireEvent.change(screen.getByLabelText('从相簿选择'), { target: { files: [photo] } });
-    fireEvent.click(await screen.findByRole('button', { name: /Nasi lemak（炸鱼套餐）/ }));
-    expect((screen.getByLabelText('份量（g）') as HTMLInputElement).value).toBe('335');
+    fireEvent.click(screen.getByRole('button', { name: /板豆腐/ }));
     fireEvent.click(screen.getByRole('button', { name: '加入晚餐' }));
-    const dinner = getState().meals.find((m) => m.meal === 'dinner');
-    expect(dinner).toMatchObject({ foodId: 'sg-F05100089', grams: 335 });
-    expect(dinner?.nutrients.kcal).toBeCloseTo(693.45, 10);
+    expect(getState().meals.filter((m) => m.name === '板豆腐')).toHaveLength(2);
   });
 
   it('shows the safety refusal for an underweight fat-loss goal', () => {

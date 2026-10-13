@@ -9,8 +9,6 @@ import {
   setWeightOn,
 } from '../data/actions';
 import { BUILT_IN_FOODS, SEED_FOODS } from '../data/foods';
-import { DISH_LABELS } from '../data/foodsSg';
-import meta from '../../public/models/food-v1/meta.json';
 import { emptyState, type AppState, type Profile, type WorkoutSession } from '../data/types';
 import {
   nutrientsFor,
@@ -159,14 +157,6 @@ describe('nutrition', () => {
       expect(Math.abs(4 * proteinG + 4 * carbsG + 9 * fatG - kcal) / kcal).toBeLessThan(0.15);
       for (const sv of f.servings ?? []) expect(sv.grams).toBeGreaterThan(0);
     }
-  });
-
-  it('every photo model class has SG FoodID dishes to choose from', () => {
-    for (const label of meta.labels) {
-      expect(DISH_LABELS[label]).toBeDefined();
-      expect(BUILT_IN_FOODS.some((f) => f.dishClass === label)).toBe(true);
-    }
-    expect(Object.keys(DISH_LABELS).sort()).toEqual([...meta.labels].sort());
   });
 
   it('SG FoodID serving matches its published per-serving energy', () => {

@@ -1,29 +1,29 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router';
+import { Link, useNavigate, useSearchParams } from 'react-router';
 import { useToast } from '../components/Toast';
 import {
   BackButton,
   Button,
   Card,
+  Check,
   Field,
   inputClass,
   PageTitle,
   Segmented,
 } from '../components/ui';
 import { addCustomFood, logFood } from '../data/actions';
+import { AI_ERROR_TEXT, analyzeFoodPhoto, type AiPhotoError } from '../data/aiPhoto';
+import { useAuth } from '../data/auth';
 import { BUILT_IN_FOODS } from '../data/foods';
-import { DISH_LABELS } from '../data/foodsSg';
 import { newId, update, useAppState } from '../data/store';
-import type { Food, MealType } from '../data/types';
+import type { Food, MealItem, MealType } from '../data/types';
 import { formatDateZh, localToday } from '../lib/dates';
 import { fmt1, fmtInt } from '../lib/format';
-import type { Prediction } from '../ml/foodRecognizer';
+import { aiItemNutrients, foodForAiItem, type AiFoodResult } from '../logic/aiFood';
 import {
   MEAL_LABELS,
   MEAL_TYPES,
   nutrientsFor,
-  recentFoodIds,
-  searchFoods,
   validateCustomFood,
   type CustomFoodError,
 } from '../logic/nutrition';
@@ -36,6 +36,39 @@ const ERROR_TEXT: Record<CustomFoodError, string> = {
   sodium: '钠需介于 0 至 40,000 mg。',
 };
 
+/**
+ * Foods eaten recently, newest first. Built from the logged items themselves so AI
+ * estimates can be re-logged too (their per-100 g values come from the snapshot).
+ */
+function recentFoods(meals: MealItem[], known: Food[], limit = 8): Food[] {
+  const seen = new Set<string>();
+  const out: Food[] = [];
+  for (const m of [...meals].sort((a, b) => b.createdAt.localeCompare(a.createdAt))) {
+    if (seen.has(m.foodId) || m.grams <= 0) continue;
+    seen.add(m.foodId);
+    const k = 100 / m.grams;
+    out.push(
+      known.find((f) => f.id === m.foodId) ?? {
+        id: m.foodId,
+        nameZh: m.name,
+        nameEn: m.name,
+        aliases: [],
+        per100g: {
+          kcal: m.nutrients.kcal * k,
+          proteinG: m.nutrients.proteinG * k,
+          carbsG: m.nutrients.carbsG * k,
+          fatG: m.nutrients.fatG * k,
+        },
+        source: m.foodId.startsWith('ai-') ? 'ai' : 'user',
+        sourceRef: m.sourceRef,
+        servings: [{ label: '上次的份量', grams: m.grams }],
+      },
+    );
+    if (out.length >= limit) break;
+  }
+  return out;
+}
+
 export function AddFood() {
   const s = useAppState();
   const [params] = useSearchParams();
@@ -45,41 +78,41 @@ export function AddFood() {
   const [meal, setMeal] = useState<MealType>(
     (params.get('meal') as MealType | null) ?? 'breakfast',
   );
-  const [query, setQuery] = useState('');
   const [selected, setSelected] = useState<Food | null>(null);
   const [grams, setGrams] = useState('100');
   const [creating, setCreating] = useState(false);
   const [label, setLabel] = useState('');
 
   const allFoods = useMemo(() => [...s.customFoods, ...BUILT_IN_FOODS], [s.customFoods]);
-  const recent = recentFoodIds(s.meals)
-    .map((id) => allFoods.find((f) => f.id === id))
-    .filter((f): f is Food => f !== undefined);
-  const results = searchFoods(allFoods, query);
+  const recent = recentFoods(s.meals, allFoods);
   const g = Number(grams);
   const gramsOk = g > 0 && g <= 5000;
+  const where = meal === 'snack' && label.trim() ? label.trim() : MEAL_LABELS[meal];
+  const backToDiary = () => navigate(date === localToday() ? '/diary' : `/diary?date=${date}`);
 
   const pick = (f: Food) => {
     setSelected(f);
     setGrams(String(Math.round(f.servings?.[0]?.grams ?? 100)));
   };
 
-  const add = () => {
-    if (!selected || !gramsOk) return;
+  const log = (food: Food, amount: number) =>
     update((x) =>
       logFood(x, {
         id: newId(),
         date,
         meal,
-        food: selected,
-        grams: g,
+        food,
+        grams: amount,
         now: new Date().toISOString(),
         ...(meal === 'snack' && { label }),
       }),
     );
-    const where = meal === 'snack' && label.trim() ? label.trim() : MEAL_LABELS[meal];
+
+  const add = () => {
+    if (!selected || !gramsOk) return;
+    log(selected, g);
     toast({ text: `已加入${where}：${selected.nameZh}` });
-    navigate(date === localToday() ? '/diary' : `/diary?date=${date}`);
+    backToDiary();
   };
 
   return (
@@ -129,7 +162,9 @@ export function AddFood() {
                 ? `来源：${selected.sourceRef}（已验证）`
                 : selected.source === 'sgfoodid'
                   ? `来源：新加坡保健促进局 ${selected.sourceRef}`
-                  : '来源：你自己输入的包装标签'}
+                  : selected.source === 'ai'
+                    ? `来源：${selected.sourceRef}`
+                    : '来源：你自己输入的包装标签'}
             </p>
             {selected.description && (
               <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">
@@ -140,7 +175,7 @@ export function AddFood() {
           {selected.servings?.map((sv) => (
             <div key={sv.label}>
               <p className="mb-2 text-sm">
-                标准份量：{sv.label}（可食用部分约 {fmtInt(sv.grams)} g）
+                {sv.label}：约 {fmtInt(sv.grams)} g
               </p>
               <div className="flex flex-wrap gap-2">
                 {[0.5, 1, 1.5, 2].map((m) => (
@@ -153,9 +188,6 @@ export function AddFood() {
                   </Button>
                 ))}
               </div>
-              <p className="mt-2 text-xs text-slate-600 dark:text-slate-300">
-                份量比标准多或少时，请按实际情况调整克数。
-              </p>
             </div>
           ))}
           <Field label="份量（g）" error={gramsOk ? null : '份量需介于 1 至 5000 g。'}>
@@ -177,7 +209,7 @@ export function AddFood() {
               返回
             </Button>
             <Button className="flex-1" disabled={!gramsOk} onClick={add}>
-              加入{MEAL_LABELS[meal]}
+              加入{where}
             </Button>
           </div>
         </Card>
@@ -192,31 +224,30 @@ export function AddFood() {
         />
       ) : (
         <>
-          <PhotoCard foods={BUILT_IN_FOODS} onPick={pick} />
-          <input
-            type="search"
-            aria-label="搜索食物"
-            placeholder="🔍 搜索食物，例如：鸡蛋、tauhu、rice"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            className={`${inputClass} mt-0 bg-white dark:bg-slate-800`}
+          <PhotoCard
+            where={where}
+            onLog={(items) => {
+              for (const it of items) log(it.food, it.grams);
+              const kcal = items.reduce(
+                (t, it) => t + nutrientsFor(it.food.per100g, it.grams).kcal,
+                0,
+              );
+              toast({ text: `已加入${where}：${items.length} 项，约 ${fmtInt(kcal)} kcal` });
+              backToDiary();
+            }}
           />
-          {!query && recent.length > 0 && (
-            <FoodList title="最近吃过" foods={recent} onPick={pick} />
-          )}
-          {query.trim() !== '' && (
-            <>
-              <FoodList title={`搜索结果（${results.length}）`} foods={results} onPick={pick} />
-              <div className="flex items-center justify-between gap-3 px-1">
-                <p className="text-sm text-slate-600 dark:text-slate-300">
-                  找不到？可按包装营养标签新增。
-                </p>
-                <Button variant="ghost" className="shrink-0" onClick={() => setCreating(true)}>
-                  ＋ 自订食物
-                </Button>
-              </div>
-            </>
-          )}
+          {recent.length > 0 && <FoodList title="最近吃过" foods={recent} onPick={pick} />}
+          <Card className="flex items-center justify-between gap-3">
+            <div>
+              <p className="font-medium">手动输入</p>
+              <p className="text-xs text-slate-600 dark:text-slate-300">
+                包装食品可按营养标签输入，最准确。
+              </p>
+            </div>
+            <Button variant="secondary" className="shrink-0" onClick={() => setCreating(true)}>
+              ＋ 输入
+            </Button>
+          </Card>
         </>
       )}
     </div>
@@ -227,6 +258,7 @@ const SOURCE_LABEL: Record<Food['source'], string> = {
   usda: 'USDA',
   sgfoodid: 'SG FoodID',
   user: '自订',
+  ai: 'AI 估算',
 };
 
 function servingText(f: Food): string {
@@ -235,17 +267,38 @@ function servingText(f: Food): string {
   return `${sv.label}约 ${fmtInt(nutrientsFor(f.per100g, sv.grams).kcal)} kcal`;
 }
 
+const CONSENT_KEY = 'fittrack:aiPhotoConsent';
+const readConsent = () => {
+  try {
+    return localStorage.getItem(CONSENT_KEY) === '1';
+  } catch {
+    return false;
+  }
+};
+
 type PhotoState =
   | { status: 'idle' }
   | { status: 'working' }
-  | { status: 'done'; predictions: Prediction[]; dish: string }
-  | { status: 'error'; message: string };
+  | { status: 'done'; result: AiFoodResult; remaining: number }
+  | { status: 'error'; error: AiPhotoError };
 
-/** Below this top-1 probability the photo is treated as "not sure". */
-const CONFIDENT = 0.5;
+interface Row {
+  include: boolean;
+  grams: string;
+}
 
-function PhotoCard({ foods, onPick }: { foods: Food[]; onPick: (f: Food) => void }) {
+/** Photo -> AI estimate -> user checks items and amounts -> logged to the meal. */
+function PhotoCard({
+  where,
+  onLog,
+}: {
+  where: string;
+  onLog: (items: { food: Food; grams: number }[]) => void;
+}) {
+  const signedIn = useAuth().status === 'signedIn';
+  const [consent, setConsent] = useState(readConsent);
   const [state, setState] = useState<PhotoState>({ status: 'idle' });
+  const [rows, setRows] = useState<Row[]>([]);
   const [preview, setPreview] = useState<string | null>(null);
 
   useEffect(
@@ -259,23 +312,17 @@ function PhotoCard({ foods, onPick }: { foods: Food[]; onPick: (f: Food) => void
     if (!file) return;
     setPreview(URL.createObjectURL(file));
     setState({ status: 'working' });
-    try {
-      const { recognizeFood } = await import('../ml/foodRecognizer');
-      const predictions = await recognizeFood(file);
-      setState({ status: 'done', predictions, dish: predictions[0]?.label ?? '' });
-    } catch (e) {
-      setState({
-        status: 'error',
-        message: e instanceof Error ? e.message : '辨识失败，请检查网络后再试。',
-      });
-    }
+    const r = await analyzeFoodPhoto(file);
+    if (!r.ok) return setState({ status: 'error', error: r.error });
+    setRows(r.result.items.map((i) => ({ include: true, grams: String(i.grams) })));
+    setState({ status: 'done', result: r.result, remaining: r.remaining });
   };
 
-  const fileButton = (label: string, capture: boolean) => (
+  const fileButton = (text: string, capture: boolean) => (
     <label
-      className={`inline-flex min-h-12 flex-1 cursor-pointer items-center justify-center gap-2 rounded-2xl px-4 text-sm font-semibold has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-emerald ${capture ? 'bg-emerald-strong text-white shadow-sm hover:bg-emerald-800 dark:bg-emerald dark:text-slate-950' : 'border border-emerald-200 bg-white text-emerald-900 hover:bg-emerald-50 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100'}`}
+      className={`inline-flex min-h-12 flex-1 cursor-pointer items-center justify-center gap-2 rounded-2xl px-4 text-sm font-semibold whitespace-nowrap has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-emerald ${capture ? 'bg-emerald-strong text-white shadow-sm hover:bg-emerald-800 dark:bg-emerald dark:text-slate-950' : 'border border-emerald-200 bg-white text-emerald-900 hover:bg-emerald-50 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100'} ${state.status === 'working' ? 'pointer-events-none opacity-50' : ''}`}
     >
-      {label}
+      {text}
       <input
         type="file"
         accept="image/*"
@@ -290,8 +337,20 @@ function PhotoCard({ foods, onPick }: { foods: Food[]; onPick: (f: Food) => void
     </label>
   );
 
-  const variants = state.status === 'done' ? foods.filter((f) => f.dishClass === state.dish) : [];
-  const top = state.status === 'done' ? state.predictions[0] : undefined;
+  const done = state.status === 'done' ? state : null;
+  const chosen = done
+    ? done.result.items
+        .map((item, i) => ({ item, row: rows[i] }))
+        .filter((x): x is { item: (typeof done.result.items)[number]; row: Row } =>
+          Boolean(x.row?.include && Number(x.row.grams) > 0 && Number(x.row.grams) <= 5000),
+        )
+    : [];
+  const total = done
+    ? chosen.reduce(
+        (t, x) => t + aiItemNutrients(x.item, Number(x.row.grams), done.result.model).kcal,
+        0,
+      )
+    : 0;
 
   return (
     <section className="space-y-3 rounded-3xl bg-gradient-to-br from-emerald-50 to-teal-50 p-5 ring-1 ring-emerald-200 dark:from-emerald-950 dark:to-slate-800 dark:ring-emerald/30">
@@ -303,68 +362,151 @@ function PhotoCard({ foods, onPick }: { foods: Food[]; onPick: (f: Food) => void
           📷
         </span>
         <div>
-          <h2 className="text-lg font-semibold">
-            拍照算热量
-            <span className="ml-2 rounded-full bg-amber-100 px-2 py-0.5 align-middle text-xs font-medium text-amber-900 dark:bg-amber-500/20 dark:text-amber-100">
-              测试版
-            </span>
-          </h2>
+          <h2 className="text-lg font-semibold">AI 拍照算热量</h2>
           <p className="text-sm text-slate-700 dark:text-slate-300">
-            拍一张食物照片，自动认出菜式，再选份量就会算进今天的热量。
+            拍下整份食物，AI 会认出每样食物并估算份量和热量，你确认后就会记录。
           </p>
         </div>
       </div>
-      <details className="text-xs text-slate-600 dark:text-slate-300">
-        <summary className="cursor-pointer py-1">目前支持 10 种本地菜式・照片不会上传</summary>
-        <p className="mt-1">
-          {Object.values(DISH_LABELS).join('、')}
-          。照片只在你的设备上分析，不会上传或保存。第一次使用需下载约 30 MB。
-        </p>
-      </details>
-      <div className="flex gap-2">
-        {fileButton('📸 拍照', true)}
-        {fileButton('从相簿选择', false)}
-      </div>
 
-      {preview && (
+      {!signedIn ? (
+        <div className="rounded-2xl bg-white p-4 text-sm dark:bg-slate-700">
+          <p>AI 拍照免费，但需要先登录账号（每个账号每天 8 次）。</p>
+          <div className="mt-3 flex gap-2">
+            <Link
+              to="/login"
+              className="inline-flex min-h-11 flex-1 items-center justify-center rounded-2xl bg-emerald-strong px-4 font-semibold text-white dark:bg-emerald dark:text-slate-950"
+            >
+              登录
+            </Link>
+            <Link
+              to="/signup"
+              className="inline-flex min-h-11 flex-1 items-center justify-center rounded-2xl border border-emerald-200 bg-white px-4 font-semibold text-emerald-900 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
+            >
+              注册账号
+            </Link>
+          </div>
+        </div>
+      ) : !consent ? (
+        <div className="space-y-3 rounded-2xl bg-white p-4 text-sm dark:bg-slate-700">
+          <p>
+            照片会缩小后发送给 Google Gemini（或备用的 Cloudflare AI）分析。我们不保存照片；但
+            Google 的免费服务可能会用上传内容来改进它的产品。请不要拍到人脸或个人资料。
+          </p>
+          <Check
+            checked={false}
+            onChange={(v) => {
+              if (!v) return;
+              try {
+                localStorage.setItem(CONSENT_KEY, '1');
+              } catch {
+                // private mode: ask again next time
+              }
+              setConsent(true);
+            }}
+          >
+            我明白，开始使用 AI 拍照
+          </Check>
+        </div>
+      ) : (
+        <div className="flex gap-2">
+          {fileButton('📸 拍照', true)}
+          {fileButton('从相册选择', false)}
+        </div>
+      )}
+
+      {preview && state.status !== 'idle' && (
         <img
           src={preview}
           alt="你选择的食物照片"
-          className="max-h-48 w-full rounded-xl object-cover"
+          className="max-h-56 w-full rounded-2xl object-cover"
         />
       )}
       {state.status === 'working' && (
         <p className="text-sm" role="status">
-          辨识中…（第一次需要下载模型，请稍候）
+          AI 分析中，大约需要 5–15 秒…
         </p>
       )}
       {state.status === 'error' && (
         <p className="text-sm text-red-700 dark:text-red-400" role="alert">
-          {state.message}
+          {AI_ERROR_TEXT[state.error]}
         </p>
       )}
-      {state.status === 'done' && (
+
+      {done && !done.result.isFood && (
+        <p className="text-sm text-amber-800 dark:text-amber-300" role="alert">
+          这张照片看起来不是食物，请再拍一次。
+        </p>
+      )}
+      {done && done.result.isFood && (
         <div className="space-y-3">
-          {top && top.probability < CONFIDENT && (
-            <p className="text-sm text-amber-700 dark:text-amber-400">
-              不太确定是哪一道菜。如果下面都不对，请用搜索或自订食物。
+          {done.result.confidence === 'low' && (
+            <p className="text-sm text-amber-800 dark:text-amber-300">
+              AI 不太确定，请仔细检查名称和份量。
             </p>
           )}
-          <div>
-            <p className="mb-2 text-sm">最可能是（点击切换）：</p>
-            <div className="flex flex-wrap gap-2">
-              {state.predictions.map((p) => (
-                <Button
-                  key={p.label}
-                  variant={p.label === state.dish ? 'primary' : 'secondary'}
-                  onClick={() => setState({ ...state, dish: p.label })}
+          <ul className="space-y-2">
+            {done.result.items.map((item, i) => {
+              const row = rows[i] ?? { include: false, grams: '0' };
+              const g = Number(row.grams);
+              const n = g > 0 ? aiItemNutrients(item, g, done.result.model) : null;
+              const set = (r: Partial<Row>) =>
+                setRows(rows.map((x, j) => (j === i ? { ...x, ...r } : x)));
+              return (
+                <li
+                  key={`${item.name}-${i}`}
+                  className={`rounded-2xl bg-white p-3 dark:bg-slate-700 ${row.include ? '' : 'opacity-50'}`}
                 >
-                  {DISH_LABELS[p.label] ?? p.label} {Math.round(p.probability * 100)}%
-                </Button>
-              ))}
-            </div>
-          </div>
-          <FoodList title="选择最接近的一种（之后可调整份量）" foods={variants} onPick={onPick} />
+                  <div className="flex items-start gap-3">
+                    <input
+                      type="checkbox"
+                      aria-label={`包括 ${item.name}`}
+                      checked={row.include}
+                      onChange={(e) => set({ include: e.target.checked })}
+                      className="mt-1 size-5 shrink-0 accent-emerald-strong"
+                    />
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium">{item.name}</p>
+                      <p className="text-xs text-slate-600 dark:text-slate-300">
+                        {item.matchId ? '热量来自营养数据库' : 'AI 估算的热量'}
+                        {n &&
+                          ` · 蛋白质 ${fmt1(n.proteinG)} g · 碳水 ${fmt1(n.carbsG)} g · 脂肪 ${fmt1(n.fatG)} g`}
+                      </p>
+                    </div>
+                    <span className="shrink-0 font-semibold">{n ? fmtInt(n.kcal) : '—'} kcal</span>
+                  </div>
+                  <label className="mt-2 flex items-center gap-2 pl-8 text-sm">
+                    <span className="shrink-0 text-slate-600 dark:text-slate-300">份量</span>
+                    <input
+                      type="number"
+                      inputMode="decimal"
+                      value={row.grams}
+                      onChange={(e) => set({ grams: e.target.value })}
+                      className="min-h-10 w-24 rounded-xl border border-slate-200 bg-slate-50 px-3 dark:border-slate-600 dark:bg-slate-900"
+                    />
+                    <span>g</span>
+                  </label>
+                </li>
+              );
+            })}
+          </ul>
+          <p className="text-xs text-slate-600 dark:text-slate-300">
+            AI 估算可能有误差，份量差别最大。今天还可以用 {done.remaining} 次。
+          </p>
+          <Button
+            className="w-full"
+            disabled={chosen.length === 0}
+            onClick={() =>
+              onLog(
+                chosen.map((x) => ({
+                  food: foodForAiItem(x.item, done.result.model),
+                  grams: Number(x.row.grams),
+                })),
+              )
+            }
+          >
+            加入{where}（约 {fmtInt(total)} kcal）
+          </Button>
         </div>
       )}
     </section>
