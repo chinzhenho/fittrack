@@ -134,7 +134,7 @@ export function Today() {
 
       {/* Weight & BMI */}
       {!hide && (
-        <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-600 via-emerald-700 to-teal-700 p-4 text-white shadow-xl shadow-emerald-600/15">
+        <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#5cae6f] via-[#43955f] to-[#2f6e5b] p-4 text-white shadow-xl shadow-[#2f6e5b]/20">
           <span
             aria-hidden="true"
             className="pointer-events-none absolute -right-6 -bottom-6 size-32 rounded-full bg-white/10 blur-2xl"
