@@ -37,7 +37,7 @@ export function AppShell() {
         className="sticky top-0 hidden h-dvh w-60 shrink-0 border-r border-slate-200 bg-white px-3 py-6 lg:block dark:border-slate-700 dark:bg-slate-800"
       >
         <div className="mb-8 flex items-center gap-2 px-3">
-          <img src="/brand/icon-64.png" alt="" className="size-9 rounded-xl" />
+          <img src="/brand/favicon.svg" alt="" className="size-9" />
           <span className="text-xl font-bold text-emerald-strong dark:text-emerald">
             EatHealthee
           </span>

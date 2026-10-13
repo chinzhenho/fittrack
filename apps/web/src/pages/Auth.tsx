@@ -26,7 +26,7 @@ function AuthLayout({
           </Button>
         ) : (
           <span className="flex min-h-11 items-center gap-2 px-2">
-            <img src="/brand/icon-64.png" alt="" className="size-9 rounded-xl" />
+            <img src="/brand/favicon.svg" alt="" className="size-9" />
             <span className="text-xl font-bold text-emerald-strong dark:text-emerald">
               EatHealthee
             </span>
