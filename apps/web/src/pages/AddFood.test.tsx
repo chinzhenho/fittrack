@@ -5,6 +5,8 @@ import { ToastProvider } from '../components/Toast';
 import { getState, replaceState } from '../data/store';
 import { emptyState } from '../data/types';
 import { AddFood } from './AddFood';
+import { analyzeFoodPhoto } from '../data/aiPhoto';
+import { setPendingPhoto } from '../data/pendingPhoto';
 import type * as AiPhotoModule from '../data/aiPhoto';
 import type * as AuthModule from '../data/auth';
 
@@ -50,7 +52,31 @@ beforeEach(() => {
 });
 afterEach(cleanup);
 
+function renderAdd(path = '/diary/add?meal=lunch&date=2026-10-13') {
+  return render(
+    <MemoryRouter initialEntries={[path]}>
+      <ToastProvider>
+        <Routes>
+          <Route path="/diary/add" element={<AddFood />} />
+          <Route path="/diary" element={<p>diary</p>} />
+        </Routes>
+      </ToastProvider>
+    </MemoryRouter>,
+  );
+}
+
 describe('AI photo logging', () => {
+  it('analyses a photo from the camera button as soon as consent is given', async () => {
+    vi.mocked(analyzeFoodPhoto).mockClear();
+    const photo = new File(['x'], 'snap.jpg', { type: 'image/jpeg' });
+    setPendingPhoto(photo);
+    renderAdd();
+    expect(analyzeFoodPhoto).not.toHaveBeenCalled(); // waits for consent
+    fireEvent.click(screen.getByLabelText('我明白，开始分析刚才的照片'));
+    await screen.findByText('冰美禄');
+    expect(analyzeFoodPhoto).toHaveBeenCalledWith(photo);
+  });
+
   it('asks once for consent, then logs the checked items with edited amounts', async () => {
     render(
       <MemoryRouter initialEntries={['/diary/add?meal=lunch&date=2026-10-13']}>

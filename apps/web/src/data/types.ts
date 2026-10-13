@@ -121,6 +121,14 @@ export interface ActivityLog {
   minutes: number;
 }
 
+/** One drink logged on the water tracker. */
+export interface WaterEntry {
+  id: string;
+  date: string;
+  ml: number;
+  at: string;
+}
+
 export interface AppState {
   schemaVersion: 1;
   /** ISO time of the last local change; decides which copy is newer when syncing. */
@@ -137,6 +145,7 @@ export interface AppState {
   skippedTasks: Record<string, string[]>;
   sessions: WorkoutSession[];
   activities: ActivityLog[];
+  water: WaterEntry[];
 }
 
 export const emptyState: AppState = {
@@ -153,4 +162,5 @@ export const emptyState: AppState = {
   skippedTasks: {},
   sessions: [],
   activities: [],
+  water: [],
 };

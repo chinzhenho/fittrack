@@ -7,6 +7,7 @@ import type {
   MealType,
   Profile,
   TargetVersion,
+  WaterEntry,
   WeightEntry,
   WorkoutSession,
 } from './types';
@@ -154,4 +155,12 @@ export function saveSession(s: AppState, session: WorkoutSession): AppState {
 
 export function removeSession(s: AppState, id: string): AppState {
   return { ...s, sessions: s.sessions.filter((x) => x.id !== id) };
+}
+
+export function addWater(s: AppState, entry: WaterEntry): AppState {
+  return { ...s, water: [...s.water, entry] };
+}
+
+export function removeWater(s: AppState, id: string): AppState {
+  return { ...s, water: s.water.filter((w) => w.id !== id) };
 }

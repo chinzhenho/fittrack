@@ -13,6 +13,7 @@ import {
 } from '../components/ui';
 import { addCustomFood, logFood } from '../data/actions';
 import { AI_ERROR_TEXT, analyzeFoodPhoto, type AiPhotoError } from '../data/aiPhoto';
+import { takePendingPhoto } from '../data/pendingPhoto';
 import { useAuth } from '../data/auth';
 import { BUILT_IN_FOODS } from '../data/foods';
 import { newId, update, useAppState } from '../data/store';
@@ -308,8 +309,12 @@ function PhotoCard({
     [preview],
   );
 
+  // A photo taken with the camera button waits here until consent is given.
+  const [waiting, setWaiting] = useState<File | null>(() => (signedIn ? takePendingPhoto() : null));
+
   const onFile = async (file: File | undefined) => {
     if (!file) return;
+    setWaiting(null);
     setPreview(URL.createObjectURL(file));
     setState({ status: 'working' });
     const r = await analyzeFoodPhoto(file);
@@ -317,6 +322,11 @@ function PhotoCard({
     setRows(r.result.items.map((i) => ({ include: true, grams: String(i.grams) })));
     setState({ status: 'done', result: r.result, remaining: r.remaining });
   };
+
+  useEffect(() => {
+    if (waiting && consent) void onFile(waiting);
+    // Runs once a waiting photo can be sent; onFile only depends on stable setters.
+  }, [waiting, consent]);
 
   const fileButton = (text: string, capture: boolean) => (
     <label
@@ -405,7 +415,7 @@ function PhotoCard({
               setConsent(true);
             }}
           >
-            我明白，开始使用 AI 拍照
+            {waiting ? '我明白，开始分析刚才的照片' : '我明白，开始使用 AI 拍照'}
           </Check>
         </div>
       ) : (
@@ -416,11 +426,22 @@ function PhotoCard({
       )}
 
       {preview && state.status !== 'idle' && (
-        <img
-          src={preview}
-          alt="你选择的食物照片"
-          className="max-h-56 w-full rounded-2xl object-cover"
-        />
+        <div className="relative overflow-hidden rounded-2xl">
+          <img src={preview} alt="你选择的食物照片" className="max-h-64 w-full object-cover" />
+          {state.status === 'working' && (
+            <>
+              <span className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/50" />
+              <span
+                aria-hidden="true"
+                className="absolute inset-x-5 h-0.5 animate-scan rounded-full bg-emerald-400 shadow-[0_0_14px_3px_rgba(34,197,94,0.75)]"
+              />
+              <span className="absolute top-3 left-1/2 flex -translate-x-1/2 items-center gap-1.5 rounded-full bg-emerald-600/90 px-3 py-1 text-xs font-bold whitespace-nowrap text-white shadow-lg backdrop-blur">
+                <span className="size-2 animate-ping rounded-full bg-white" />
+                AI 正在辨识食物与营养…
+              </span>
+            </>
+          )}
+        </div>
       )}
       {state.status === 'working' && (
         <p className="text-sm" role="status">

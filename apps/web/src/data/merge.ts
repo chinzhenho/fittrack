@@ -37,6 +37,7 @@ export function mergeStates(a: AppState, b: AppState): AppState {
     skippedTasks: skipped,
     sessions: byId(older.sessions, newer.sessions),
     activities: byId(older.activities, newer.activities),
+    water: byId(older.water ?? [], newer.water ?? []),
   };
 }
 

@@ -7,6 +7,8 @@ import { Bar, Button, Card, CardTitle, Notice } from '../components/ui';
 import {
   addActivity,
   addTarget,
+  addWater,
+  removeWater,
   setDayComplete,
   setRestDay,
   setWeightOn,
@@ -15,8 +17,11 @@ import {
 import { newId, update, useAppState } from '../data/store';
 import { localToday } from '../lib/dates';
 import { fmt1, fmtInt } from '../lib/format';
-import { GOAL_LABELS, MODE_LABELS } from '../lib/messages';
-import { MEAL_LABELS, MEAL_TYPES, mealsOn, sumNutrients } from '../logic/nutrition';
+import { GOAL_LABELS } from '../lib/messages';
+import { MEAL_LABELS, MEAL_TYPES, mealForHour, mealsOn, sumNutrients } from '../logic/nutrition';
+import { waterOn, WATER_GOAL_ML, WATER_STEP_ML } from '../logic/water';
+import { SnapButton } from '../components/SnapButton';
+import { useAuth } from '../data/auth';
 import {
   latestWeight,
   needsRecompute,
@@ -36,6 +41,7 @@ export function Today() {
   const [weightInput, setWeightInput] = useState('');
   const [editingWeight, setEditingWeight] = useState(false);
   const [showNoWorkout, setShowNoWorkout] = useState(false);
+  const auth = useAuth();
   const profile = s.profile;
   const target = targetOn(s.targets, today);
   if (!profile || !target) return null;
@@ -116,26 +122,39 @@ export function Today() {
       ? Math.ceil(Math.abs(current - goalKg) / weeklyKg)
       : null;
   const doneCount = tasks.filter((t) => t.done).length;
+  const nextMeal = mealForHour(hour);
+  const waterMl = waterOn(s.water, today);
+  const waterGoal = WATER_GOAL_ML[profile.formulaSex];
+  const lastWater = s.water.filter((w) => w.date === today).at(-1);
+  const initial = auth.status === 'signedIn' ? (auth.user.email?.[0] ?? '🙂').toUpperCase() : '🙂';
 
   return (
     <div className="space-y-4">
-      <div className="mb-2">
-        <p className="text-sm text-slate-600 dark:text-slate-300">
-          {new Date().toLocaleDateString('zh-CN', {
-            month: 'long',
-            day: 'numeric',
-            weekday: 'long',
-          })}
-        </p>
-        <h1 className="text-[1.7rem] font-bold tracking-tight">{greeting} 👋</h1>
-        <div className="mt-2 flex flex-wrap gap-2 text-xs">
-          <span className="rounded-full bg-emerald-100 px-3 py-1 font-medium text-emerald-900 dark:bg-emerald/20 dark:text-emerald-100">
-            🎯 {GOAL_LABELS[profile.goal]}
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <span
+            aria-hidden="true"
+            className="flex size-12 shrink-0 items-center justify-center rounded-full border-2 border-emerald-500 bg-emerald-50 text-lg font-bold text-emerald-800 dark:bg-emerald/15 dark:text-emerald-100"
+          >
+            {initial}
           </span>
-          <span className="rounded-full bg-white px-3 py-1 font-medium ring-1 ring-slate-200 dark:bg-slate-800 dark:ring-slate-700">
-            {MODE_LABELS[profile.lifestyleMode].name}
-          </span>
+          <div>
+            <p className="text-xs font-semibold tracking-wider text-slate-500 dark:text-slate-400">
+              今日饮食看板 ·{' '}
+              {new Date().toLocaleDateString('zh-CN', {
+                month: 'long',
+                day: 'numeric',
+                weekday: 'short',
+              })}
+            </p>
+            <h1 className="text-[1.6rem] leading-tight font-black tracking-tight">
+              {greeting} <span className="text-xl">🥗</span>
+            </h1>
+          </div>
         </div>
+        <span className="shrink-0 rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-900 dark:bg-emerald/20 dark:text-emerald-100">
+          🎯 {GOAL_LABELS[profile.goal]}
+        </span>
       </div>
 
       {needsRecompute(s, today) && (
@@ -148,101 +167,212 @@ export function Today() {
       )}
 
       <div className="grid gap-4 lg:grid-cols-2">
-        {!hide ? (
-          <section className="flex flex-col justify-center rounded-3xl bg-gradient-to-br from-emerald-700 to-teal-800 p-5 text-white shadow-md">
-            <div className="flex items-center gap-5">
-              <div className="relative">
-                <Ring
-                  value={eaten.kcal}
-                  max={target.caloriesKcal}
-                  label={`已摄取 ${fmtInt(eaten.kcal)} / ${fmtInt(target.caloriesKcal)} kcal`}
-                  trackClass="stroke-white/20"
-                  barClass={remaining >= 0 ? 'stroke-white' : 'stroke-amber-300'}
-                />
-                <div className="absolute inset-0 flex flex-col items-center justify-center">
-                  <span className="text-xs text-emerald-50">
-                    {remaining >= 0 ? '还可以吃' : '超出目标'}
+        <div className="space-y-4">
+          {!hide ? (
+            <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-700 via-emerald-600 to-teal-700 p-5 text-white shadow-lg shadow-emerald-700/25">
+              <span
+                aria-hidden="true"
+                className="pointer-events-none absolute -right-8 -bottom-8 size-40 rounded-full bg-white/10 blur-xl"
+              />
+              <div className="relative flex items-center justify-between gap-4">
+                <div>
+                  <span className="inline-flex items-center gap-1 rounded-full bg-white/20 px-2.5 py-0.5 text-xs font-medium backdrop-blur-sm">
+                    🔥 今日热量
                   </span>
-                  <span className="text-3xl font-bold">{fmtInt(Math.abs(remaining))}</span>
-                  <span className="text-xs text-emerald-50">kcal</span>
+                  <p className="mt-2 flex items-baseline gap-1.5">
+                    <span className="text-4xl font-black tracking-tight">
+                      {fmtInt(Math.abs(remaining))}
+                    </span>
+                    <span className="text-sm font-medium text-emerald-50">
+                      kcal {remaining >= 0 ? '还可以吃' : '超出目标'}
+                    </span>
+                  </p>
+                  <p className="mt-1 text-xs text-emerald-50">
+                    已吃 {fmtInt(eaten.kcal)} / 目标 {fmtInt(target.caloriesKcal)} kcal
+                  </p>
+                </div>
+                <div className="relative shrink-0">
+                  <Ring
+                    value={eaten.kcal}
+                    max={target.caloriesKcal}
+                    label={`已摄取 ${fmtInt(eaten.kcal)} / ${fmtInt(target.caloriesKcal)} kcal`}
+                    trackClass="stroke-white/20"
+                    barClass={remaining >= 0 ? 'stroke-white' : 'stroke-amber-300'}
+                    size="size-24"
+                  />
+                  <span className="absolute inset-0 flex flex-col items-center justify-center">
+                    <span className="text-lg font-black">
+                      {Math.round((eaten.kcal / target.caloriesKcal) * 100)}%
+                    </span>
+                    <span className="text-[10px] text-emerald-100">已完成</span>
+                  </span>
                 </div>
               </div>
-              <div className="min-w-0 flex-1 space-y-3 text-sm">
-                <p className="text-emerald-50">
-                  已吃 <span className="font-semibold text-white">{fmtInt(eaten.kcal)}</span> /{' '}
-                  {fmtInt(target.caloriesKcal)} kcal
-                </p>
+              <div className="relative mt-4 grid grid-cols-3 gap-2 border-t border-white/15 pt-4 text-center">
                 {[
-                  { n: '蛋白质', v: eaten.proteinG, t: target.proteinG, c: 'bg-rose-300' },
-                  { n: '碳水', v: eaten.carbsG, t: target.carbsG, c: 'bg-sky-300' },
-                  { n: '脂肪', v: eaten.fatG, t: target.fatG, c: 'bg-amber-300' },
+                  { n: '碳水', v: eaten.carbsG, t: target.carbsG },
+                  { n: '蛋白质', v: eaten.proteinG, t: target.proteinG },
+                  { n: '脂肪', v: eaten.fatG, t: target.fatG },
                 ].map((m) => (
-                  <div key={m.n}>
-                    <div className="flex justify-between">
-                      <span className="font-medium">{m.n}</span>
-                      <span className="text-emerald-50">
-                        {fmtInt(m.v)} / {m.t} g
-                      </span>
+                  <div key={m.n} className="rounded-xl bg-black/10 p-2">
+                    <p className="text-[11px] text-emerald-100">{m.n}</p>
+                    <p className="mt-0.5 text-sm font-bold">
+                      {fmtInt(m.v)}
+                      <span className="text-xs font-normal text-emerald-100"> / {m.t}g</span>
+                    </p>
+                    <div className="mt-1.5 h-1 overflow-hidden rounded-full bg-white/20">
+                      <div
+                        className="h-full rounded-full bg-white"
+                        style={{ width: `${Math.min(100, (m.v / m.t) * 100)}%` }}
+                      />
                     </div>
-                    <Bar value={m.v} max={m.t} color={m.c} track="bg-white/20" />
                   </div>
                 ))}
               </div>
+            </section>
+          ) : (
+            <Card>
+              <CardTitle>今天的饮食</CardTitle>
+              <p className="text-sm">
+                今天记录了 {todayMeals.length} 项食物。数字已隐藏，可在“我”页面打开。
+              </p>
+            </Card>
+          )}
+
+          <Card className="p-4">
+            <div className="mb-2 flex items-center justify-between gap-3">
+              <span className="flex items-center gap-2 text-sm font-bold">
+                <span
+                  aria-hidden="true"
+                  className="flex size-7 items-center justify-center rounded-lg bg-sky-100 text-sky-600 dark:bg-sky-500/20"
+                >
+                  💧
+                </span>
+                喝水
+              </span>
+              <span className="text-sm font-bold text-sky-700 dark:text-sky-300">
+                {fmtInt(waterMl)} / {fmtInt(waterGoal)} ml
+              </span>
             </div>
-          </section>
-        ) : (
-          <Card>
-            <CardTitle>今天的饮食</CardTitle>
-            <p className="text-sm">
-              今天记录了 {todayMeals.length} 项食物。数字已隐藏，可在“我”页面打开。
+            <div className="flex items-center gap-2">
+              <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-700">
+                <div
+                  className="h-full rounded-full bg-sky-500 transition-all duration-300"
+                  style={{ width: `${Math.min(100, (waterMl / waterGoal) * 100)}%` }}
+                />
+              </div>
+              {lastWater && (
+                <button
+                  type="button"
+                  aria-label="撤销上一杯"
+                  onClick={() => update((x) => removeWater(x, lastWater.id))}
+                  className="flex size-10 items-center justify-center rounded-xl text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700"
+                >
+                  −
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() =>
+                  update((x) =>
+                    addWater(x, {
+                      id: newId(),
+                      date: today,
+                      ml: WATER_STEP_ML,
+                      at: new Date().toISOString(),
+                    }),
+                  )
+                }
+                className="min-h-10 rounded-xl border border-sky-200 bg-sky-50 px-3 text-sm font-bold text-sky-700 transition active:scale-95 dark:border-sky-500/30 dark:bg-sky-500/15 dark:text-sky-200"
+              >
+                +{WATER_STEP_ML} ml
+              </button>
+            </div>
+            <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+              {waterMl >= waterGoal
+                ? '🎉 今天的喝水目标完成了！'
+                : `一杯约 ${WATER_STEP_ML} ml。天气热或运动时要多喝。`}
             </p>
           </Card>
-        )}
+        </div>
 
-        <Card>
-          <CardTitle>今天吃了什么</CardTitle>
-          <ul className="space-y-1">
-            {MEAL_TYPES.map((meal) => {
+        <section>
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="text-lg font-bold">今天的三餐</h2>
+            <Link
+              to="/diary"
+              className="rounded-lg bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-800 dark:bg-emerald/15 dark:text-emerald-100"
+            >
+              饮食日记 ›
+            </Link>
+          </div>
+          <ul className="space-y-3">
+            {MEAL_TYPES.filter((m) => todayMeals.some((i) => i.meal === m)).map((meal) => {
               const list = todayMeals.filter((i) => i.meal === meal);
-              const kcal = sumNutrients(list).kcal;
+              const n = sumNutrients(list);
               return (
                 <li key={meal}>
                   <Link
-                    to={`/diary/add?meal=${meal}`}
-                    aria-label={`加入${MEAL_LABELS[meal]}`}
-                    className="flex min-h-14 items-center gap-3 rounded-2xl px-2 hover:bg-slate-50 dark:hover:bg-slate-700"
+                    to="/diary"
+                    className="flex items-center gap-3 rounded-2xl bg-white p-3.5 shadow-sm ring-1 ring-slate-900/5 transition hover:shadow-md dark:bg-slate-800 dark:ring-white/10"
                   >
                     <span
                       aria-hidden="true"
-                      className={`flex size-10 shrink-0 items-center justify-center rounded-xl text-lg ${MEAL_STYLE[meal].bg}`}
+                      className={`flex size-14 shrink-0 items-center justify-center rounded-xl text-2xl ${MEAL_STYLE[meal].bg}`}
                     >
                       {MEAL_STYLE[meal].icon}
                     </span>
                     <span className="min-w-0 flex-1">
-                      <span className="block font-medium">{MEAL_LABELS[meal]}</span>
-                      <span className="block truncate text-xs text-slate-600 dark:text-slate-300">
-                        {list.length === 0
-                          ? '还没有记录'
-                          : list
-                              .map((i) => (i.label ? `${i.label}：${i.name}` : i.name))
-                              .join('、')}
+                      <span className="block truncate text-sm font-extrabold">
+                        {MEAL_LABELS[meal]} ·{' '}
+                        {list.map((i) => (i.label ? `${i.label}：${i.name}` : i.name)).join('、')}
+                      </span>
+                      {!hide && (
+                        <span className="mt-0.5 block text-xs text-slate-500 dark:text-slate-400">
+                          蛋白质 {fmtInt(n.proteinG)}g · 碳水 {fmtInt(n.carbsG)}g · 脂肪{' '}
+                          {fmtInt(n.fatG)}g
+                        </span>
+                      )}
+                      <span className="mt-1 inline-block rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 dark:bg-emerald/15 dark:text-emerald-200">
+                        {list.length} 项食物
                       </span>
                     </span>
-                    {!hide && list.length > 0 && (
-                      <span className="shrink-0 text-sm font-semibold">{fmtInt(kcal)} kcal</span>
+                    {!hide && (
+                      <span className="shrink-0 text-right">
+                        <span className="block text-base font-black">{fmtInt(n.kcal)}</span>
+                        <span className="block text-[11px] text-slate-400">kcal</span>
+                      </span>
                     )}
-                    <span
-                      aria-hidden="true"
-                      className="flex size-8 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-lg font-semibold text-emerald-900 dark:bg-emerald/15 dark:text-emerald-100"
-                    >
-                      ＋
-                    </span>
                   </Link>
                 </li>
               );
             })}
           </ul>
-        </Card>
+          {!todayMeals.some((i) => i.meal === nextMeal) && (
+            <SnapButton
+              meal={nextMeal}
+              label={`拍照记录${MEAL_LABELS[nextMeal]}`}
+              className={`flex items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-emerald-300 bg-emerald-50/60 p-4 text-sm font-bold text-emerald-800 transition hover:bg-emerald-50 dark:border-emerald/40 dark:bg-emerald/10 dark:text-emerald-100 ${todayMeals.length ? 'mt-3' : ''}`}
+            >
+              📷 快拍{MEAL_LABELS[nextMeal]} · AI 立即算热量
+            </SnapButton>
+          )}
+          {MEAL_TYPES.some((m) => m !== nextMeal && !todayMeals.some((i) => i.meal === m)) && (
+            <div className="mt-3 flex flex-wrap gap-2">
+              {MEAL_TYPES.filter(
+                (m) => m !== nextMeal && !todayMeals.some((i) => i.meal === m),
+              ).map((m) => (
+                <Link
+                  key={m}
+                  to={`/diary/add?meal=${m}`}
+                  className="inline-flex min-h-10 items-center gap-1 rounded-full border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700 hover:border-emerald dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200"
+                >
+                  ＋ {MEAL_LABELS[m]}
+                </Link>
+              ))}
+            </div>
+          )}
+        </section>
 
         <Card>
           <CardTitle
