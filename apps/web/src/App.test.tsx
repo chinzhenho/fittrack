@@ -30,7 +30,7 @@ describe('app flow', () => {
     expect(await screen.findByRole('heading', { name: '欢迎使用 EatHealthee' })).toBeTruthy();
     expect(screen.getByRole('link', { name: '注册账号' })).toBeTruthy();
     expect(screen.getByRole('link', { name: '已有账号，登录' })).toBeTruthy();
-    expect(screen.getByRole('link', { name: '先不登录，直接试用' })).toBeTruthy();
+    expect(screen.getByRole('link', { name: /先不登录，直接试用/ })).toBeTruthy();
   });
 
   it('validates the sign-up form before contacting the server', async () => {
@@ -55,16 +55,14 @@ describe('app flow', () => {
     renderAt('/onboarding');
     const button = screen.getByRole('button', { name: '下一步' }) as HTMLButtonElement;
     expect(button.disabled).toBe(true);
-    fireEvent.click(screen.getByLabelText('我年满 18 岁'));
-    fireEvent.click(screen.getByLabelText(/我已阅读并接受/));
+    fireEvent.click(screen.getByLabelText(/我年满 18 岁，并已阅读和接受/));
     fireEvent.click(screen.getByLabelText(/我同意 EatHealthee 使用/));
     expect(button.disabled).toBe(false);
   });
 
   it('completes onboarding with spec case A and logs a food', async () => {
     renderAt('/onboarding');
-    fireEvent.click(screen.getByLabelText('我年满 18 岁'));
-    fireEvent.click(screen.getByLabelText(/我已阅读并接受/));
+    fireEvent.click(screen.getByLabelText(/我年满 18 岁，并已阅读和接受/));
     fireEvent.click(screen.getByLabelText(/我同意 EatHealthee 使用/));
     next();
     tap(/减脂/);
@@ -122,8 +120,7 @@ describe('app flow', () => {
 
   it('shows the safety refusal for an underweight fat-loss goal', () => {
     renderAt('/onboarding');
-    fireEvent.click(screen.getByLabelText('我年满 18 岁'));
-    fireEvent.click(screen.getByLabelText(/我已阅读并接受/));
+    fireEvent.click(screen.getByLabelText(/我年满 18 岁，并已阅读和接受/));
     fireEvent.click(screen.getByLabelText(/我同意 EatHealthee 使用/));
     next();
     tap(/减脂/);

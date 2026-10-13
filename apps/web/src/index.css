@@ -28,3 +28,64 @@
     @apply bg-mist text-navy antialiased dark:bg-slate-900 dark:text-slate-100;
   }
 }
+
+/* Motion for the welcome page. Everything is off when the user asks for reduced motion. */
+@theme {
+  --animate-rise: rise 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  --animate-float: float 5s ease-in-out infinite;
+  --animate-scan: scan 2.8s ease-in-out infinite;
+  --animate-word: word 0.45s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(18px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes float {
+    0%,
+    100% {
+      transform: translateY(0) rotate(0deg);
+    }
+    50% {
+      transform: translateY(-8px) rotate(-1.5deg);
+    }
+  }
+  @keyframes scan {
+    0% {
+      top: 14%;
+      opacity: 0;
+    }
+    15%,
+    85% {
+      opacity: 1;
+    }
+    100% {
+      top: 82%;
+      opacity: 0;
+    }
+  }
+  @keyframes word {
+    from {
+      opacity: 0;
+      transform: translateY(60%);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}

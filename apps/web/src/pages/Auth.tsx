@@ -1,4 +1,4 @@
-import { useState, type FormEvent, type ReactNode } from 'react';
+import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router';
 import { Button, Check, Field, inputClass, Notice } from '../components/ui';
 import { authErrorMessage, clearRecovering, isRecovering, useAuth } from '../data/auth';
@@ -45,63 +45,133 @@ function AuthLayout({
 
 const linkClass = 'text-emerald-strong underline dark:text-emerald';
 
+const FEATURES = [
+  { icon: '📷', title: '拍照算热量', text: '拍下整份食物，AI 认出每样菜并估算份量和热量。' },
+  { icon: '🍛', title: '本地菜式数据', text: 'Nasi lemak、鸡饭、roti canai 等用化验营养数据。' },
+  { icon: '🎯', title: '安全的目标', text: '按你的身体和生活方式计算，不用去 Gym 也能开始。' },
+  { icon: '📈', title: '看见进步', text: '体重趋势、连续记录和成就，让你更容易坚持。' },
+];
+
+const GOALS = ['减脂', '增重', '增肌', '维持体重'];
+
+/** Cycles through the goals in the headline every 2.2 s. */
+function RotatingGoal() {
+  const [i, setI] = useState(0);
+  useEffect(() => {
+    const t = setInterval(() => setI((x) => (x + 1) % GOALS.length), 2200);
+    return () => clearInterval(t);
+  }, []);
+  return (
+    <span className="relative inline-block overflow-hidden align-bottom">
+      <span key={i} className="inline-block animate-word text-emerald-strong dark:text-emerald">
+        {GOALS[i]}
+      </span>
+    </span>
+  );
+}
+
 export function Welcome() {
   return (
-    <div className="mx-auto flex min-h-dvh max-w-md flex-col px-4 py-8">
-      <div className="rounded-3xl bg-[#fbfaf3] px-6 pt-8 pb-6 text-center shadow-sm ring-1 ring-slate-900/5">
-        <img src="/brand/icon-512.png" alt="" className="mx-auto size-40" />
-        <img
-          src="/brand/wordmark.png"
-          alt="EatHealthee：Snap · Track · Be Healthier"
-          className="mx-auto mt-2 w-full max-w-xs"
-        />
-        <h1 className="sr-only">欢迎使用 EatHealthee</h1>
-        <ul className="mt-6 grid grid-cols-4 gap-2 text-xs text-slate-700">
-          {[
-            { icon: '📷', label: '拍照识别' },
-            { icon: '🧮', label: '计算营养' },
-            { icon: '📋', label: '记录饮食' },
-            { icon: '💚', label: '健康管理' },
-          ].map((f) => (
-            <li key={f.label} className="flex flex-col items-center gap-1">
-              <span
-                aria-hidden="true"
-                className="flex size-12 items-center justify-center rounded-2xl bg-emerald-50 text-2xl"
+    <div className="min-h-dvh bg-[#fbfaf3] text-navy dark:bg-slate-900 dark:text-slate-100">
+      <div className="mx-auto grid max-w-5xl gap-8 px-5 py-8 lg:min-h-dvh lg:grid-cols-[1.1fr_1fr] lg:items-center lg:gap-14 lg:py-12">
+        <section className="text-center lg:text-left">
+          <div className="relative mx-auto w-fit animate-float rounded-[2rem] bg-[#fbfaf3] p-2 lg:mx-0">
+            <img src="/brand/icon-512.png" alt="" className="size-28 sm:size-36 lg:size-44" />
+            <span
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-x-[18%] h-1 animate-scan rounded-full bg-gradient-to-r from-transparent via-emerald-400 to-transparent shadow-[0_0_12px_2px_rgba(16,185,129,0.6)]"
+            />
+          </div>
+          <img
+            src="/brand/wordmark.png"
+            alt="EatHealthee：Snap · Track · Be Healthier"
+            className="mx-auto mt-3 w-full max-w-sm animate-rise rounded-2xl bg-[#fbfaf3] lg:mx-0"
+            style={{ animationDelay: '0.1s' }}
+          />
+          <h1 className="sr-only">欢迎使用 EatHealthee</h1>
+          <p
+            className="mx-auto mt-5 max-w-md animate-rise text-lg leading-relaxed text-slate-700 lg:mx-0 dark:text-slate-200"
+            style={{ animationDelay: '0.2s' }}
+          >
+            拍一张照，就知道吃了多少。
+            <br />
+            按你的生活方式，安全地
+            <RotatingGoal />。
+          </p>
+          <ul className="mt-6 grid grid-cols-2 gap-3 text-left">
+            {FEATURES.map((f, i) => (
+              <li
+                key={f.title}
+                style={{ animationDelay: `${0.3 + i * 0.1}s` }}
+                className="flex animate-rise flex-col gap-2 rounded-2xl bg-white p-3 shadow-sm sm:flex-row sm:gap-3 sm:p-4 ring-1 ring-slate-900/5 transition duration-300 hover:-translate-y-1 hover:shadow-md dark:bg-slate-800 dark:ring-white/10"
               >
-                {f.icon}
-              </span>
-              {f.label}
-            </li>
-          ))}
-        </ul>
-      </div>
+                <span
+                  aria-hidden="true"
+                  className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-xl sm:size-11 dark:bg-emerald/15"
+                >
+                  {f.icon}
+                </span>
+                <span>
+                  <span className="block font-semibold">{f.title}</span>
+                  <span className="block text-xs text-slate-600 sm:text-sm dark:text-slate-300">
+                    {f.text}
+                  </span>
+                </span>
+              </li>
+            ))}
+          </ul>
+        </section>
 
-      <p className="mt-6 text-center leading-relaxed">
-        拍照算热量，按你的生活方式安全地减脂、增重、增肌或维持体重。不用去 Gym 也可以开始。
-      </p>
-      <div className="mt-6 grid gap-3">
-        <Link
-          to="/signup"
-          className="flex min-h-12 items-center justify-center rounded-2xl bg-emerald-strong px-4 font-semibold text-white shadow-sm hover:bg-emerald-800 dark:bg-emerald dark:text-slate-950"
+        <section
+          className="animate-rise rounded-3xl bg-white p-6 shadow-lg ring-1 ring-slate-900/5 lg:p-8 dark:bg-slate-800 dark:ring-white/10"
+          style={{ animationDelay: '0.5s' }}
         >
-          注册账号
-        </Link>
-        <Link
-          to="/login"
-          className="flex min-h-12 items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 font-medium dark:border-slate-600 dark:bg-slate-800"
-        >
-          已有账号，登录
-        </Link>
-        <Link
-          to="/onboarding"
-          className="flex min-h-11 items-center justify-center rounded-2xl px-4 text-sm text-slate-600 dark:text-slate-300"
-        >
-          先不登录，直接试用
-        </Link>
+          <h2 className="text-2xl font-bold">开始使用</h2>
+          <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
+            完全免费，1 分钟完成设置。
+          </p>
+          <div className="mt-6 grid gap-3">
+            <Link
+              to="/signup"
+              className="flex min-h-12 items-center justify-center rounded-2xl bg-emerald-strong px-4 font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-emerald-800 hover:shadow-md dark:bg-emerald dark:text-slate-950"
+            >
+              注册账号
+            </Link>
+            <Link
+              to="/login"
+              className="flex min-h-12 items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 font-semibold hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-700"
+            >
+              已有账号，登录
+            </Link>
+            <div className="my-1 flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
+              <span className="h-px flex-1 bg-slate-200 dark:bg-slate-600" />或
+              <span className="h-px flex-1 bg-slate-200 dark:bg-slate-600" />
+            </div>
+            <Link
+              to="/onboarding"
+              className="flex min-h-11 items-center justify-center rounded-2xl px-4 text-sm font-medium text-emerald-strong hover:bg-emerald-50 dark:text-emerald dark:hover:bg-emerald/10"
+            >
+              先不登录，直接试用 ›
+            </Link>
+          </div>
+          <ul className="mt-6 space-y-2 border-t border-slate-100 pt-5 text-sm text-slate-600 dark:border-slate-700 dark:text-slate-300">
+            <li>✓ 有账号：换手机或电脑登录，记录都还在</li>
+            <li>✓ 不登录：资料只存在这部设备，之后可随时注册上传</li>
+            <li>✓ 你的资料只属于你，可随时导出或删除</li>
+          </ul>
+          <p className="mt-5 text-xs text-slate-500 dark:text-slate-400">
+            使用即表示你同意
+            <Link to="/legal/disclaimer" className="mx-1 underline">
+              健康免责声明
+            </Link>
+            和
+            <Link to="/legal/privacy" className="ml-1 underline">
+              隐私政策
+            </Link>
+            。
+          </p>
+        </section>
       </div>
-      <p className="mt-4 text-center text-xs leading-relaxed text-slate-600 dark:text-slate-300">
-        有账号：换手机或电脑登录，记录都还在。不登录：资料只存在这部设备，之后可以随时注册并上传。
-      </p>
     </div>
   );
 }

@@ -33,7 +33,6 @@ const RATE_OPTIONS: Record<Goal, number[]> = {
 };
 
 interface Draft {
-  adult: boolean;
   terms: boolean;
   healthConsent: boolean;
   goal: Goal;
@@ -55,7 +54,6 @@ interface Draft {
 }
 
 const initial: Draft = {
-  adult: false,
   terms: false,
   healthConsent: false,
   goal: 'maintain',
@@ -241,7 +239,7 @@ export function Onboarding() {
   const canNext = (() => {
     switch (step) {
       case 'start':
-        return d.adult && d.terms && d.healthConsent;
+        return d.terms && d.healthConsent;
       case 'body':
         return (
           evaluated.kind === 'result' ||
@@ -359,11 +357,8 @@ export function Onboarding() {
                   : '你没有登录：资料只保存在这部设备的浏览器中。之后可以在“我”页面注册，把资料备份到账号。'}
               </Notice>
               <div className="space-y-1">
-                <Check checked={d.adult} onChange={(v) => set('adult', v)}>
-                  我年满 18 岁
-                </Check>
                 <Check checked={d.terms} onChange={(v) => set('terms', v)}>
-                  我已阅读并接受
+                  我年满 18 岁，并已阅读和接受
                   <Link
                     to="/legal/disclaimer"
                     className="mx-1 text-emerald-strong underline dark:text-emerald"
