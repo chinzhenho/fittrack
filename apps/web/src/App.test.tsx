@@ -92,7 +92,7 @@ describe('app flow', () => {
       reason: 'initial',
     });
     expect(s.weights[0]?.weightKg).toBe(75);
-    expect(screen.getByText('今天的三餐')).toBeTruthy();
+    expect(screen.getByText('今日已摄取热量')).toBeTruthy();
 
     cleanup();
     renderAt('/diary/add?meal=lunch');
