@@ -4,8 +4,9 @@
 // POST /api/food-photo  { image: base64 JPEG }  with the user's Supabase access token.
 // 1. The token is checked by Supabase and one photo is counted against the daily limit
 //    (public.use_photo_quota, 8 a day per account).
-// 2. Vision models are tried in order until one answers: Gemini models listed in
-//    GEMINI_MODELS (free tier), then Workers AI as a last backup.
+// 2. Vision models are tried in order until one answers: the Gemini models listed in
+//    GEMINI_MODELS (each has its own free daily quota), then Workers AI models (share
+//    the account's free 10,000 neurons a day). A 50 s overall deadline stops the chain.
 // 3. The answer is validated (normalizeAiResult) before it reaches the browser.
 // The Gemini key is a Worker secret (GEMINI_API_KEY) and never reaches the browser.
 
@@ -26,7 +27,16 @@ interface Env {
 }
 
 const MAX_IMAGE_BASE64 = 2_000_000; // about 1.5 MB of JPEG; the app sends ~150 KB
-const WORKERS_AI_MODEL = '@cf/meta/llama-3.2-11b-vision-instruct';
+const DEADLINE_MS = 50_000;
+const JSON_SHAPE =
+  'Answer with JSON only, in this shape: {"is_food":true,"confidence":"medium","items":[{"name_zh":"","grams":0,"match_id":"","kcal":0,"protein_g":0,"carbs_g":0,"fat_g":0}]}';
+
+/** Workers AI vision models, last to first resort. `format` is how each takes the image. */
+const WORKERS_AI_MODELS: { id: string; format: 'image_url' | 'bytes'; licence?: true }[] = [
+  { id: '@cf/meta/llama-4-scout-17b-16e-instruct', format: 'image_url' },
+  { id: '@cf/mistralai/mistral-small-3.1-24b-instruct', format: 'image_url' },
+  { id: '@cf/meta/llama-3.2-11b-vision-instruct', format: 'bytes', licence: true },
+];
 
 const json = (status: number, body: unknown) =>
   new Response(JSON.stringify(body), {
@@ -79,18 +89,27 @@ async function foodPhoto(request: Request, env: Env): Promise<Response> {
     .split(',')
     .map((m) => m.trim())
     .filter(Boolean);
+  const started = Date.now();
+  const timeLeft = () => DEADLINE_MS - (Date.now() - started);
   for (const model of env.GEMINI_API_KEY ? models : []) {
-    const result = await tryGemini(env.GEMINI_API_KEY ?? '', model, image);
+    if (timeLeft() < 5_000) break;
+    const result = await tryGemini(env.GEMINI_API_KEY ?? '', model, image, timeLeft());
     if (result) return json(200, { result, remaining });
   }
-  if (env.AI) {
-    const result = await tryWorkersAi(env.AI, image);
+  for (const model of env.AI ? WORKERS_AI_MODELS : []) {
+    if (timeLeft() < 5_000 || !env.AI) break;
+    const result = await tryWorkersAi(env.AI, model, image);
     if (result) return json(200, { result, remaining });
   }
   return json(503, { error: 'unavailable' });
 }
 
-async function tryGemini(key: string, model: string, image: string): Promise<AiFoodResult | null> {
+async function tryGemini(
+  key: string,
+  model: string,
+  image: string,
+  budgetMs: number,
+): Promise<AiFoodResult | null> {
   try {
     const res = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
@@ -113,7 +132,7 @@ async function tryGemini(key: string, model: string, image: string): Promise<AiF
             temperature: 0.2,
           },
         }),
-        signal: AbortSignal.timeout(30_000),
+        signal: AbortSignal.timeout(Math.min(25_000, budgetMs)),
       },
     );
     if (!res.ok) {
@@ -131,37 +150,56 @@ async function tryGemini(key: string, model: string, image: string): Promise<AiF
   }
 }
 
-let workersAiAgreed = false;
+const agreed = new Set<string>();
+
+/** Pulls the first {...} block out of a free-text answer. */
+function parseJsonBlock(text: string): unknown {
+  const start = text.indexOf('{');
+  const end = text.lastIndexOf('}');
+  if (start < 0 || end <= start) return null;
+  return JSON.parse(text.slice(start, end + 1));
+}
 
 async function tryWorkersAi(
   ai: NonNullable<Env['AI']>,
+  model: (typeof WORKERS_AI_MODELS)[number],
   image: string,
 ): Promise<AiFoodResult | null> {
   try {
-    if (!workersAiAgreed) {
-      // Meta's licence must be accepted once per account before the model answers.
-      await ai.run(WORKERS_AI_MODEL, { prompt: 'agree' }).catch(() => undefined);
-      workersAiAgreed = true;
+    if (model.licence && !agreed.has(model.id)) {
+      // Meta's Llama 3.2 licence must be accepted once per account (owner approved).
+      await ai.run(model.id, { prompt: 'agree' }).catch(() => undefined);
+      agreed.add(model.id);
     }
-    const bytes = Uint8Array.from(atob(image), (c) => c.charCodeAt(0));
-    const out = (await ai.run(WORKERS_AI_MODEL, {
-      messages: [
-        {
-          role: 'user',
-          content: `${AI_PROMPT}\nAnswer with JSON only, in this shape: {"is_food":true,"confidence":"medium","items":[{"name_zh":"","grams":0,"match_id":"","kcal":0,"protein_g":0,"carbs_g":0,"fat_g":0}]}`,
-        },
-      ],
-      image: [...bytes],
-      max_tokens: 800,
-      temperature: 0.2,
-    })) as { response?: string };
-    const text = out.response ?? '';
-    const start = text.indexOf('{');
-    const end = text.lastIndexOf('}');
-    if (start < 0 || end <= start) return null;
-    return normalizeAiResult(JSON.parse(text.slice(start, end + 1)), 'workers-ai-llama-3.2-vision');
+    const prompt = `${AI_PROMPT}
+${JSON_SHAPE}`;
+    const input =
+      model.format === 'image_url'
+        ? {
+            messages: [
+              {
+                role: 'user',
+                content: [
+                  { type: 'text', text: prompt },
+                  { type: 'image_url', image_url: { url: `data:image/jpeg;base64,${image}` } },
+                ],
+              },
+            ],
+            max_tokens: 1000,
+            temperature: 0.2,
+          }
+        : {
+            messages: [{ role: 'user', content: prompt }],
+            image: [...Uint8Array.from(atob(image), (c) => c.charCodeAt(0))],
+            max_tokens: 1000,
+            temperature: 0.2,
+          };
+    const out = (await ai.run(model.id, input)) as { response?: unknown };
+    // Some models already return parsed JSON in `response`.
+    const raw = typeof out.response === 'string' ? parseJsonBlock(out.response) : out.response;
+    return normalizeAiResult(raw, model.id.replace('@cf/', 'workers-ai/'));
   } catch (e) {
-    console.warn('workers ai failed', e);
+    console.warn(`workers ai ${model.id} failed`, e);
     return null;
   }
 }
