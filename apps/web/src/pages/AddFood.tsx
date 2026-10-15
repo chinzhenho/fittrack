@@ -370,7 +370,13 @@ function PhotoCard({
     if (waiting && consent) {
       // The note typed in the camera goes with the first analysis and stays editable.
       setHint(waiting.note);
-      void onFile(waiting.file, waiting.note || undefined);
+      if (waiting.source === 'album' && !waiting.note) {
+        // Picked from the album without a note: ask what it is before analysing.
+        setWaiting(null);
+        setPicked({ file: waiting.file, url: URL.createObjectURL(waiting.file) });
+      } else {
+        void onFile(waiting.file, waiting.note || undefined);
+      }
     }
     // Runs once a waiting photo can be sent; onFile only depends on stable setters.
   }, [waiting, consent]);
@@ -545,11 +551,15 @@ function PhotoCard({
               onMeal(m);
               setCamera(false);
             }}
-            onPhoto={(file, m, note) => {
+            onPhoto={(file, m, note, source) => {
               onMeal(m);
               setCamera(false);
               setHint(note);
-              void onFile(file, note || undefined);
+              if (source === 'album' && !note.trim()) {
+                setPicked({ file, url: URL.createObjectURL(file) });
+              } else {
+                void onFile(file, note.trim() || undefined);
+              }
             }}
           />,
           document.body,

@@ -77,6 +77,21 @@ describe('AI photo logging', () => {
     expect(analyzeFoodPhoto).toHaveBeenCalledWith(photo, undefined);
   });
 
+  it('asks what the food is for an album photo picked in the camera without a note', async () => {
+    vi.mocked(analyzeFoodPhoto).mockClear();
+    const photo = new File(['x'], 'album.jpg', { type: 'image/jpeg' });
+    setPendingPhoto(photo, '', 'album');
+    renderAdd();
+    fireEvent.click(screen.getByLabelText('I understand, analyse my photo'));
+    fireEvent.change(await screen.findByLabelText(/What is it\?/), {
+      target: { value: 'chicken rice' },
+    });
+    expect(analyzeFoodPhoto).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button', { name: 'Analyse photo' }));
+    await screen.findByText('Iced Milo');
+    expect(analyzeFoodPhoto).toHaveBeenCalledWith(photo, 'chicken rice');
+  });
+
   it('offers Try again with the same photo when the AI is busy', async () => {
     vi.mocked(analyzeFoodPhoto).mockClear();
     vi.mocked(analyzeFoodPhoto).mockResolvedValueOnce({ ok: false, error: 'unavailable' });

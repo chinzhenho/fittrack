@@ -53,7 +53,7 @@ describe('Log food camera screen', () => {
     const photo = new File(['x'], 'dinner.jpg', { type: 'image/jpeg' });
     fireEvent.change(album, { target: { files: [photo] } });
     expect(await screen.findByText('at /diary/add?meal=dinner')).toBeTruthy();
-    expect(takePendingPhoto()).toEqual({ file: photo, note: '' });
+    expect(takePendingPhoto()).toEqual({ file: photo, note: '', source: 'album' });
   });
 
   it('sends the optional note and quick chips with the photo', async () => {
@@ -66,7 +66,7 @@ describe('Log food camera screen', () => {
     const photo = new File(['x'], 'kopi.jpg', { type: 'image/jpeg' });
     fireEvent.change(screen.getByLabelText(/Album/), { target: { files: [photo] } });
     expect(await screen.findByText('at /diary/add?meal=lunch')).toBeTruthy();
-    expect(takePendingPhoto()).toEqual({ file: photo, note: 'kopi O, no sugar' });
+    expect(takePendingPhoto()).toEqual({ file: photo, note: 'kopi O, no sugar', source: 'album' });
   });
 
   it('manual entry (bottom right) opens the add page without a photo', async () => {

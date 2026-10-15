@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { MealType } from '../data/types';
 import { MEAL_LABELS, MEAL_TYPES } from '../logic/nutrition';
+import type { PhotoSource } from '../data/pendingPhoto';
 
 const MEAL_ICON: Record<MealType, string> = {
   breakfast: '🌅',
@@ -35,7 +36,7 @@ export function CameraScreen({
   onClose,
 }: {
   meal: MealType;
-  onPhoto: (file: File, meal: MealType, note: string) => void;
+  onPhoto: (file: File, meal: MealType, note: string, source: PhotoSource) => void;
   onManual: (meal: MealType) => void;
   onClose: () => void;
 }) {
@@ -107,7 +108,7 @@ export function CameraScreen({
     canvas.toBlob(
       (blob) => {
         if (!blob) return;
-        onPhoto(new File([blob], 'meal.jpg', { type: 'image/jpeg' }), meal, note);
+        onPhoto(new File([blob], 'meal.jpg', { type: 'image/jpeg' }), meal, note, 'camera');
       },
       'image/jpeg',
       0.9,
@@ -123,7 +124,7 @@ export function CameraScreen({
       onChange={(e) => {
         const f = e.target.files?.[0];
         e.target.value = '';
-        if (f) onPhoto(f, meal, note);
+        if (f) onPhoto(f, meal, note, capture ? 'camera' : 'album');
       }}
     />
   );
