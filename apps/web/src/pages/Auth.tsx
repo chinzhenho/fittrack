@@ -12,6 +12,7 @@ import {
 } from '../components/ui';
 import { authErrorMessage, clearRecovering, isRecovering, useAuth } from '../data/auth';
 import { supabase } from '../data/supabase';
+import { IconTile, type IconName } from '../components/Icons';
 
 function Brand() {
   return (
@@ -153,26 +154,21 @@ function ArrowRight() {
 
 const linkClass = 'font-semibold text-emerald-strong hover:underline dark:text-emerald';
 
-const FEATURES = [
+const FEATURES: { icon: IconName; title: string; text: string }[] = [
   {
-    icon: '📷',
+    icon: 'camera',
     title: 'Snap to count',
-    text: 'Photograph your meal; AI spots each dish and estimates the portion and calories.',
+    text: 'Take a photo of your meal. AI spots each dish and estimates the calories; you check before it is saved.',
   },
   {
-    icon: '🍛',
-    title: 'Knows local food',
-    text: 'Nasi lemak, chicken rice, roti canai and other Malaysian favourites are recognised and counted.',
+    icon: 'fork',
+    title: 'Made for local food',
+    text: 'Nasi lemak, roti canai, chicken rice, kopi and other Malaysian favourites.',
   },
   {
-    icon: '🎯',
-    title: 'Safe targets',
-    text: "Worked out for your body and lifestyle. You don't need a gym to start.",
-  },
-  {
-    icon: '📈',
-    title: 'See progress',
-    text: 'Weight trends, streaks and badges make it easier to keep going.',
+    icon: 'trend',
+    title: 'Safe targets, real progress',
+    text: 'A daily target worked out for your body, plus your weight trend, streaks and medals.',
   },
 ];
 
@@ -196,75 +192,81 @@ function RotatingGoal() {
 
 export function Welcome() {
   return (
-    <div className="min-h-dvh bg-gradient-to-b from-emerald-50 via-white to-[#e8f8f0] text-navy dark:from-slate-900 dark:via-slate-900 dark:to-slate-900 dark:text-slate-100">
-      <div className="mx-auto flex min-h-dvh max-w-5xl flex-col px-5 pt-10 pb-8 lg:grid lg:grid-cols-[1.1fr_1fr] lg:items-center lg:gap-14 lg:py-12">
-        <section className="flex flex-1 flex-col items-center justify-center text-center lg:items-start lg:text-left">
-          <div className="relative animate-float">
-            <img
-              src="/brand/icon-512.png"
-              alt=""
-              className="size-32 rounded-[2rem] bg-[#fbfaf3] shadow-xl shadow-emerald-700/15 sm:size-40"
-            />
-            <span
-              aria-hidden="true"
-              className="pointer-events-none absolute inset-x-[18%] h-1 animate-scan rounded-full bg-gradient-to-r from-transparent via-emerald-400 to-transparent shadow-[0_0_12px_2px_rgba(16,185,129,0.6)]"
-            />
+    <div className="min-h-dvh bg-mist text-navy dark:bg-slate-900 dark:text-slate-100">
+      <div className="mx-auto flex min-h-dvh max-w-5xl flex-col px-6 pt-12 pb-8 lg:grid lg:grid-cols-[1.1fr_1fr] lg:items-center lg:gap-16 lg:py-12">
+        <section className="flex flex-1 flex-col">
+          <div className="flex items-center gap-3">
+            <div className="relative">
+              <img
+                src="/brand/icon-192.png"
+                alt=""
+                className="size-14 rounded-[1rem] bg-[#fbfaf3] shadow-md shadow-emerald-900/10"
+              />
+              <span
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-x-[18%] h-0.5 animate-scan rounded-full bg-gradient-to-r from-transparent via-emerald-400 to-transparent"
+              />
+            </div>
+            <div>
+              <p className="text-xl font-bold tracking-tight">EatHealthee</p>
+              <p className="text-sm text-slate-500 dark:text-slate-400">
+                Snap · Track · Be healthier
+              </p>
+            </div>
           </div>
-          <img
-            src="/brand/wordmark.png"
-            alt="EatHealthee: Snap · Track · Be Healthier"
-            className="mt-6 w-full max-w-xs animate-rise rounded-2xl mix-blend-multiply dark:rounded-2xl dark:bg-[#fbfaf3] dark:mix-blend-normal"
+
+          <h1
+            className="mt-10 animate-rise text-[2.25rem] leading-[1.15] font-bold tracking-tight sm:text-[2.75rem]"
             style={{ animationDelay: '0.1s' }}
-          />
-          <h1 className="sr-only">Welcome to EatHealthee</h1>
+          >
+            Snap your meal.
+            <br />
+            <span className="text-emerald-strong dark:text-emerald">Know what you ate.</span>
+          </h1>
           <p
-            className="mt-4 max-w-sm animate-rise leading-relaxed text-slate-600 dark:text-slate-300"
+            className="mt-4 max-w-md animate-rise text-[1.0625rem] leading-relaxed text-slate-500 dark:text-slate-400"
             style={{ animationDelay: '0.2s' }}
           >
-            Snap a photo, know what you ate.
-            <br />
-            Safely <RotatingGoal />, your way.
+            A free calorie tracker that helps you safely <RotatingGoal />, one meal at a time.
           </p>
-          <ul className="mt-7 grid w-full max-w-md grid-cols-2 gap-2.5 text-left">
+
+          <ul className="mt-10 max-w-md space-y-6">
             {FEATURES.map((f, i) => (
               <li
                 key={f.title}
                 style={{ animationDelay: `${0.3 + i * 0.08}s` }}
-                className="animate-rise rounded-2xl border border-emerald-200/70 bg-white/80 p-3 shadow-sm backdrop-blur transition duration-300 hover:-translate-y-1 hover:shadow-md dark:border-slate-700 dark:bg-slate-800/80"
+                className="flex animate-rise gap-4"
               >
-                <span
-                  aria-hidden="true"
-                  className="mb-1.5 flex size-9 items-center justify-center rounded-xl bg-emerald-100 text-lg dark:bg-emerald/20"
-                >
-                  {f.icon}
-                </span>
-                <span className="block text-sm font-bold">{f.title}</span>
-                <span className="block text-xs leading-snug text-slate-500 dark:text-slate-400">
-                  {f.text}
-                </span>
+                <IconTile name={f.icon} tint="" />
+                <div>
+                  <p className="font-semibold">{f.title}</p>
+                  <p className="mt-0.5 text-sm leading-relaxed text-slate-500 dark:text-slate-400">
+                    {f.text}
+                  </p>
+                </div>
               </li>
             ))}
           </ul>
         </section>
 
         <section
-          className="mx-auto mt-8 w-full max-w-md animate-rise space-y-3 lg:mt-0 lg:rounded-3xl lg:bg-white lg:p-8 lg:shadow-xl lg:ring-1 lg:ring-slate-900/5 dark:lg:bg-slate-800"
-          style={{ animationDelay: '0.6s' }}
+          className="mx-auto mt-12 w-full max-w-md animate-rise space-y-3 lg:mt-0 lg:rounded-[20px] lg:bg-white lg:p-8 lg:shadow-sm lg:ring-1 lg:ring-slate-200 dark:lg:bg-slate-800 dark:lg:ring-white/10"
+          style={{ animationDelay: '0.5s' }}
         >
-          <h2 className="hidden text-2xl font-black lg:block">Get started</h2>
-          <p className="hidden pb-2 text-sm text-slate-600 lg:block dark:text-slate-300">
-            Completely free. Set up in 1 minute.
+          <h2 className="hidden text-2xl font-bold tracking-tight lg:block">Get started</h2>
+          <p className="hidden pb-2 text-sm text-slate-500 lg:block dark:text-slate-400">
+            Free. Set up in about a minute.
           </p>
           <Link
             to="/signup"
-            className="flex min-h-13 items-center justify-center gap-2 rounded-2xl bg-emerald-strong px-4 py-3.5 font-semibold text-white shadow-lg shadow-emerald-600/25 transition hover:bg-emerald-800 active:scale-[0.98] dark:bg-emerald dark:text-slate-950"
+            className="flex min-h-13 items-center justify-center gap-2 rounded-[14px] bg-emerald-strong px-4 py-3.5 font-semibold text-white transition hover:bg-emerald-800 active:scale-[0.98] dark:bg-emerald dark:text-slate-950"
           >
             Start for free
             <ArrowRight />
           </Link>
           <Link
             to="/login"
-            className="flex min-h-12 items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 font-medium text-slate-700 transition hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
+            className="flex min-h-12 items-center justify-center rounded-[14px] bg-white px-4 font-medium ring-1 ring-slate-200 transition hover:bg-slate-50 dark:bg-slate-800 dark:ring-white/10 dark:hover:bg-slate-700"
           >
             I already have an account
           </Link>

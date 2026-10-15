@@ -27,7 +27,9 @@ afterEach(cleanup);
 describe('app flow', () => {
   it('sends new visitors to the welcome page with sign-up, log-in and guest options', async () => {
     renderAt('/today');
-    expect(await screen.findByRole('heading', { name: 'Welcome to EatHealthee' })).toBeTruthy();
+    expect(
+      await screen.findByRole('heading', { name: /Snap your meal.*Know what you ate/ }),
+    ).toBeTruthy();
     expect(screen.getByRole('link', { name: /Start for free/ })).toBeTruthy();
     expect(screen.getByRole('link', { name: 'I already have an account' })).toBeTruthy();
     expect(screen.getByRole('link', { name: /Try it without an account/ })).toBeTruthy();
