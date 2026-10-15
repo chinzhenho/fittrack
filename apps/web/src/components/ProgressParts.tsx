@@ -129,12 +129,17 @@ function FamilyRow({ f }: { f: TrophyFamily }) {
         {next ? (
           <>
             <Bar value={Math.min(f.value, next.goal)} max={next.goal} color="bg-emerald-500" />
-            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-              {Math.min(f.value, next.goal)} / {next.goal} {f.unit} → {TIER_LABELS[next.tier]}
+            <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">
+              Next ({TIER_LABELS[next.tier]}): {f.describe(next.goal)}
+            </p>
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              You&apos;re at {Math.min(f.value, next.goal)} / {next.goal} {f.unit}
             </p>
           </>
         ) : (
-          <p className="text-xs text-slate-500 dark:text-slate-400">All tiers earned 🎉</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400">
+            All levels earned 🎉 ({f.describe(f.levels.at(-1)!.goal)})
+          </p>
         )}
         <span className="sr-only">
           {top ? `${TIER_LABELS[top.tier]} earned` : 'Not earned yet'}

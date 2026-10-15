@@ -94,9 +94,10 @@ describe('medals', () => {
     expect(streak.value).toBe(10);
     expect(streak.levels.map((l) => l.earnedOn)).toEqual(['2026-10-03', '2026-10-07', null, null]);
     expect(topTier(streak)?.tier).toBe('silver');
-    expect(nextTier(streak)?.goal).toBe(30);
+    expect(nextTier(streak)?.goal).toBe(14);
+    expect(streak.describe(14)).toBe('Log food 14 days in a row');
     const logged = trophyFamilies(s).find((f) => f.id === 'logged')!;
-    expect(logged.levels[0]?.earnedOn).toBe('2026-10-10');
+    expect(logged.levels[0]?.earnedOn).toBe('2026-10-07');
   });
 
   it('takes a medal back when the record behind it is deleted', () => {
@@ -111,17 +112,29 @@ describe('medals', () => {
     expect(streakReachedOn(['2026-10-01', '2026-10-03'], 2)).toBeNull();
   });
 
-  it('counts weight lost on the trend and has no weight medals for maintenance', () => {
+  it("weight medals follow the user's own target, or fall back to kg without one", () => {
+    // Start 80 kg (initial target), goal 78 kg: 2 kg to lose. Weight falls 0.1 kg a day.
     let s = base();
     let kg = 80;
     for (const d of datesBetween('2026-09-01', '2026-10-10')) {
       s = addWeight(s, { id: d, date: d, measuredAt: `${d}T07:00:00Z`, weightKg: kg });
       kg -= 0.1;
     }
-    const lost = trophyFamilies(s).find((f) => f.id === 'kg')!;
-    expect(lost.title).toBe('Weight lost');
-    expect(lost.levels[0]?.earnedOn).not.toBeNull();
-    expect(lost.levels[3]?.earnedOn).toBeNull(); // 10 kg not reached
+    const goal = trophyFamilies(s).find((f) => f.id === 'kg')!;
+    expect(goal.title).toBe('Toward your goal');
+    expect(goal.levels.map((l) => l.goal)).toEqual([25, 50, 75, 100]);
+    expect(goal.levels[0]?.earnedOn).not.toBeNull(); // 0.5 kg down
+    expect(goal.describe(50)).toBe('Get 50% of the way to 78 kg (1.0 kg lost)');
+    expect(goal.describe(100)).toBe('Reach your goal weight of 78 kg');
+
+    const rest: Profile = { ...s.profile! };
+    delete rest.targetWeightKg;
+    const noTarget: AppState = { ...s, profile: rest };
+    const kgFamily = trophyFamilies(noTarget).find((f) => f.id === 'kg')!;
+    expect(kgFamily.title).toBe('Weight lost');
+    expect(kgFamily.levels.map((l) => l.goal)).toEqual([1, 2, 3, 5]);
+    expect(kgFamily.levels[3]?.earnedOn).toBeNull(); // 5 kg not reached
+
     const keep = base({ ...profile, goal: 'maintain' });
     expect(trophyFamilies(keep).some((f) => f.id === 'kg')).toBe(false);
   });

@@ -32,6 +32,8 @@ export interface TrophyFamily {
   title: string;
   /** e.g. "days in a row"; shown after the goal number. */
   unit: string;
+  /** What to do to earn the level with this goal, in plain words. */
+  describe: (goal: number) => string;
   value: number;
   levels: TrophyLevel[];
 }
@@ -88,6 +90,7 @@ function countFamily(
   icon: IconName,
   title: string,
   unit: string,
+  describe: (goal: number) => string,
   dates: string[],
   goals: number[],
 ): TrophyFamily {
@@ -96,6 +99,7 @@ function countFamily(
     icon,
     title,
     unit,
+    describe,
     value: dates.length,
     levels: goals.map((goal, i) => ({
       tier: TIERS[i]!,
@@ -111,33 +115,66 @@ function lossDirection(s: AppState): -1 | 0 | 1 {
   return g === 'fat_loss' ? -1 : g === 'maintain' || !g ? 0 : 1;
 }
 
+/**
+ * Medal families with goals sized for real people: early tiers come within the first
+ * week or two, the top tier is a long-term habit. Weight medals follow the user's own
+ * target (a quarter of the way, half, three quarters, there) so they suit a 3 kg goal
+ * as well as a 20 kg one.
+ */
 export function trophyFamilies(s: AppState): TrophyFamily[] {
   const logged = loggedDates(s);
   const streak = longestRun(logged);
+  const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`;
   const families: TrophyFamily[] = [
     {
       id: 'streak',
       icon: 'flame',
       title: 'Logging streak',
       unit: 'days in a row',
+      describe: (n) => `Log food ${n} days in a row`,
       value: streak.value,
-      levels: [3, 7, 30, 100].map((goal, i) => ({
+      levels: [3, 7, 14, 30].map((goal, i) => ({
         tier: TIERS[i]!,
         goal,
         earnedOn: streakReachedOn(logged, goal),
       })),
     },
-    countFamily('logged', 'fork', 'Days logged', 'days', logged, [10, 50, 100, 365]),
-    countFamily('complete', 'check', 'Complete days', 'days', completeDates(s), [7, 30, 100, 200]),
+    countFamily(
+      'logged',
+      'fork',
+      'Days logged',
+      'days',
+      (n) => `Log food on ${plural(n, 'day')}`,
+      logged,
+      [7, 30, 100, 365],
+    ),
+    countFamily(
+      'complete',
+      'check',
+      'Complete days',
+      'days',
+      (n) => `Log everything you ate on ${plural(n, 'day')}`,
+      completeDates(s),
+      [3, 14, 30, 60],
+    ),
     countFamily(
       'protein',
       'egg',
       'Protein days',
       'days on target',
+      (n) => `Reach your protein target on ${plural(n, 'day')}`,
       proteinDates(s),
-      [7, 30, 100, 200],
+      [3, 14, 30, 60],
     ),
-    countFamily('weigh', 'scale', 'Weigh-ins', 'days', weighDates(s), [10, 30, 100, 200]),
+    countFamily(
+      'weigh',
+      'scale',
+      'Weigh-ins',
+      'days',
+      (n) => `Weigh yourself on ${plural(n, 'day')}`,
+      weighDates(s),
+      [5, 15, 30, 60],
+    ),
   ];
 
   const dir = lossDirection(s);
@@ -146,18 +183,42 @@ export function trophyFamilies(s: AppState): TrophyFamily[] {
     const points = trendPoints(s.weights);
     const toward = (kg: number) => (kg - start) * dir;
     const best = Math.max(0, ...points.map((p) => toward(p.trendKg)));
-    families.push({
-      id: 'kg',
-      icon: 'trend',
-      title: dir < 0 ? 'Weight lost' : 'Weight gained',
-      unit: 'kg',
-      value: Math.round(best * 10) / 10,
-      levels: [1, 3, 5, 10].map((goal, i) => ({
-        tier: TIERS[i]!,
-        goal,
-        earnedOn: points.find((p) => toward(p.trendKg) >= goal)?.date ?? null,
-      })),
-    });
+    const goalKg = s.profile?.targetWeightKg;
+    const total = goalKg !== undefined ? (goalKg - start) * dir : 0;
+    if (goalKg !== undefined && total > 0) {
+      // Share of the way to the user's own target weight.
+      families.push({
+        id: 'kg',
+        icon: 'target',
+        title: 'Toward your goal',
+        unit: '% of the way',
+        describe: (pct) =>
+          pct === 100
+            ? `Reach your goal weight of ${goalKg} kg`
+            : `Get ${pct}% of the way to ${goalKg} kg (${(Math.round(total * pct) / 100).toFixed(1)} kg ${dir < 0 ? 'lost' : 'gained'})`,
+        value: Math.min(100, Math.floor((best / total) * 100)),
+        levels: [25, 50, 75, 100].map((pct, i) => ({
+          tier: TIERS[i]!,
+          goal: pct,
+          earnedOn:
+            points.find((p) => toward(p.trendKg) >= (total * pct) / 100 - 1e-9)?.date ?? null,
+        })),
+      });
+    } else {
+      families.push({
+        id: 'kg',
+        icon: 'trend',
+        title: dir < 0 ? 'Weight lost' : 'Weight gained',
+        unit: 'kg',
+        describe: (n) => `${dir < 0 ? 'Lose' : 'Gain'} ${n} kg`,
+        value: Math.round(best * 10) / 10,
+        levels: [1, 2, 3, 5].map((goal, i) => ({
+          tier: TIERS[i]!,
+          goal,
+          earnedOn: points.find((p) => toward(p.trendKg) >= goal)?.date ?? null,
+        })),
+      });
+    }
   }
 
   return families;
@@ -382,7 +443,7 @@ export function achievementFeed(s: AppState, today: string, limit = 6): FeedItem
         items.push({
           date: l.earnedOn,
           icon: f.icon,
-          text: `${f.title}: ${l.goal} ${f.unit} · ${TIER_LABELS[l.tier]}`,
+          text: `${f.describe(l.goal)} · ${TIER_LABELS[l.tier]}`,
           tier: l.tier,
         });
     }
