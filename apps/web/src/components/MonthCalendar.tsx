@@ -103,7 +103,7 @@ export function MonthCalendar({
               type="button"
               disabled={future}
               onClick={() => onPick(d)}
-              aria-label={`${MONTHS[Number(d.slice(5, 7)) - 1]} ${Number(d.slice(8))}${complete.has(d) ? ', fully logged' : logged.has(d) ? ', logged' : ''}`}
+              aria-label={`${MONTHS[Number(d.slice(5, 7)) - 1]} ${Number(d.slice(8))}${complete.has(d) ? ', complete day' : logged.has(d) ? ', logged' : ''}`}
               aria-pressed={selected}
               className={`relative flex aspect-square flex-col items-center justify-center rounded-2xl text-sm transition disabled:opacity-40 ${selected ? 'bg-emerald-strong font-bold text-white shadow-md dark:bg-emerald dark:text-slate-950' : has ? 'bg-white font-semibold text-slate-900 shadow-sm ring-1 ring-slate-200 hover:ring-emerald dark:bg-slate-700 dark:text-white dark:ring-slate-600' : 'bg-slate-200/60 text-slate-400 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-500'} ${isToday && !selected ? 'outline-2 outline-offset-1 outline-emerald-strong dark:outline-emerald' : ''}`}
             >
@@ -128,7 +128,7 @@ export function MonthCalendar({
           <span className="size-3.5 rounded bg-slate-200" /> Not logged
         </span>
         <span>
-          <span className="font-bold text-emerald-600">✓</span> Fully logged
+          <span className="font-bold text-emerald-600">✓</span> Complete day
         </span>
       </p>
     </div>

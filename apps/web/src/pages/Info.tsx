@@ -84,9 +84,9 @@ export function HowWeCalculate() {
       <h2>Trend weight and target suggestions</h2>
       <p>
         Trend weight is an exponentially weighted moving average of your daily weigh-ins (α = 0.1).
-        With enough data (at least 80% of days fully logged and at least 10 weigh-ins in 3 weeks),
-        we estimate what you really burn from your average intake and trend change, and suggest a
-        change of at most ±150 kcal at a time. You decide whether to accept it.
+        With enough data (at least 80% of days ticked as complete and at least 10 weigh-ins in 3
+        weeks), we estimate what you really burn from your average intake and trend change, and
+        suggest a change of at most ±150 kcal at a time. You decide whether to accept it.
       </p>
       <h2>Water guide</h2>
       <p>
@@ -257,8 +257,8 @@ const FAQ: { q: string; a: ReactNode }[] = [
     a: 'Water, salt, portion size, digestion and hormonal cycles can move your weight 1–2 kg in a day. That is why Progress uses a smoothed trend line to show long-term change.',
   },
   {
-    q: 'What does "fully logged" mean? Do I have to mark it?',
-    a: 'When you have logged everything you ate in a day, mark it as fully logged in the Diary. Only those days are used to check calories against your target and to suggest target changes, so partly logged days do not skew the results. You can use the app without marking.',
+    q: 'What is a "complete day"? Do I have to tick it?',
+    a: 'When you have logged everything you ate in a day, tick "I logged everything I ate this day" at the bottom of the Diary. Only those complete days are used to check calories against your target and to suggest target changes, so half-logged days do not skew the results. You can use the app without ticking it.',
   },
   {
     q: 'How accurate are AI photo estimates?',
@@ -266,7 +266,7 @@ const FAQ: { q: string; a: ReactNode }[] = [
   },
   {
     q: 'When do target suggestions appear?',
-    a: 'From 14 days after you start a goal, if the last 3 weeks have enough fully logged days and weigh-ins, we estimate what you really burn from your intake and weight trend and suggest a new target. It only changes if you tap "Use suggestion".',
+    a: 'From 14 days after you start a goal, if the last 3 weeks have enough complete days and weigh-ins, we estimate what you really burn from your intake and weight trend and suggest a new target. It only changes if you tap "Use suggestion".',
   },
   {
     q: 'Why are there no reminders?',

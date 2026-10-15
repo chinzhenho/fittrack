@@ -74,12 +74,15 @@ export function WeightChart({
   days,
   startKg,
   goalKg,
+  showTrend = false,
 }: {
   points: TrendPoint[];
   end: string;
   days: number;
   startKg?: number | null;
   goalKg?: number | undefined;
+  /** Also draw the smoothed trend as a soft band (it lags the weigh-ins by design). */
+  showTrend?: boolean;
 }) {
   const [ref, W] = useWidth<HTMLDivElement>();
   const [selected, setSelected] = useState<string | null>(null);
@@ -114,7 +117,7 @@ export function WeightChart({
       .map((p, i) => `${i ? 'L' : 'M'}${x(p.date).toFixed(1)} ${y(v(p)).toFixed(1)}`)
       .join(' ');
   const weighLine = path((p) => p.weightKg);
-  const trendLine = inRange.length >= TREND_MIN_POINTS ? path((p) => p.trendKg) : null;
+  const trendLine = showTrend && inRange.length >= TREND_MIN_POINTS ? path((p) => p.trendKg) : null;
   // Keep the two reference labels apart when the lines are close together.
   const goalLabelDy =
     startKg != null && showGoal && Math.abs(y(startKg) - y(goalKg)) < 14

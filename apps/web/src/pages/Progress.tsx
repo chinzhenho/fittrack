@@ -1,9 +1,10 @@
 import { addDays, trendOn } from '@fittrack/engine';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Link, useLocation } from 'react-router';
-import { TREND_MIN_POINTS, WeightChart } from '../components/Charts';
+import { WeightChart } from '../components/Charts';
 import { useToast } from '../components/Toast';
-import { Achievements, Overview, Section, WeekBars } from '../components/ProgressParts';
+import { Achievements, Section } from '../components/ProgressParts';
+import { ThisWeek } from '../components/ThisWeek';
 import { Bar, Button, Field, inputClass, PageTitle } from '../components/ui';
 import {
   acceptChallenge,
@@ -22,12 +23,9 @@ import {
   challengeProgress,
   challengeRecord,
   CHALLENGES,
-  habitWeek,
   isChallengeId,
-  STATUS_LABELS,
   suggestedChallenges,
   type ChallengeId,
-  type HabitStatus,
 } from '../logic/habits';
 import { CATEGORY_LABELS, insightKey, insightsFor, type Insight } from '../logic/insights';
 import {
@@ -38,18 +36,16 @@ import {
   targetOn,
   trendPoints,
 } from '../logic/targets';
-import { mondayOf, weeklySummary, WEEKLY_LOG_GOAL } from '../logic/weekly';
+import { mondayOf } from '../logic/weekly';
 
 const REFUSAL_TEXT: Record<string, string> = {
   window_too_short:
-    'In the first 14 days of a goal, weight changes are mostly water, so we wait until after that.',
+    'Keep logging for 14 days after setting your goal (early changes are mostly water).',
   not_enough_complete_logs:
-    'At least 80% of days in the last 3 weeks need to be marked fully logged.',
-  not_enough_weigh_ins: 'At least 10 weigh-ins in the last 3 weeks.',
-  no_trend_at_window_start: 'A weigh-in from before the review period.',
+    'Tick "I logged everything I ate" in the Diary on most days (at least 80% of the last 3 weeks).',
+  not_enough_weigh_ins: 'Weigh in at least 10 times in 3 weeks.',
+  no_trend_at_window_start: 'Have at least one weigh-in from 3 weeks ago or earlier.',
 };
-
-const WEEKDAY_SHORT = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 
 const md = (d: string) => shortDate(d);
 const signed = (n: number) => `${n > 0 ? '+' : n < 0 ? '−' : '±'}${fmt1(Math.abs(n))}`;
@@ -86,18 +82,6 @@ function Chips<T extends string>({
   );
 }
 
-function Stat({ label, value, note }: { label: string; value: ReactNode; note?: ReactNode }) {
-  return (
-    <div className="rounded-2xl bg-slate-50 px-3 py-2.5 dark:bg-slate-700/60">
-      <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">{label}</p>
-      <p className="mt-0.5 text-xl font-black tracking-tight">{value}</p>
-      {note && (
-        <p className="text-[11px] leading-snug text-slate-500 dark:text-slate-400">{note}</p>
-      )}
-    </div>
-  );
-}
-
 function scrollToId(id: string) {
   document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
@@ -118,7 +102,9 @@ export function Progress() {
 
   return (
     <div className="space-y-4">
-      <PageTitle sub="Every step counts. Find the pace that works for you.">Progress</PageTitle>
+      <PageTitle sub="How your week went, your weight and what you've achieved.">
+        Progress
+      </PageTitle>
       {hide && (
         <p className="rounded-2xl bg-slate-100 px-4 py-3 text-sm text-slate-600 dark:bg-slate-800 dark:text-slate-300">
           🙈 You've hidden calorie and weight numbers, so only habits and logging are shown. Turn
@@ -129,191 +115,14 @@ export function Progress() {
           .
         </p>
       )}
-      <Overview s={s} today={today} />
+      <ThisWeek s={s} today={today} hide={hide} />
       {!hide && <BodySection s={s} profile={profile} today={today} />}
-      <WeeklySection s={s} today={today} hide={hide} />
-      <Achievements s={s} today={today} hide={hide} />
-      <HabitsSection s={s} today={today} />
       <NextStepSection s={s} today={today} />
+      <Achievements s={s} today={today} hide={hide} />
       <InsightsSection s={s} today={today} />
       {!hide && <AdjustSection s={s} profile={profile} today={today} />}
       {!hide && <WeightHistorySection s={s} today={today} />}
     </div>
-  );
-}
-
-function WeeklySection({ s, today, hide }: { s: AppState; today: string; hide: boolean }) {
-  const thisWeek = mondayOf(today);
-  const weeks = Array.from({ length: 12 }, (_, i) => addDays(thisWeek, (i - 11) * 7));
-  const [week, setWeek] = useState(thisWeek);
-  const start = week;
-  const end = addDays(week, 6) < today ? addDays(week, 6) : today;
-  const w = weeklySummary(s, start, end);
-  const pct = Math.round((w.loggedDays / w.dayCount) * 100);
-  const goalWord =
-    s.profile &&
-    (s.profile.goal === 'fat_loss' ? 'loss' : s.profile.goal === 'maintain' ? 'keep' : 'gain');
-
-  return (
-    <Section
-      id="summary"
-      icon="calendar"
-      tint="bg-[#5ac8fa]"
-      title="Weekly trend"
-      sub={`${md(start)} – ${md(end)}${week === thisWeek ? ' (Mon to today)' : ''}`}
-    >
-      <div className="mb-4">
-        <WeekBars s={s} today={today} weeks={weeks} selected={week} onSelect={setWeek} />
-      </div>
-      {w.loggedDays === 0 ? (
-        <div className="rounded-2xl bg-slate-50 p-4 text-center text-sm text-slate-600 dark:bg-slate-700/60 dark:text-slate-300">
-          <p className="text-2xl" aria-hidden="true">
-            🍽️
-          </p>
-          <p className="mt-1 font-semibold">No food logged in this period</p>
-          <p className="mt-1">
-            Once you log, your average calories, protein and days on target show here.
-          </p>
-          <Link
-            to="/diary"
-            className="mt-3 inline-flex min-h-11 items-center rounded-2xl bg-emerald-strong px-4 font-semibold text-white dark:bg-emerald dark:text-slate-950"
-          >
-            Log food
-          </Link>
-        </div>
-      ) : (
-        <>
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-            <Stat
-              label="Days logged"
-              value={
-                <>
-                  {w.loggedDays}
-                  <span className="text-sm font-semibold text-slate-500"> / {w.dayCount}</span>
-                </>
-              }
-              note={`${pct}% of days`}
-            />
-            <Stat
-              label="Fully logged"
-              value={
-                <>
-                  {w.completeDays}
-                  <span className="text-sm font-semibold text-slate-500"> days</span>
-                </>
-              }
-              note="Marked as fully logged"
-            />
-            {!hide && (
-              <Stat
-                label="Avg calories"
-                value={
-                  <>
-                    {fmtInt(w.avgKcal ?? 0)}
-                    <span className="text-sm font-semibold text-slate-500"> kcal</span>
-                  </>
-                }
-                note={
-                  w.targetKcal !== null
-                    ? `Over ${w.loggedDays} logged days · target ${fmtInt(w.targetKcal)}`
-                    : `Over ${w.loggedDays} logged days`
-                }
-              />
-            )}
-            {!hide && (
-              <Stat
-                label="Avg protein"
-                value={
-                  <>
-                    {fmtInt(w.avgProteinG ?? 0)}
-                    <span className="text-sm font-semibold text-slate-500"> g</span>
-                  </>
-                }
-                note={w.targetProteinG !== null ? `Target ${w.targetProteinG} g` : undefined}
-              />
-            )}
-            <Stat
-              label="Protein on target"
-              value={
-                w.proteinJudgedDays > 0 ? (
-                  <>
-                    {w.proteinMetDays}
-                    <span className="text-sm font-semibold text-slate-500">
-                      {' '}
-                      / {w.proteinJudgedDays} days
-                    </span>
-                  </>
-                ) : (
-                  '—'
-                )
-              }
-              note={w.proteinJudgedDays > 0 ? 'Fully logged days only' : 'Needs fully logged days'}
-            />
-            {!hide && (
-              <Stat
-                label="Calories on target"
-                value={
-                  w.completeDays > 0 ? (
-                    <>
-                      {w.withinTargetDays}
-                      <span className="text-sm font-semibold text-slate-500">
-                        {' '}
-                        / {w.completeDays} days
-                      </span>
-                    </>
-                  ) : (
-                    '—'
-                  )
-                }
-                note="Within ±10% and above the safety floor"
-              />
-            )}
-          </div>
-          {!hide && (
-            <p className="mt-3 rounded-2xl bg-emerald-50/70 px-3 py-2.5 text-sm text-emerald-950 dark:bg-emerald/10 dark:text-emerald-50">
-              ⚖️{' '}
-              {w.weight ? (
-                <>
-                  Weight {md(w.weight.firstDate)} {fmt1(w.weight.first)} kg →{' '}
-                  {md(w.weight.lastDate)} {fmt1(w.weight.last)} kg (
-                  <strong>{signed(w.weight.change)} kg</strong>)
-                  {goalWord !== 'keep' && Math.abs(w.weight.change) >= 0.1 && (
-                    <span className="block text-xs text-emerald-900/70 dark:text-emerald-50/70">
-                      Changes within a week are often water. See "Body changes" below for the
-                      long-term trend.
-                    </span>
-                  )}
-                </>
-              ) : w.weighIns === 1 ? (
-                'One weigh-in in this period. Weigh in once more to see a change.'
-              ) : (
-                'No weigh-ins in this period.'
-              )}
-            </p>
-          )}
-          {w.loggedDays < WEEKLY_LOG_GOAL && w.dayCount >= WEEKLY_LOG_GOAL && (
-            <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
-              Fewer than {WEEKLY_LOG_GOAL} days logged, so averages are only a rough guide.
-            </p>
-          )}
-          <details className="mt-2 text-xs text-slate-500 dark:text-slate-400">
-            <summary className="cursor-pointer font-semibold">How is this calculated?</summary>
-            <ul className="mt-1.5 list-disc space-y-1 pl-4 leading-relaxed">
-              <li>Averages only use days with logs; days without logs never count as 0.</li>
-              <li>
-                Protein and calorie range only use days marked fully logged, so a day with just one
-                snack logged does not skew results.
-              </li>
-              <li>
-                "On target" means 90%–110% of your daily target and above the safety floor; eating
-                too little never counts.
-              </li>
-              <li>Weeks start on Monday, using your phone's date.</li>
-            </ul>
-          </details>
-        </>
-      )}
-    </Section>
   );
 }
 
@@ -336,7 +145,7 @@ function BodySection({ s, profile, today }: { s: AppState; profile: Profile; tod
 
   if (!latest) {
     return (
-      <Section id="body" tint="bg-[#ff2d55]" icon="trend" title="Body changes">
+      <Section id="body" tint="bg-[#ff2d55]" icon="trend" title="Your weight">
         <div className="rounded-2xl bg-slate-50 p-5 text-center dark:bg-slate-700/60">
           <p className="text-3xl" aria-hidden="true">
             ⚖️
@@ -367,7 +176,7 @@ function BodySection({ s, profile, today }: { s: AppState; profile: Profile; tod
   const reached = toGoal !== null && (goal === 'fat_loss' ? toGoal >= 0 : toGoal <= 0);
 
   return (
-    <Section id="body" tint="bg-[#ff2d55]" icon="trend" title="Body changes" action={action}>
+    <Section id="body" tint="bg-[#ff2d55]" icon="trend" title="Your weight" action={action}>
       <div className="mb-3 grid grid-cols-3 gap-2 text-center">
         <div className="rounded-2xl bg-slate-50 px-2 py-2 dark:bg-slate-700/60">
           <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">Start</p>
@@ -414,9 +223,9 @@ function BodySection({ s, profile, today }: { s: AppState; profile: Profile; tod
             goalKg={goal === 'maintain' ? undefined : goalKg}
           />
           <p className="mt-2 text-xs leading-relaxed text-slate-500 dark:text-slate-400">
-            Each dot is a weigh-in (tap one to see it); dashed lines are your start and goal. From{' '}
-            {TREND_MIN_POINTS} weigh-ins, a soft wide band shows the smoothed trend, which matters
-            more than any single day because weight moves with water and salt.
+            Each dot is a weigh-in (tap one to see it); the dashed lines are your start and goal.
+            Weight goes up and down a little every day with water and salt, so look at the direction
+            over a few weeks, not one day.
           </p>
         </>
       )}
@@ -447,8 +256,8 @@ function InsightsSection({ s, today }: { s: AppState; today: string }) {
       id="insights"
       tint="bg-[#af52de]"
       icon="sparkles"
-      title="Your insights"
-      sub={`From your logs, ${md(addDays(today, -6))} – ${md(today)}`}
+      title="Tips for you"
+      sub="Based on your last 7 days"
     >
       {list.length === 0 ? (
         <p className="rounded-2xl bg-slate-50 p-4 text-sm text-slate-600 dark:bg-slate-700/60 dark:text-slate-300">
@@ -512,133 +321,12 @@ function InsightsSection({ s, today }: { s: AppState; today: string }) {
         </Button>
       )}
       <p className="mt-3 text-[11px] leading-relaxed text-slate-500 dark:text-slate-400">
-        Insights come from fixed rules applied to your logs. They are guidance, not a medical
-        diagnosis. For health concerns, talk to a doctor or dietitian.
+        Tips come from simple rules applied to your own logs. They are not medical advice; for
+        health concerns, talk to a doctor or dietitian.
       </p>
     </Section>
   );
 }
-
-const STATUS_STYLE: Record<HabitStatus, string> = {
-  done: 'bg-emerald-500 text-white',
-  partial: 'bg-emerald-200 text-emerald-900 dark:bg-emerald-700/60 dark:text-emerald-50',
-  none: 'bg-slate-100 text-slate-400 dark:bg-slate-700 dark:text-slate-500',
-  na: 'bg-transparent text-slate-300 dark:text-slate-600',
-  future: 'border border-dashed border-slate-200 dark:border-slate-600',
-};
-const STATUS_MARK: Record<HabitStatus, string> = {
-  done: '✓',
-  partial: '½',
-  none: '',
-  na: '–',
-  future: '',
-};
-
-function HabitsSection({ s, today }: { s: AppState; today: string }) {
-  const week = mondayOf(today);
-  const rows = habitWeek(s, week, today);
-  const active = activeChallenge(s, week);
-
-  return (
-    <Section
-      id="habits"
-      tint="bg-emerald-500"
-      icon="leaf"
-      title="Healthy habits"
-      sub={`This week, ${md(week)} – ${md(addDays(week, 6))}`}
-    >
-      <div className="overflow-x-auto">
-        <table className="w-full min-w-[19rem] border-separate border-spacing-1 text-center text-sm">
-          <caption className="sr-only">Your habits each day this week</caption>
-          <thead>
-            <tr>
-              <th scope="col" className="text-left text-xs font-semibold text-slate-500">
-                <span className="sr-only">Habit</span>
-              </th>
-              {WEEKDAY_SHORT.map((d, i) => (
-                <th
-                  key={i}
-                  scope="col"
-                  className={`text-xs font-semibold ${addDays(week, i) === today ? 'text-emerald-strong dark:text-emerald' : 'text-slate-500'}`}
-                >
-                  {d}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((h) => (
-              <tr key={h.id}>
-                <th
-                  scope="row"
-                  className="pr-1 text-left text-xs font-semibold whitespace-nowrap"
-                  title={h.hint}
-                >
-                  {h.label}
-                </th>
-                {h.days.map((d) => (
-                  <td key={d.date}>
-                    <span
-                      className={`mx-auto flex size-7 items-center justify-center rounded-lg text-xs font-bold ${STATUS_STYLE[d.status]}`}
-                      title={`${md(d.date)} ${STATUS_LABELS[d.status]}`}
-                    >
-                      <span aria-hidden="true">{STATUS_MARK[d.status]}</span>
-                      <span className="sr-only">
-                        {md(d.date)} {STATUS_LABELS[d.status]}
-                      </span>
-                    </span>
-                  </td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      <ul className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-slate-500 dark:text-slate-400">
-        {(['done', 'partial', 'none', 'future'] as const).map((k) => (
-          <li key={k} className="flex items-center gap-1">
-            <span
-              aria-hidden="true"
-              className={`flex size-4 items-center justify-center rounded text-[9px] font-bold ${STATUS_STYLE[k]}`}
-            >
-              {STATUS_MARK[k]}
-            </span>
-            {STATUS_LABELS[k]}
-          </li>
-        ))}
-      </ul>
-      <details className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-        <summary className="cursor-pointer font-semibold">What counts</summary>
-        <ul className="mt-1.5 list-disc space-y-1 pl-4">
-          {rows.map((h) => (
-            <li key={h.id}>
-              <strong>{h.label}</strong>: {h.hint}
-            </li>
-          ))}
-        </ul>
-      </details>
-
-      <div className="mt-4 rounded-2xl border border-slate-200 p-3 dark:border-slate-600">
-        <p className="text-xs font-bold text-slate-500 dark:text-slate-400">Weekly challenge</p>
-        {active && isChallengeId(active.challenge) ? (
-          <ChallengeProgress s={s} id={active.challenge} week={week} />
-        ) : (
-          <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
-            No challenge this week (optional).{' '}
-            <button
-              type="button"
-              className="font-semibold text-emerald-strong underline-offset-2 hover:underline dark:text-emerald"
-              onClick={() => scrollToId('next')}
-            >
-              Pick one
-            </button>
-          </p>
-        )}
-      </div>
-    </Section>
-  );
-}
-
 function ChallengeProgress({ s, id, week }: { s: AppState; id: ChallengeId; week: string }) {
   const p = challengeProgress(s, id, week);
   return (
@@ -670,8 +358,8 @@ function NextStepSection({ s, today }: { s: AppState; today: string }) {
         id="next"
         tint="bg-[#ff9500]"
         icon="target"
-        title="Next small goal"
-        sub="This week's challenge"
+        title="This week's challenge"
+        sub="Keep going, it updates as you log"
       >
         <div className="rounded-2xl bg-gradient-to-br from-emerald-50 to-teal-50 p-4 dark:from-emerald/15 dark:to-teal-500/10">
           <ChallengeProgress s={s} id={id} week={week} />
@@ -704,7 +392,7 @@ function NextStepSection({ s, today }: { s: AppState; today: string }) {
 
   if (options.length === 0) {
     return (
-      <Section id="next" tint="bg-[#ff9500]" icon="target" title="Next small goal">
+      <Section id="next" tint="bg-[#ff9500]" icon="target" title="This week's challenge">
         <p className="text-sm text-slate-600 dark:text-slate-300">
           🎉 You've already met every challenge this week. Come back on Monday for a new one.
         </p>
@@ -719,8 +407,8 @@ function NextStepSection({ s, today }: { s: AppState; today: string }) {
       id="next"
       tint="bg-[#ff9500]"
       icon="target"
-      title="Next small goal"
-      sub="Picked from the habit that needs the most help"
+      title="This week's challenge"
+      sub="A small goal to build a habit (optional)"
     >
       <div className="rounded-2xl bg-gradient-to-br from-emerald-50 to-teal-50 p-4 dark:from-emerald/15 dark:to-teal-500/10">
         <p className="text-lg font-black">{CHALLENGES[id].title}</p>
@@ -772,14 +460,17 @@ function AdjustSection({ s, profile, today }: { s: AppState; profile: Profile; t
   } else if (!adaptive?.ok) {
     body = (
       <div className="space-y-2 text-sm">
-        <p>We need more logs to reliably estimate what you burn. Still needed:</p>
+        <p>
+          After about 3 weeks of logging, we compare what you ate with how your weight changed and
+          tell you if your daily target should go up or down. To get there, you still need to:
+        </p>
         <ul className="list-disc space-y-1 pl-5 text-slate-700 dark:text-slate-200">
           {(adaptive && !adaptive.ok ? adaptive.reasons : []).map((r) => (
             <li key={r}>{REFUSAL_TEXT[r]}</li>
           ))}
         </ul>
         <p className="text-xs text-slate-500 dark:text-slate-400">
-          Until then, your formula-based target of {fmtInt(target.caloriesKcal)} kcal stays.
+          Until then, your current target of {fmtInt(target.caloriesKcal)} kcal stays.
         </p>
       </div>
     );
@@ -821,8 +512,8 @@ function AdjustSection({ s, profile, today }: { s: AppState; profile: Profile; t
         </div>
         <p>
           From {md(adaptive.windowStart)} – {md(adaptive.windowEnd)} ({adaptive.windowDays} days),
-          your fully logged days averaged {fmtInt(adaptive.meanIntakeKcal)} kcal and your trend
-          weight changed {signed(adaptive.trendChangeKg)} kg. That suggests you burn about{' '}
+          your complete days averaged {fmtInt(adaptive.meanIntakeKcal)} kcal and your trend weight
+          changed {signed(adaptive.trendChangeKg)} kg. That suggests you burn about{' '}
           {fmtInt(adaptive.observedTdeeKcal)} kcal, so we suggest {up ? 'raising' : 'lowering'} your
           target.
         </p>
@@ -880,8 +571,8 @@ function AdjustSection({ s, profile, today }: { s: AppState; profile: Profile; t
       id="adjust"
       tint="bg-slate-400"
       icon="sliders"
-      title="Target suggestion"
-      sub="Fine-tunes calories from your real logs; you decide"
+      title="Calorie target check"
+      sub="Is your daily calorie target right for you?"
     >
       {body}
     </Section>

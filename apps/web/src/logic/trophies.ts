@@ -39,7 +39,7 @@ export interface TrophyFamily {
 
 export const MONTHLY_GOAL_DAYS = 20;
 
-/** Food-logged dates that also count as "fully logged". */
+/** Food-logged dates the user ticked as complete ("I logged everything"). */
 function completeDates(s: AppState): string[] {
   const logged = new Set(loggedDates(s));
   return [...new Set(s.completeDays)].filter((d) => logged.has(d)).sort();
@@ -156,14 +156,7 @@ export function trophyFamilies(s: AppState, today: string): TrophyFamily[] {
       })),
     },
     countFamily('logged', 'fork', 'Days logged', 'days', logged, [10, 50, 100, 365]),
-    countFamily(
-      'complete',
-      'check',
-      'Fully logged days',
-      'days',
-      completeDates(s),
-      [7, 30, 100, 200],
-    ),
+    countFamily('complete', 'check', 'Complete days', 'days', completeDates(s), [7, 30, 100, 200]),
     countFamily(
       'protein',
       'egg',
@@ -185,7 +178,7 @@ export function trophyFamilies(s: AppState, today: string): TrophyFamily[] {
       id: 'kg',
       icon: 'trend',
       title: dir < 0 ? 'Weight lost' : 'Weight gained',
-      unit: 'kg (trend)',
+      unit: 'kg',
       value: Math.round(best * 10) / 10,
       levels: [1, 3, 5, 10].map((goal, i) => ({
         tier: TIERS[i]!,
@@ -325,32 +318,10 @@ export function personalRecords(s: AppState, today: string): PersonalRecord[] {
     out.push({
       id: 'streak',
       icon: 'flame',
-      title: 'Longest logging streak',
+      title: 'Longest streak of days logged',
       value: `${run.value} days`,
       on: run.endedOn,
       isNew: recent(run.endedOn),
-    });
-  }
-
-  // Most fully logged days in one Mon–Sun week; the earliest week wins a tie.
-  const complete = completeDates(s);
-  const perWeek = new Map<string, string[]>();
-  for (const d of complete) {
-    const w = mondayOf(d);
-    perWeek.set(w, [...(perWeek.get(w) ?? []), d]);
-  }
-  let bestWeek: { week: string; n: number; on: string } | null = null;
-  for (const [week, ds] of [...perWeek.entries()].sort()) {
-    if (!bestWeek || ds.length > bestWeek.n) bestWeek = { week, n: ds.length, on: ds.at(-1)! };
-  }
-  if (bestWeek && bestWeek.n >= 2) {
-    out.push({
-      id: 'week',
-      icon: 'calendar',
-      title: 'Best week (fully logged)',
-      value: `${bestWeek.n} / 7 days`,
-      on: bestWeek.week,
-      isNew: recent(bestWeek.on),
     });
   }
 
@@ -365,7 +336,7 @@ export function personalRecords(s: AppState, today: string): PersonalRecord[] {
     out.push({
       id: 'month',
       icon: 'star',
-      title: 'Best month (days logged)',
+      title: 'Most days logged in a month',
       value: `${bestMonth.n} days`,
       on: `${bestMonth.month}-01`,
       isNew: recent(bestMonth.on),
@@ -452,7 +423,7 @@ export function achievementFeed(s: AppState, today: string, limit = 6): FeedItem
         items.push({
           date: l.earnedOn,
           icon: f.icon,
-          text: `${TIER_LABELS[l.tier]} · ${f.title}: ${l.goal} ${f.unit}`,
+          text: `${f.title}: ${l.goal} ${f.unit} · ${TIER_LABELS[l.tier]}`,
           tier: l.tier,
         });
     }

@@ -202,8 +202,8 @@ export function Diary() {
           I logged everything I ate this day
         </Check>
         <p className="text-xs text-slate-600 dark:text-slate-300">
-          Only fully logged days are used to estimate what you really burn and to suggest target
-          changes.
+          Tick this when every meal is logged. Only complete days are used to check what you really
+          burn and to suggest target changes.
         </p>
       </Card>
     </div>

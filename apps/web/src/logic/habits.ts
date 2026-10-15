@@ -76,8 +76,8 @@ export const CHALLENGES: Record<ChallengeId, { title: string; why: string; max: 
     max: 3,
   },
   complete3: {
-    title: 'Fully log 3 days this week',
-    why: 'Only days marked "fully logged" are used to judge calories and adjust your target.',
+    title: 'Log everything you eat on 3 days',
+    why: 'Then tick "I logged everything I ate" in the Diary. Complete days give the truest picture of how you eat.',
     max: 3,
   },
   protein4: {

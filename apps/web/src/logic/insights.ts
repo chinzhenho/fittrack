@@ -34,7 +34,7 @@ export const CATEGORY_LABELS: Record<InsightCategory, string> = {
   protein: 'Protein',
   calories: 'Calories',
   meals: 'Meals',
-  weight: 'Weight trend',
+  weight: 'Weight',
   adjust: 'Target',
 };
 
@@ -82,9 +82,9 @@ export function insightsFor(s: AppState, today: string): Insight[] {
       id: 'mark_complete',
       category: 'recording',
       tone: 'tip',
-      title: 'Mark days as "fully logged"',
-      body: 'Only fully logged days are used to check calories against your target and to suggest target changes. Skip marking days where you missed something.',
-      data: `Last 7 days: ${w.loggedDays} days logged, ${w.completeDays} marked fully logged`,
+      title: 'Tick "I logged everything" in the Diary',
+      body: 'When a day has all your meals logged, tick "I logged everything I ate this day" at the bottom of the Diary. We use these complete days to check your calories and your target, so half-logged days don\'t throw it off.',
+      data: `Last 7 days: food logged on ${w.loggedDays} days, ${w.completeDays} ticked as complete`,
       action: { label: 'Go to Diary', to: '/diary' },
       numeric: false,
       priority: 2,
@@ -101,7 +101,7 @@ export function insightsFor(s: AppState, today: string): Insight[] {
         tone: 'tip',
         title: 'Protein is often low',
         body: 'Try adding a protein to each meal, such as eggs, tofu, fish, chicken or a glass of milk.',
-        data: `${w.proteinMetDays} of ${w.proteinJudgedDays} fully logged days reached ${w.targetProteinG} g (last 7 days)`,
+        data: `Last 7 days: you reached ${w.targetProteinG} g on ${w.proteinMetDays} of ${w.proteinJudgedDays} complete days`,
         numeric: false,
         priority: 3,
       });
@@ -112,7 +112,7 @@ export function insightsFor(s: AppState, today: string): Insight[] {
         tone: 'good',
         title: 'Protein is on track',
         body: 'You hit your protein target on most days. Keep it up.',
-        data: `${w.proteinMetDays} of ${w.proteinJudgedDays} fully logged days on target (last 7 days)`,
+        data: `Last 7 days: on target ${w.proteinMetDays} of ${w.proteinJudgedDays} complete days`,
         numeric: false,
         priority: 9,
       });
@@ -123,7 +123,7 @@ export function insightsFor(s: AppState, today: string): Insight[] {
   const t = targetOn(s.targets, today);
   if (t && w.completeDays >= 3 && w.avgCompleteKcal !== null) {
     const avg = w.avgCompleteKcal;
-    const data = `Last 7 days: average ${fmtInt(avg)} kcal over ${w.completeDays} fully logged days; target ${fmtInt(t.caloriesKcal)} kcal`;
+    const data = `Last 7 days: about ${fmtInt(avg)} kcal a day on complete days; your target is ${fmtInt(t.caloriesKcal)} kcal`;
     if (avg < t.calorieFloorKcal) {
       out.push({
         id: 'kcal_below_floor',
@@ -189,7 +189,7 @@ export function insightsFor(s: AppState, today: string): Insight[] {
   if (weighIns >= 4 && now !== null && before !== null) {
     const change = now - before;
     const perWeekPct = ((change / before) * 100) / 2;
-    const data = `Last 14 days: ${weighIns} weigh-ins, trend ${change > 0 ? '+' : ''}${fmt1(change)} kg`;
+    const data = `Last 14 days: ${weighIns} weigh-ins, about ${change > 0 ? '+' : ''}${fmt1(change)} kg`;
     const toward = goal === 'fat_loss' ? change < -0.2 : goal === 'maintain' ? false : change > 0.2;
     if (goal === 'fat_loss' && perWeekPct < -1) {
       out.push({
@@ -207,8 +207,8 @@ export function insightsFor(s: AppState, today: string): Insight[] {
         id: 'trend_toward',
         category: 'weight',
         tone: 'good',
-        title: 'Your weight trend is heading toward your goal',
-        body: "This looks at the smoothed trend, not any single day. Keep doing what you're doing.",
+        title: 'Your weight is moving toward your goal',
+        body: "Over the last two weeks your weight has been going the right way. Keep doing what you're doing.",
         data,
         numeric: true,
         priority: 7,
@@ -219,7 +219,7 @@ export function insightsFor(s: AppState, today: string): Insight[] {
         category: 'weight',
         tone: 'good',
         title: 'Your weight is steady',
-        body: "Your trend barely moved in two weeks, so you're eating about what you burn.",
+        body: "Your weight barely moved in two weeks, so you're eating about what you burn.",
         data,
         numeric: true,
         priority: 7,

@@ -157,7 +157,7 @@ describe('records, streaks and stats', () => {
     s = addWeight(s, { id: 'b', date: '2026-10-14', measuredAt: 'b', weightKg: 79.2 });
     const prs = personalRecords(s, TODAY);
     expect(prs.find((p) => p.id === 'streak')).toMatchObject({ value: '3 days', isNew: true });
-    expect(prs.find((p) => p.id === 'week')?.value).toBe('2 / 7 days');
+    expect(prs.some((p) => p.id === 'week')).toBe(false);
     expect(prs.find((p) => p.id === 'weight')).toMatchObject({
       value: '79.2 kg',
       on: '2026-10-14',

@@ -47,7 +47,8 @@ describe('My progress', () => {
   it('scenario A: a new user sees empty states, not made-up numbers', () => {
     renderProgress();
     expect(screen.getByRole('heading', { name: 'Progress' })).toBeTruthy();
-    expect(screen.getByText('No food logged in this period')).toBeTruthy();
+    expect(screen.getByText(/You logged food on/).textContent).toMatch(/0 of \d+ days?/);
+    expect(screen.getByText('Weigh in twice in a week to see it')).toBeTruthy();
     expect(screen.getByText('Log your first weight to start seeing changes.')).toBeTruthy();
     expect(screen.getByRole('button', { name: '+ Log weight' })).toBeTruthy();
     expect(screen.queryByText(/kcal/)).toBeNull();
@@ -89,10 +90,23 @@ describe('My progress', () => {
     expect(screen.getByRole('button', { name: 'Start challenge' })).toBeTruthy();
   });
 
-  it('scenario G: hidden numbers keep habits but drop weight and calories', () => {
+  it('scenario G: hidden numbers keep the week but drop weight and calories', () => {
     renderProgress({ ...profile, hideNumbers: true });
-    expect(screen.getByRole('heading', { name: 'Healthy habits' })).toBeTruthy();
-    expect(screen.queryByRole('heading', { name: 'Body changes' })).toBeNull();
+    expect(screen.getByRole('heading', { name: 'This week' })).toBeTruthy();
+    expect(screen.queryByText('Average calories a day')).toBeNull();
+    expect(screen.queryByRole('heading', { name: 'Your weight' })).toBeNull();
     expect(screen.queryByRole('heading', { name: 'Weight log' })).toBeNull();
+  });
+
+  it('steps back through earlier weeks with the arrows', () => {
+    renderProgress();
+    expect(screen.getByRole('heading', { name: 'This week' })).toBeTruthy();
+    expect((screen.getByRole('button', { name: 'Next week' }) as HTMLButtonElement).disabled).toBe(
+      true,
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Previous week' }));
+    expect(screen.getByRole('heading', { name: 'Last week' })).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'Next week' }));
+    expect(screen.getByRole('heading', { name: 'This week' })).toBeTruthy();
   });
 });

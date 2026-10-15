@@ -1,4 +1,3 @@
-import { addDays } from '@fittrack/engine';
 import { useState, type ReactNode } from 'react';
 import { Glyph, IconTile, type IconName } from './Icons';
 import { useToast } from './Toast';
@@ -7,22 +6,17 @@ import { joinMonthlyChallenge } from '../data/actions';
 import { update } from '../data/store';
 import type { AppState } from '../data/types';
 import { formatDay, shortDate } from '../lib/dates';
-import { currentStreak, loggedDates } from '../logic/achievements';
 import {
   achievementFeed,
   monthKey,
   monthlyChallenge,
   monthlyTrophies,
   monthName,
-  monthStats,
   nextTier,
   personalRecords,
-  previousMonth,
   TIER_LABELS,
   topTier,
   trophyFamilies,
-  weekStreak,
-  WEEK_STREAK_DAYS,
   type Tier,
   type TrophyFamily,
 } from '../logic/trophies';
@@ -111,69 +105,6 @@ export function Medal({
         <Glyph name={icon} className={glyph} strokeWidth={2.2} />
       </span>
     </span>
-  );
-}
-
-/** Streaks and this month compared with last month. */
-export function Overview({ s, today }: { s: AppState; today: string }) {
-  const days = currentStreak(loggedDates(s), today);
-  const weeks = weekStreak(s, today);
-  const month = monthKey(today);
-  const now = monthStats(s, month);
-  const before = monthStats(s, previousMonth(month));
-  const rows: { label: string; now: number; before: number }[] = [
-    { label: 'Days logged', now: now.daysLogged, before: before.daysLogged },
-    { label: 'Meals logged', now: now.meals, before: before.meals },
-    { label: 'Fully logged days', now: now.fullyLogged, before: before.fullyLogged },
-    { label: 'Weigh-ins', now: now.weighIns, before: before.weighIns },
-  ];
-  return (
-    <Card className="!p-0">
-      <div className="grid grid-cols-2 divide-x divide-slate-100 dark:divide-slate-700">
-        <div className="p-4">
-          <p className="text-xs font-semibold text-[#ff9500]">Day streak</p>
-          <p className="text-[2rem] leading-tight font-bold">
-            {days}
-            <span className="ml-1 text-base font-semibold text-slate-500">
-              {days === 1 ? 'day' : 'days'}
-            </span>
-          </p>
-          <p className="text-xs text-slate-500 dark:text-slate-400">
-            Days in a row with food logged
-          </p>
-        </div>
-        <div className="p-4">
-          <p className="text-xs font-semibold text-[#007aff] dark:text-[#0a84ff]">Week streak</p>
-          <p className="text-[2rem] leading-tight font-bold">
-            {weeks}
-            <span className="ml-1 text-base font-semibold text-slate-500">
-              {weeks === 1 ? 'week' : 'weeks'}
-            </span>
-          </p>
-          <p className="text-xs text-slate-500 dark:text-slate-400">
-            Weeks with {WEEK_STREAK_DAYS}+ days logged
-          </p>
-        </div>
-      </div>
-      <div className="border-t border-slate-100 px-4 pt-3 pb-1 dark:border-slate-700">
-        <p className="text-xs font-semibold text-slate-500 uppercase dark:text-slate-400">
-          {monthName(month)}
-        </p>
-        <ul className="divide-y divide-slate-100 dark:divide-slate-700">
-          {rows.map((r) => (
-            <li key={r.label} className="flex items-center justify-between gap-3 py-2.5 text-sm">
-              <span>{r.label}</span>
-              <span className="text-right">
-                <span className="font-semibold">{r.now}</span>
-                <span className="block text-[0.6875rem] text-slate-500 dark:text-slate-400">
-                  {monthName(previousMonth(month)).split(' ')[0]}: {r.before}
-                </span>
-              </span>
-            </li>
-          ))}
-        </ul>
-      </div>
-    </Card>
   );
 }
 
@@ -404,55 +335,5 @@ export function Achievements({ s, today, hide }: { s: AppState; today: string; h
         </ul>
       )}
     </Section>
-  );
-}
-
-/** Last 12 Mon–Sun weeks as bars of days logged; tapping a bar selects that week. */
-export function WeekBars({
-  s,
-  today,
-  weeks,
-  selected,
-  onSelect,
-}: {
-  s: AppState;
-  today: string;
-  weeks: string[];
-  selected: string;
-  onSelect: (week: string) => void;
-}) {
-  const logged = new Set(loggedDates(s));
-  return (
-    <div>
-      <div className="flex h-28 items-end gap-1.5" role="group" aria-label="Days logged per week">
-        {weeks.map((w) => {
-          const n = [0, 1, 2, 3, 4, 5, 6].filter((i) => {
-            const d = addDays(w, i);
-            return d <= today && logged.has(d);
-          }).length;
-          const on = w === selected;
-          return (
-            <button
-              key={w}
-              type="button"
-              aria-pressed={on}
-              aria-label={`Week of ${shortDate(w)}: ${n} of 7 days logged`}
-              onClick={() => onSelect(w)}
-              className="flex h-full flex-1 flex-col items-center justify-end gap-1"
-            >
-              {on && <span className="text-[0.6875rem] font-bold">{n}</span>}
-              <span
-                className={`w-full rounded-[5px] transition ${on ? 'bg-emerald-500' : 'bg-emerald-200 dark:bg-emerald-900'}`}
-                style={{ height: `${Math.max(6, (n / 7) * 80)}px` }}
-              />
-            </button>
-          );
-        })}
-      </div>
-      <div className="mt-1.5 flex justify-between text-[0.6875rem] text-slate-500 dark:text-slate-400">
-        <span>{shortDate(weeks[0]!)}</span>
-        <span>This week</span>
-      </div>
-    </div>
   );
 }
