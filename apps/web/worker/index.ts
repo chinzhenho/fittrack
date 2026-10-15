@@ -4,7 +4,7 @@
 // POST /api/food-photo  { image: base64 JPEG, hint?: string }  with the user's Supabase
 // access token. `hint` is the user's own short note about the meal (e.g. "half rice").
 // 1. The token is checked by Supabase and one photo is counted against the daily limit
-//    (public.use_photo_quota, 8 a day per account).
+//    (public.use_photo_quota, 20 a day per account).
 // 2. Vision models are tried in order until one answers: the Gemini models listed in
 //    GEMINI_MODELS (each has its own free daily quota), then Workers AI models (share
 //    the account's free 10,000 neurons a day). Only models whose published input schema

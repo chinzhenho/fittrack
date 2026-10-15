@@ -262,7 +262,7 @@ const FAQ: { q: string; a: ReactNode }[] = [
   },
   {
     q: 'How accurate are AI photo estimates?',
-    a: 'The AI first identifies each food. When it matches our database (Singapore SG FoodID, USDA), the database values are used; otherwise the AI estimates. Portions and hidden oil or sugar are hard to see in a photo, so check and adjust amounts before saving. Typing a short note before you snap (for example "half rice") helps. Each account can analyse 8 photos a day.',
+    a: 'The AI first identifies each food. When it matches our database (Singapore SG FoodID, USDA), the database values are used; otherwise the AI estimates. Portions and hidden oil or sugar are hard to see in a photo, so check and adjust amounts before saving. Typing a short note before you snap (for example "half rice") helps. Each account can analyse 20 photos a day.',
   },
   {
     q: 'When do target suggestions appear?',

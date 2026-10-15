@@ -404,7 +404,7 @@ function PhotoCard({
 
       {!signedIn ? (
         <div className="rounded-2xl bg-white p-4 text-sm dark:bg-slate-700">
-          <p>AI snaps are free but need an account (8 per account per day).</p>
+          <p>AI snaps are free but need an account (20 per account per day).</p>
           <div className="mt-3 flex gap-2">
             <Link
               to="/login"
