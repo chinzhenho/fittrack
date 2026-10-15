@@ -1,7 +1,7 @@
 import { addDays, daysBetween } from '@fittrack/engine';
 import type { TrendPoint } from '@fittrack/engine';
 import { useEffect, useRef, useState } from 'react';
-import { shortDate } from '../lib/dates';
+import { localToday, shortDate } from '../lib/dates';
 
 export function Ring({
   value,
@@ -108,10 +108,17 @@ export function WeightChart({
     hi = Math.max(hi, Math.ceil(goalKg + 0.5));
   }
   const H = 200;
-  const pad = { l: 40, r: 12, t: 12, b: 24 };
+  const pad = { l: 40, r: 12, t: 12, b: 30 };
   const x = (d: string) =>
     pad.l + (daysBetween(start, d) / Math.max(1, days - 1)) * (W - pad.l - pad.r);
   const y = (v: number) => pad.t + ((hi - v) / (hi - lo)) * (H - pad.t - pad.b);
+  // Date labels along the bottom: every day, week, fortnight or month, whichever is the
+  // smallest step that leaves room for each label; counted back from the newest day.
+  const perDay = (W - pad.l - pad.r) / Math.max(1, days - 1);
+  const step = [1, 2, 7, 14, 30, 60].find((n) => n * perDay >= 56) ?? 60;
+  const xTicks: string[] = [];
+  for (let d = end; d >= start; d = addDays(d, -step)) xTicks.push(d);
+  const today = localToday();
   const path = (v: (p: TrendPoint) => number) =>
     inRange
       .map((p, i) => `${i ? 'L' : 'M'}${x(p.date).toFixed(1)} ${y(v(p)).toFixed(1)}`)
@@ -181,6 +188,17 @@ export function WeightChart({
               {t.toFixed(1)}
             </text>
           </g>
+        ))}
+        {xTicks.map((d) => (
+          <line
+            key={`v-${d}`}
+            x1={x(d)}
+            x2={x(d)}
+            y1={pad.t}
+            y2={H - pad.b}
+            strokeWidth="1"
+            className="stroke-slate-100 dark:stroke-slate-700/60"
+          />
         ))}
         {startKg != null && refLine(startKg, 'Start', 'stroke-slate-400')}
         {showGoal &&
@@ -264,12 +282,23 @@ export function WeightChart({
               </g>
             );
           })()}
-        <text x={pad.l} y={H - 6} fontSize="11" className="fill-slate-500">
-          {md(start)}
-        </text>
-        <text x={W - pad.r} y={H - 6} fontSize="11" textAnchor="end" className="fill-slate-500">
-          {md(end)}
-        </text>
+        {xTicks.map((d) => {
+          const tx = x(d);
+          const anchor = tx > W - pad.r - 24 ? 'end' : tx < pad.l + 24 ? 'start' : 'middle';
+          return (
+            <text
+              key={d}
+              x={tx}
+              y={H - 8}
+              fontSize="12"
+              fontWeight={d === today ? 600 : 400}
+              textAnchor={anchor}
+              className="fill-slate-600 dark:fill-slate-300"
+            >
+              {d === today ? 'Today' : md(d)}
+            </text>
+          );
+        })}
       </svg>
     </div>
   );
