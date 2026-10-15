@@ -171,11 +171,11 @@ export function Today() {
         )}
         <SnapButton
           meal={nextMeal}
-          label={`Log ${MEAL_LABELS[nextMeal].toLowerCase()}`}
+          label="Log food"
           className="flex min-h-12 w-full items-center justify-center gap-2 rounded-[14px] bg-emerald-strong px-4 text-[0.9375rem] font-semibold text-white transition hover:bg-emerald-800 active:scale-[0.99] dark:bg-emerald dark:text-black"
         >
           <Glyph name="camera" className="size-5" />
-          Log {MEAL_LABELS[nextMeal].toLowerCase()}
+          Log food
         </SnapButton>
       </Card>
 
