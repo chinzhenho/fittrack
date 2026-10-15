@@ -211,10 +211,10 @@ const TONE_STYLE: Record<Insight['tone'], { icon: string; cls: string }> = {
     icon: '🌟',
     cls: 'border-emerald-200 bg-emerald-50/70 dark:border-emerald/30 dark:bg-emerald/10',
   },
-  tip: { icon: '💡', cls: 'border-sky-200 bg-sky-50/70 dark:border-sky-500/30 dark:bg-sky-500/10' },
+  tip: { icon: '💡', cls: 'border-slate-200 bg-slate-50 dark:border-white/10 dark:bg-white/5' },
   care: {
     icon: '⚠️',
-    cls: 'border-amber-300 bg-amber-50 dark:border-amber-600/50 dark:bg-amber-500/10',
+    cls: 'border-[#ecd3b4] bg-[#fbf3e8] dark:border-amber-600/40 dark:bg-amber-500/10',
   },
 };
 
@@ -453,15 +453,15 @@ function WeightHistorySection({ s, today }: { s: AppState; today: string }) {
   return (
     <Section
       id="weights"
-      tint="bg-[#5856d6]"
+      tint="bg-emerald-strong"
       icon="scale"
       title="Weight log"
       sub="All your weigh-ins"
     >
       {!s.weights.some((x) => x.date === today) && (
-        <p className="mb-3 rounded-[14px] bg-[#5856d6]/[0.07] px-3 py-2.5 text-sm dark:bg-[#7d7aff]/15">
+        <p className="mb-3 rounded-[14px] bg-emerald-strong/[0.07] px-3 py-2.5 text-sm dark:bg-white/5">
           Today&apos;s weight goes on the{' '}
-          <Link to="/today" className="font-semibold text-[#5856d6] dark:text-[#a5a3ff]">
+          <Link to="/today" className="font-semibold text-emerald-strong dark:text-emerald">
             Today page ›
           </Link>
         </p>

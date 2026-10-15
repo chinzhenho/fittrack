@@ -105,22 +105,23 @@ export function Today() {
     );
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-end justify-between gap-3 pt-2">
-        <div className="min-w-0">
-          <p className="text-[0.8125rem] font-semibold text-slate-500 uppercase dark:text-slate-400">
-            {new Date().toLocaleDateString('en-MY', {
-              month: 'long',
-              day: 'numeric',
-              weekday: 'long',
-            })}
-          </p>
-          <h1 className="text-[2.125rem] leading-tight font-bold">
-            {greeting}
-            {profile.nickname ? `, ${profile.nickname}` : ''}
-          </h1>
-        </div>
-      </div>
+    <div className="space-y-8">
+      <header className="pt-3">
+        <p className="text-xs font-semibold tracking-[0.08em] text-slate-500 uppercase dark:text-slate-400">
+          {new Date().toLocaleDateString('en-MY', {
+            month: 'long',
+            day: 'numeric',
+            weekday: 'long',
+          })}
+        </p>
+        <h1 className="mt-1 text-[2rem] leading-tight font-bold tracking-tight">
+          {greeting}
+          {profile.nickname ? `, ${profile.nickname}` : ''}
+        </h1>
+        <p className="mt-1 text-[0.9375rem] text-slate-500 dark:text-slate-400">
+          One small step at a time.
+        </p>
+      </header>
 
       {needsRecompute(s, today) && (
         <Notice title="Your weight trend has moved 2 kg or more">
@@ -131,220 +132,122 @@ export function Today() {
         </Notice>
       )}
 
-      {/* Weight & BMI (Apple Health style summary card) */}
-      {!hide && (
-        <Card className="p-4">
-          <div className="flex items-center justify-between gap-3">
-            <p className="flex items-center gap-1.5 text-[0.9375rem] font-semibold text-[#5856d6] dark:text-[#7d7aff]">
-              <Glyph name="scale" className="size-[18px]" /> Weight & BMI
+      {/* The one highlighted panel: today's calories and the main action. */}
+      <Card tone="hero" className="space-y-4">
+        <p className="text-xs font-semibold tracking-[0.08em] text-emerald-strong uppercase dark:text-emerald">
+          Calories today
+        </p>
+        {hide ? (
+          <p className="text-[2rem] leading-none font-bold tracking-tight">
+            {todayMeals.length} {todayMeals.length === 1 ? 'item' : 'items'} logged
+          </p>
+        ) : (
+          <div>
+            <p className="flex items-baseline gap-2">
+              <span className="text-[2.75rem] leading-none font-bold tracking-tight tabular-nums">
+                {fmtInt(eaten.kcal)}
+              </span>
+              <span className="text-[0.9375rem] text-emerald-800 dark:text-emerald-200">
+                / {fmtInt(target.caloriesKcal)} kcal
+              </span>
             </p>
-            <Link
-              to="/progress#weights"
-              className="shrink-0 text-[0.9375rem] text-[#5856d6] hover:opacity-70 dark:text-[#a5a3ff]"
-            >
-              History ›
-            </Link>
-          </div>
-
-          <div className="mt-3 grid grid-cols-3 items-end gap-2">
-            <div>
-              <p className="text-xs text-slate-500 dark:text-slate-400">Current</p>
-              <p className="flex items-baseline gap-1">
-                <span className="text-[2rem] leading-none font-bold">
-                  {current !== null ? fmt1(current) : '—'}
-                </span>
-                <span className="text-sm font-semibold text-slate-500">kg</span>
-              </p>
-            </div>
-            <div className="text-center">
-              <p className="text-xs text-slate-500 dark:text-slate-400">BMI</p>
-              <p className="text-xl leading-tight font-bold">
-                {bmiValue !== null ? fmt1(bmiValue) : '—'}
-              </p>
-              {bmiValue !== null && (
-                <p className="text-[0.6875rem] font-semibold text-slate-500 dark:text-slate-400">
-                  {BMI_TEXT[bmiCategory(bmiValue)]}
-                </p>
-              )}
-            </div>
-            <div className="text-right">
-              <p className="text-xs text-slate-500 dark:text-slate-400">Target</p>
-              {goalKg !== undefined ? (
-                <p className="flex items-baseline justify-end gap-1">
-                  <span className="text-xl font-bold">{fmt1(goalKg)}</span>
-                  <span className="text-sm font-semibold text-slate-500">kg</span>
-                </p>
-              ) : (
-                <Link
-                  to="/me/body"
-                  className="text-sm font-semibold text-emerald-strong dark:text-emerald"
-                >
-                  Set
-                </Link>
-              )}
+            <Bar
+              value={eaten.kcal}
+              max={target.caloriesKcal}
+              color={gap.state === 'over' ? 'bg-[#dca46c]' : 'bg-emerald-strong dark:bg-emerald'}
+              track="bg-emerald-200/70 dark:bg-white/10"
+            />
+            <div className="mt-2 flex justify-between text-sm">
+              <span
+                className={`font-medium ${gap.state === 'over' ? 'text-[#87551d] dark:text-amber-300' : 'text-emerald-800 dark:text-emerald-200'}`}
+              >
+                {gap.label} {fmtInt(gap.kcal)} kcal
+              </span>
+              <span className="text-emerald-800 tabular-nums dark:text-emerald-200">
+                {Math.round((eaten.kcal / Math.max(1, target.caloriesKcal)) * 100)}%
+              </span>
             </div>
           </div>
-          {bmiValue !== null && (
-            <span className="sr-only">
-              BMI {fmt1(bmiValue)} {BMI_TEXT[bmiCategory(bmiValue)]}
-            </span>
-          )}
+        )}
+        <SnapButton
+          meal={nextMeal}
+          label={`Log ${MEAL_LABELS[nextMeal].toLowerCase()}`}
+          className="flex min-h-12 w-full items-center justify-center gap-2 rounded-[14px] bg-emerald-strong px-4 text-[0.9375rem] font-semibold text-white transition hover:bg-emerald-800 active:scale-[0.99] dark:bg-emerald dark:text-black"
+        >
+          <Glyph name="camera" className="size-5" />
+          Log {MEAL_LABELS[nextMeal].toLowerCase()}
+        </SnapButton>
+      </Card>
 
-          {toGoal !== null && current !== null && goalKg !== undefined && (
-            <div className="mt-4 space-y-1.5">
-              <div className="flex justify-between text-xs text-slate-500 dark:text-slate-400">
-                <span>
-                  {losing ? 'Weight loss progress' : 'Weight gain progress'}
-                  {change !== null && Math.abs(change) >= 0.05 && (
-                    <>
-                      {' '}
-                      · total {change > 0 ? '+' : ''}
-                      {fmt1(change)} kg
-                    </>
-                  )}
-                </span>
-                <span className="font-semibold text-navy dark:text-slate-100">
-                  {reached ? 'Goal reached! 🎉' : `${fmt1(Math.abs(current - goalKg))} kg to go`}
+      {/* Protein, carbs and fat as three thin bars. */}
+      {!hide && (
+        <section aria-label="Nutrition" className="space-y-3">
+          <h2 className="text-lg font-semibold tracking-tight">Nutrition</h2>
+          {(
+            [
+              ['Protein', eaten.proteinG, target.proteinG, 'bg-emerald-strong dark:bg-emerald'],
+              ['Carbs', eaten.carbsG, target.carbsG, 'bg-[#dca46c]'],
+              ['Fat', eaten.fatG, target.fatG, 'bg-[#c98272]'],
+            ] as const
+          ).map(([name, value, max, color]) => (
+            <div key={name}>
+              <div className="flex justify-between text-sm">
+                <span className="font-medium">{name}</span>
+                <span className="text-slate-500 tabular-nums dark:text-slate-400">
+                  {fmtInt(value)} / {fmtInt(max)} g
                 </span>
               </div>
-              <div className="h-1.5 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-700">
+              <div
+                className="mt-1.5 h-1.5 rounded-full bg-slate-200 dark:bg-white/10"
+                aria-hidden="true"
+              >
                 <div
-                  className="h-full rounded-full bg-[#5856d6] transition-all duration-500 dark:bg-[#7d7aff]"
-                  style={{ width: `${Math.round(toGoal * 100)}%` }}
+                  className={`h-1.5 rounded-full ${color}`}
+                  style={{ width: `${max > 0 ? Math.min(100, (value / max) * 100) : 0}%` }}
                 />
               </div>
             </div>
-          )}
-
-          <QuickWeighIn
-            key={String(current)}
-            todayKg={todayEntry?.weightKg ?? null}
-            suggested={current ?? 60}
-            hide={false}
-            onSave={saveToday}
-            onEdit={() => setWeighing(true)}
-          />
-        </Card>
-      )}
-      {hide && (
-        <Card className="p-4">
-          <p className="flex items-center gap-1.5 text-[0.9375rem] font-semibold text-[#5856d6] dark:text-[#7d7aff]">
-            <Glyph name="scale" className="size-[18px]" /> Weigh-in
-          </p>
-          <QuickWeighIn
-            key={String(current)}
-            todayKg={todayEntry?.weightKg ?? null}
-            suggested={current ?? 60}
-            hide
-            onSave={saveToday}
-            onEdit={() => setWeighing(true)}
-          />
-        </Card>
-      )}
-
-      {/* Calories & photo logging */}
-      <Card className="space-y-3 p-4">
-        <div className="flex items-center justify-between gap-3">
-          <div className="min-w-0">
-            <p className="flex items-center gap-1.5 text-[0.9375rem] font-semibold text-[#ff9500]">
-              <Glyph name="flame" className="size-[18px]" /> Calories today
-            </p>
-            {hide ? (
-              <p className="mt-0.5 text-lg font-black">{todayMeals.length} items logged</p>
-            ) : (
-              <>
-                <p className="mt-0.5 flex items-baseline gap-1">
-                  <span className="text-[2rem] leading-none font-bold">{fmtInt(eaten.kcal)}</span>
-                  <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-                    / {fmtInt(target.caloriesKcal)} kcal target
-                  </span>
-                </p>
-                <p
-                  className={`text-xs font-semibold ${gap.state === 'over' ? 'text-amber-700 dark:text-amber-300' : 'text-emerald-700 dark:text-emerald-300'}`}
-                >
-                  {gap.label} {fmtInt(gap.kcal)} kcal{gap.state === 'reached' ? ' 🎉' : ''}
-                </p>
-              </>
-            )}
-          </div>
-          <SnapButton
-            meal={nextMeal}
-            label={`Log ${MEAL_LABELS[nextMeal].toLowerCase()}`}
-            className="flex min-h-11 shrink-0 items-center gap-2 rounded-full bg-emerald-strong px-4 text-[0.9375rem] font-semibold text-white transition active:scale-95 dark:bg-emerald dark:text-black"
-          >
-            <Glyph name="camera" className="size-5" />
-            Log food
-          </SnapButton>
-        </div>
-        {!hide && (
-          <Bar
-            value={eaten.kcal}
-            max={target.caloriesKcal}
-            color={gap.state === 'over' ? 'bg-amber-500' : 'bg-emerald'}
-          />
-        )}
-        <div className="grid grid-cols-4 gap-2 border-t border-slate-100 pt-3 dark:border-slate-700">
-          {MEAL_TYPES.map((m) => (
-            <SnapButton
-              key={m}
-              meal={m}
-              label={`Log ${MEAL_LABELS[m].toLowerCase()}`}
-              className="group flex flex-col items-center rounded-[14px] bg-[#767680]/[0.08] p-2 text-center transition hover:bg-[#767680]/[0.14] active:scale-95 dark:bg-[#767680]/[0.24]"
-            >
-              <Glyph
-                name={MEAL_STYLE[m].glyph}
-                className={`size-6 transition group-hover:scale-110 ${MEAL_STYLE[m].text}`}
-              />
-              <span className="mt-0.5 text-xs font-medium text-navy dark:text-slate-200">
-                {MEAL_LABELS[m]}
-              </span>
-            </SnapButton>
           ))}
-        </div>
-      </Card>
+        </section>
+      )}
 
-      {/* Today's food log */}
-      <section className="space-y-3">
+      {/* Today's meals: a plain list, with quick links to log each meal. */}
+      <section aria-label="Today's meals">
         <div className="flex items-center justify-between">
-          <h2 className="text-[1.25rem] font-bold">Today's food log</h2>
+          <h2 className="text-lg font-semibold tracking-tight">Today's meals</h2>
           <Link
             to="/diary"
-            className="text-[0.9375rem] text-emerald-strong hover:opacity-70 dark:text-emerald"
+            className="text-sm font-medium text-emerald-strong hover:opacity-70 dark:text-emerald"
           >
-            See all
+            View diary →
           </Link>
         </div>
         {todayMeals.length === 0 ? (
-          <p className="rounded-[22px] bg-white p-5 text-center text-sm text-slate-500 dark:bg-slate-800 dark:text-slate-400">
-            Nothing logged yet today. Tap "Log food" above to start.
+          <p className="py-4 text-sm text-slate-500 dark:text-slate-400">
+            Nothing logged yet today. Snap or search your first meal.
           </p>
         ) : (
-          <ul className="divide-y divide-slate-100 overflow-hidden rounded-[22px] bg-white dark:divide-slate-700 dark:bg-slate-800">
+          <ul className="mt-1 divide-y divide-slate-200 dark:divide-white/10">
             {MEAL_TYPES.flatMap((m) => todayMeals.filter((i) => i.meal === m)).map((i) => (
               <li key={i.id}>
                 <Link
                   to="/diary"
-                  className="flex items-center justify-between gap-3 p-3.5 transition hover:bg-slate-50 dark:hover:bg-slate-700"
+                  className="flex items-center justify-between gap-3 py-3 transition hover:opacity-80"
                 >
                   <span className="flex min-w-0 items-center gap-3">
-                    <FoodThumb item={i} />
+                    <FoodThumb item={i} size="size-14" />
                     <span className="min-w-0">
-                      <span className="flex items-center gap-1.5">
-                        <span className="shrink-0 text-xs font-semibold text-slate-500 dark:text-slate-400">
-                          {i.label ?? MEAL_LABELS[i.meal]}
-                        </span>
-                        <span className="truncate text-[0.9375rem] font-semibold">{i.name}</span>
+                      <span className="block truncate text-[0.9375rem] font-semibold">
+                        {i.name}
                       </span>
-                      {!hide && (
-                        <span className="mt-0.5 block text-xs text-slate-500 dark:text-slate-400">
-                          {fmtInt(i.grams)} g · carbs {fmtInt(i.nutrients.carbsG)}g · protein{' '}
-                          {fmtInt(i.nutrients.proteinG)}g · fat {fmtInt(i.nutrients.fatG)}g
-                        </span>
-                      )}
+                      <span className="mt-0.5 block text-sm text-slate-500 dark:text-slate-400">
+                        {i.label ?? MEAL_LABELS[i.meal]}
+                        {!hide && ` · ${fmtInt(i.grams)} g`}
+                      </span>
                     </span>
                   </span>
                   {!hide && (
-                    <span className="shrink-0 text-[0.9375rem] font-semibold">
+                    <span className="shrink-0 text-sm font-semibold tabular-nums">
                       {fmtInt(i.nutrients.kcal)} kcal
                     </span>
                   )}
@@ -353,7 +256,118 @@ export function Today() {
             ))}
           </ul>
         )}
+        <div className="mt-3 grid grid-cols-4 gap-2">
+          {MEAL_TYPES.map((m) => (
+            <SnapButton
+              key={m}
+              meal={m}
+              label={`Log ${MEAL_LABELS[m].toLowerCase()}`}
+              className="inline-flex min-h-10 items-center justify-center gap-1 rounded-full bg-slate-100 px-2 text-[0.8125rem] font-medium transition hover:bg-slate-200 active:scale-95 dark:bg-white/10 dark:hover:bg-white/15"
+            >
+              <Glyph name={MEAL_STYLE[m].glyph} className={`size-4 ${MEAL_STYLE[m].text}`} />
+              {MEAL_LABELS[m]}
+            </SnapButton>
+          ))}
+        </div>
       </section>
+
+      {/* Weight & BMI */}
+      <Card>
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="text-lg font-semibold tracking-tight">{hide ? 'Weigh-in' : 'Weight'}</h2>
+          {!hide && (
+            <Link
+              to="/progress#weights"
+              className="shrink-0 text-sm font-medium text-emerald-strong hover:opacity-70 dark:text-emerald"
+            >
+              History →
+            </Link>
+          )}
+        </div>
+
+        {!hide && (
+          <>
+            <div className="mt-3 grid grid-cols-3 items-end gap-2">
+              <div>
+                <p className="text-xs text-slate-500 dark:text-slate-400">Current</p>
+                <p className="flex items-baseline gap-1">
+                  <span className="text-[2rem] leading-none font-bold tracking-tight tabular-nums">
+                    {current !== null ? fmt1(current) : '—'}
+                  </span>
+                  <span className="text-sm text-slate-500">kg</span>
+                </p>
+              </div>
+              <div className="text-center">
+                <p className="text-xs text-slate-500 dark:text-slate-400">BMI</p>
+                <p className="text-xl leading-tight font-semibold tabular-nums">
+                  {bmiValue !== null ? fmt1(bmiValue) : '—'}
+                </p>
+                {bmiValue !== null && (
+                  <p className="text-[0.6875rem] text-slate-500 dark:text-slate-400">
+                    {BMI_TEXT[bmiCategory(bmiValue)]}
+                  </p>
+                )}
+              </div>
+              <div className="text-right">
+                <p className="text-xs text-slate-500 dark:text-slate-400">Target</p>
+                {goalKg !== undefined ? (
+                  <p className="flex items-baseline justify-end gap-1">
+                    <span className="text-xl font-semibold tabular-nums">{fmt1(goalKg)}</span>
+                    <span className="text-sm text-slate-500">kg</span>
+                  </p>
+                ) : (
+                  <Link
+                    to="/me/body"
+                    className="text-sm font-semibold text-emerald-strong dark:text-emerald"
+                  >
+                    Set
+                  </Link>
+                )}
+              </div>
+            </div>
+            {bmiValue !== null && (
+              <span className="sr-only">
+                BMI {fmt1(bmiValue)} {BMI_TEXT[bmiCategory(bmiValue)]}
+              </span>
+            )}
+
+            {toGoal !== null && current !== null && goalKg !== undefined && (
+              <div className="mt-4 space-y-1.5">
+                <div className="flex justify-between text-xs text-slate-500 dark:text-slate-400">
+                  <span>
+                    {losing ? 'Weight loss progress' : 'Weight gain progress'}
+                    {change !== null && Math.abs(change) >= 0.05 && (
+                      <>
+                        {' '}
+                        · total {change > 0 ? '+' : ''}
+                        {fmt1(change)} kg
+                      </>
+                    )}
+                  </span>
+                  <span className="font-semibold text-navy dark:text-slate-100">
+                    {reached ? 'Goal reached! 🎉' : `${fmt1(Math.abs(current - goalKg))} kg to go`}
+                  </span>
+                </div>
+                <div className="h-1.5 overflow-hidden rounded-full bg-slate-200 dark:bg-white/10">
+                  <div
+                    className="h-full rounded-full bg-emerald-strong transition-all duration-500 dark:bg-emerald"
+                    style={{ width: `${Math.round(toGoal * 100)}%` }}
+                  />
+                </div>
+              </div>
+            )}
+          </>
+        )}
+
+        <QuickWeighIn
+          key={String(current)}
+          todayKg={todayEntry?.weightKg ?? null}
+          suggested={current ?? 60}
+          hide={hide}
+          onSave={saveToday}
+          onEdit={() => setWeighing(true)}
+        />
+      </Card>
 
       <WaterCard profile={profile} weightKg={current} />
 
@@ -394,13 +408,15 @@ function QuickWeighIn({
   const ok = text.trim() !== '' && kg >= 30 && kg <= 300;
   const step = (d: number) => setText(String(Math.round(((ok ? kg : suggested) + d) * 10) / 10));
   const stepClass =
-    'flex size-10 shrink-0 items-center justify-center rounded-full bg-white text-lg font-semibold text-[#5856d6] shadow-[0_1px_2px_rgba(0,0,0,0.08)] active:scale-95 dark:bg-slate-700 dark:text-[#a5a3ff]';
+    'flex size-10 shrink-0 items-center justify-center rounded-full bg-white text-lg font-semibold text-emerald-strong shadow-[0_1px_2px_rgba(0,0,0,0.08)] active:scale-95 dark:bg-slate-700 dark:text-emerald';
 
   if (todayKg !== null) {
     return (
-      <div className="mt-4 flex items-center justify-between gap-3 rounded-[16px] bg-[#5856d6]/[0.07] px-3 py-2.5 dark:bg-[#7d7aff]/15">
+      <div className="mt-4 flex items-center justify-between gap-3 rounded-[16px] bg-slate-50 px-3 py-2.5 dark:bg-white/5">
         <p className="text-sm">
-          <span className="font-semibold text-[#5856d6] dark:text-[#a5a3ff]">✓ Weighed today</span>
+          <span className="font-semibold text-emerald-strong dark:text-emerald">
+            ✓ Weighed today
+          </span>
           {!hide && (
             <span className="text-slate-600 dark:text-slate-300"> · {fmt1(todayKg)} kg</span>
           )}
@@ -408,7 +424,7 @@ function QuickWeighIn({
         <button
           type="button"
           onClick={onEdit}
-          className="min-h-9 rounded-full px-3 text-sm font-semibold text-[#5856d6] hover:bg-[#5856d6]/10 dark:text-[#a5a3ff]"
+          className="min-h-9 rounded-full px-3 text-sm font-semibold text-emerald-strong hover:bg-emerald-50 dark:text-emerald"
         >
           Edit
         </button>
@@ -418,7 +434,7 @@ function QuickWeighIn({
 
   return (
     <form
-      className="mt-4 rounded-[16px] bg-[#5856d6]/[0.07] p-3 dark:bg-[#7d7aff]/15"
+      className="mt-4 rounded-[16px] bg-slate-50 p-3 dark:bg-white/5"
       onSubmit={(e) => {
         e.preventDefault();
         if (ok) onSave(Math.round(kg * 10) / 10);
@@ -426,7 +442,7 @@ function QuickWeighIn({
     >
       <label
         htmlFor="quick-weigh-in"
-        className="text-xs font-semibold text-[#5856d6] dark:text-[#a5a3ff]"
+        className="text-xs font-semibold text-emerald-strong dark:text-emerald"
       >
         Today's weigh-in
       </label>
@@ -447,7 +463,7 @@ function QuickWeighIn({
             step="0.1"
             value={text}
             onChange={(e) => setText(e.target.value)}
-            className="w-20 rounded-[10px] bg-white py-1.5 text-center text-xl font-bold focus:ring-2 focus:ring-[#5856d6]/40 focus:outline-none dark:bg-slate-800"
+            className="w-20 rounded-[10px] bg-white py-1.5 text-center text-xl font-bold focus:ring-2 focus:ring-emerald/40 focus:outline-none dark:bg-slate-800"
           />
           <span className="text-sm font-semibold text-slate-500">kg</span>
         </span>
@@ -462,7 +478,7 @@ function QuickWeighIn({
         <button
           type="submit"
           disabled={!ok}
-          className="ml-auto min-h-10 rounded-full bg-[#5856d6] px-4 text-sm font-semibold text-white transition active:scale-95 disabled:opacity-40 dark:bg-[#7d7aff]"
+          className="ml-auto min-h-10 rounded-full bg-emerald-strong px-4 text-sm font-semibold text-white transition active:scale-95 disabled:opacity-40 dark:bg-emerald dark:text-black"
         >
           Save
         </button>

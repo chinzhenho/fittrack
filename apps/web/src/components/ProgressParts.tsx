@@ -213,11 +213,11 @@ export function Achievements({ s, today, hide }: { s: AppState; today: string; h
       )}
 
       {/* Monthly challenge */}
-      <div className="mt-4 overflow-hidden rounded-[18px] bg-gradient-to-br from-[#ff9500] to-[#ff5e3a] p-4 text-white">
+      <div className="mt-4 overflow-hidden rounded-[18px] bg-emerald-strong p-4 text-white dark:bg-emerald-800">
         <div className="flex items-start gap-3">
           <span
             aria-hidden="true"
-            className="flex size-12 shrink-0 flex-col items-center justify-center rounded-[12px] bg-white text-[#ff5e3a]"
+            className="flex size-12 shrink-0 flex-col items-center justify-center rounded-[12px] bg-white text-emerald-strong"
           >
             <span className="text-[0.625rem] leading-none font-bold uppercase">
               {monthName(month).slice(0, 3)}
@@ -257,7 +257,7 @@ export function Achievements({ s, today, hide }: { s: AppState; today: string; h
                   update((x) => joinMonthlyChallenge(x, month));
                   toast({ text: 'Joined! Your trophy is in the trophy case.' });
                 }}
-                className="mt-2 min-h-10 w-full rounded-[12px] bg-white font-semibold text-[#ff5e3a]"
+                className="mt-2 min-h-10 w-full rounded-[12px] bg-white font-semibold text-emerald-strong"
               >
                 Join and claim trophy
               </button>
@@ -270,7 +270,7 @@ export function Achievements({ s, today, hide }: { s: AppState; today: string; h
               update((x) => joinMonthlyChallenge(x, month));
               toast({ text: `Joined the ${monthName(month).split(' ')[0]} challenge` });
             }}
-            className="mt-3 min-h-11 w-full rounded-[12px] bg-white font-semibold text-[#ff5e3a]"
+            className="mt-3 min-h-11 w-full rounded-[12px] bg-white font-semibold text-emerald-strong"
           >
             Join challenge
           </button>

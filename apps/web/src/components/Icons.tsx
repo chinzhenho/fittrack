@@ -84,13 +84,17 @@ export function IconTile({
   tint: string;
   size?: 'sm' | 'md';
 }) {
-  const box = size === 'sm' ? 'size-7 rounded-[7px]' : 'size-8 rounded-[9px]';
+  // One quiet line-icon style everywhere; only destructive rows keep red.
+  const box = size === 'sm' ? 'size-7' : 'size-9';
+  const look = tint.includes('ff3b30')
+    ? 'bg-red-50 text-[#a04438] dark:bg-red-500/15 dark:text-red-300'
+    : 'bg-emerald-50 text-emerald-strong dark:bg-emerald/15 dark:text-emerald';
   return (
     <span
       aria-hidden="true"
-      className={`flex shrink-0 items-center justify-center text-white ${box} ${tint}`}
+      className={`flex shrink-0 items-center justify-center rounded-full ${box} ${look}`}
     >
-      <Glyph name={name} className={size === 'sm' ? 'size-4' : 'size-[18px]'} strokeWidth={2.2} />
+      <Glyph name={name} className={size === 'sm' ? 'size-4' : 'size-[18px]'} strokeWidth={1.8} />
     </span>
   );
 }
@@ -207,12 +211,12 @@ export function FoodThumb({ item, size = 'size-11' }: { item: MealItem; size?: s
     <img
       src={thumb}
       alt=""
-      className={`${size} shrink-0 rounded-[12px] object-cover ring-1 ring-black/5`}
+      className={`${size} shrink-0 rounded-[14px] object-cover ring-1 ring-black/5`}
     />
   ) : (
     <span
       aria-hidden="true"
-      className={`${size} flex shrink-0 items-center justify-center rounded-[12px] bg-slate-100 text-[1.375rem] dark:bg-slate-700`}
+      className={`${size} flex shrink-0 items-center justify-center rounded-[14px] bg-slate-100 text-[1.5rem] dark:bg-slate-700`}
     >
       {foodEmoji(item.name)}
     </span>

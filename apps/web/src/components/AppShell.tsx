@@ -53,7 +53,7 @@ export function AppShell() {
     <div className="min-h-dvh lg:flex">
       <nav
         aria-label="Main menu"
-        className="sticky top-0 hidden h-dvh w-60 shrink-0 border-r border-black/[0.06] bg-white/70 px-3 py-6 backdrop-blur-xl lg:block dark:border-white/10 dark:bg-slate-800/70"
+        className="sticky top-0 hidden h-dvh w-60 shrink-0 border-r border-black/[0.06] bg-[#f3f1ec]/80 px-3 py-6 backdrop-blur-xl lg:block dark:border-white/10 dark:bg-slate-800/70"
       >
         <div className="mb-8 flex items-center gap-2 px-3">
           <img
@@ -95,14 +95,14 @@ export function AppShell() {
             close the page.
           </p>
         )}
-        <main className="mx-auto max-w-3xl px-4 py-6">
+        <main className="mx-auto max-w-3xl px-5 py-6">
           <Outlet />
         </main>
       </div>
 
       <nav
         aria-label="Main menu"
-        className="fixed inset-x-0 bottom-0 z-40 border-t border-black/[0.08] bg-white/75 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl backdrop-saturate-150 lg:hidden dark:border-white/10 dark:bg-slate-800/75"
+        className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-[#faf9f6]/90 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl backdrop-saturate-150 lg:hidden dark:border-white/10 dark:bg-slate-800/75"
       >
         <ul className="grid grid-cols-5 items-end">
           {NAV.slice(0, 2).map((n) => (
@@ -114,7 +114,7 @@ export function AppShell() {
             <SnapButton
               meal={mealForHour(new Date().getHours())}
               label="Log food"
-              className="-mt-5 flex size-14 items-center justify-center rounded-full bg-emerald-strong text-white shadow-[0_6px_16px_rgba(36,138,61,0.35)] ring-4 ring-white/80 transition active:scale-90 dark:bg-emerald dark:text-black dark:ring-black/60"
+              className="-mt-5 flex size-14 items-center justify-center rounded-full bg-emerald-strong text-white shadow-[0_6px_16px_rgba(53,107,79,0.3)] ring-4 ring-[#faf9f6] transition active:scale-90 dark:bg-emerald dark:text-black dark:ring-black/60"
             >
               <Icon d={CAMERA} />
             </SnapButton>

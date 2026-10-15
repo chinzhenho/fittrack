@@ -12,15 +12,15 @@ export function PlanSummary({ plan, goal }: { plan: Plan; goal: Goal }) {
       name: 'Protein',
       g: macros.proteinG,
       kcal: macros.proteinG * KCAL_PER_G.protein,
-      color: 'bg-emerald',
+      color: 'bg-emerald-strong dark:bg-emerald',
     },
     {
       name: 'Carbs',
       g: macros.carbsG,
       kcal: macros.carbsG * KCAL_PER_G.carbs,
-      color: 'bg-sky-500',
+      color: 'bg-[#dca46c]',
     },
-    { name: 'Fat', g: macros.fatG, kcal: macros.fatG * KCAL_PER_G.fat, color: 'bg-amber-500' },
+    { name: 'Fat', g: macros.fatG, kcal: macros.fatG * KCAL_PER_G.fat, color: 'bg-[#c98272]' },
   ];
   const notes = [
     ...plan.clamps.map((c) => clampMessage(c, plan.calorieFloorKcal)),

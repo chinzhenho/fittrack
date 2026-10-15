@@ -33,7 +33,7 @@ export function Diary() {
   return (
     <div className="space-y-4">
       <PageTitle>Food diary</PageTitle>
-      <div className="flex items-center justify-between rounded-3xl bg-white p-2 shadow-sm ring-1 ring-slate-900/5 dark:bg-slate-800 dark:ring-white/10">
+      <div className="flex items-center justify-between py-1">
         <Button variant="ghost" aria-label="Previous day" onClick={() => go(addDays(date, -1))}>
           ‹<span className="hidden sm:inline"> Previous</span>
         </Button>
@@ -125,14 +125,19 @@ export function Diary() {
             <Bar
               value={total.kcal}
               max={target.caloriesKcal}
-              color={gap?.state === 'over' ? 'bg-amber-500' : 'bg-emerald'}
+              color={gap?.state === 'over' ? 'bg-[#dca46c]' : 'bg-emerald-strong dark:bg-emerald'}
             />
           )}
           <div className="mt-4 grid grid-cols-3 gap-3 text-sm">
             {[
-              { n: 'Protein', v: total.proteinG, t: target?.proteinG, c: 'bg-rose-500' },
-              { n: 'Carbs', v: total.carbsG, t: target?.carbsG, c: 'bg-sky-500' },
-              { n: 'Fat', v: total.fatG, t: target?.fatG, c: 'bg-amber-500' },
+              {
+                n: 'Protein',
+                v: total.proteinG,
+                t: target?.proteinG,
+                c: 'bg-emerald-strong dark:bg-emerald',
+              },
+              { n: 'Carbs', v: total.carbsG, t: target?.carbsG, c: 'bg-[#dca46c]' },
+              { n: 'Fat', v: total.fatG, t: target?.fatG, c: 'bg-[#c98272]' },
             ].map((m) => (
               <div key={m.n}>
                 <p className="flex items-center gap-1.5 text-slate-600 dark:text-slate-300">

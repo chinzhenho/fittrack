@@ -175,11 +175,11 @@ function Row({
     <li>
       <Link
         to={to}
-        className="flex min-h-14 w-full items-center gap-3 rounded-2xl px-2 text-left hover:bg-slate-50 dark:hover:bg-slate-700"
+        className="flex min-h-[3.75rem] w-full items-center gap-3 text-left transition hover:opacity-70"
       >
         <IconTile name={icon} tint={tint} />
         <span className="min-w-0 flex-1">
-          <span className="block text-sm font-semibold">{title}</span>
+          <span className="block text-[0.9375rem] font-semibold">{title}</span>
           {sub && (
             <span className="block truncate text-xs text-slate-500 dark:text-slate-400">{sub}</span>
           )}
@@ -193,7 +193,7 @@ function Row({
 }
 
 const rowButtonClass =
-  'flex min-h-14 w-full items-center gap-3 rounded-2xl px-2 text-left hover:bg-slate-50 dark:hover:bg-slate-700';
+  'flex min-h-[3.75rem] w-full items-center gap-3 text-left transition hover:opacity-70';
 
 /** Daily reminders added to the phone's own calendar (see lib/reminders.ts). */
 function RemindersCard() {
@@ -250,10 +250,12 @@ function RemindersCard() {
 function Group({ title, children }: { title: string; children: ReactNode }) {
   return (
     <section aria-label={title}>
-      <h2 className="mb-1.5 px-4 text-[0.8125rem] text-slate-500 uppercase dark:text-slate-400">
+      <h2 className="mb-1 text-xs font-semibold tracking-[0.08em] text-emerald-strong uppercase dark:text-emerald">
         {title}
       </h2>
-      <Card className="!rounded-[14px] p-2">{children}</Card>
+      <div className="divide-y divide-slate-200 border-y border-slate-200 dark:divide-white/10 dark:border-white/10 [&>ul]:divide-y [&>ul]:divide-slate-200 dark:[&>ul]:divide-white/10">
+        {children}
+      </div>
     </section>
   );
 }
@@ -801,15 +803,15 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
     <div className="space-y-5">
       <PageTitle sub="Manage your health plan and app settings.">Me</PageTitle>
 
-      <section className="overflow-hidden rounded-[22px] bg-white dark:bg-slate-800">
+      <section>
         <Link
           to="/me/profile"
           aria-label="Edit profile"
-          className="flex items-center gap-4 p-4 transition hover:bg-slate-50 dark:hover:bg-slate-700"
+          className="flex items-center gap-4 py-2 transition hover:opacity-80"
         >
           <span
             aria-hidden="true"
-            className="flex size-16 shrink-0 items-center justify-center rounded-full bg-gradient-to-b from-slate-100 to-slate-200 text-3xl font-semibold text-slate-600 dark:from-slate-600 dark:to-slate-700 dark:text-slate-100"
+            className="flex size-16 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-3xl font-semibold text-emerald-strong dark:bg-emerald/15 dark:text-emerald"
           >
             {initial}
           </span>
@@ -896,10 +898,10 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
       </Group>
 
       <section aria-label="Appearance">
-        <h2 className="mb-1.5 px-4 text-[0.8125rem] text-slate-500 uppercase dark:text-slate-400">
+        <h2 className="mb-3 text-xs font-semibold tracking-[0.08em] text-emerald-strong uppercase dark:text-emerald">
           Appearance
         </h2>
-        <Card className="space-y-5">
+        <div className="space-y-5">
           <ChoiceCards<Theme>
             label="Theme"
             columns={3}
@@ -924,7 +926,7 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
             ]}
             onToggle={(_, v) => update((x) => setHideNumbers(x, v))}
           />
-        </Card>
+        </div>
       </section>
 
       <RemindersCard />

@@ -14,7 +14,7 @@ export function WaterCard({ profile, weightKg }: { profile: Profile; weightKg: n
 
   if (profile.screening.kidneyDisease) {
     return (
-      <Card className="flex items-start gap-3 p-4">
+      <Card className="flex items-start gap-3">
         <span
           aria-hidden="true"
           className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-sky-100 text-lg dark:bg-sky-500/20"
@@ -34,15 +34,15 @@ export function WaterCard({ profile, weightKg }: { profile: Profile; weightKg: n
 
   const [min, max] = waterRangeMl(weightKg, activity);
   return (
-    <Card className="p-4">
+    <Card>
       <div className="flex items-center justify-between gap-3">
-        <p className="flex items-center gap-1.5 text-[0.9375rem] font-semibold text-[#32ade6] dark:text-[#64d2ff]">
-          <Glyph name="drop" className="size-[18px]" /> Daily water guide
-        </p>
+        <h2 className="flex items-center gap-1.5 text-lg font-semibold tracking-tight">
+          <Glyph name="drop" className="size-[18px] text-[#5f78ad] dark:text-[#9fb2da]" /> Water
+        </h2>
         <button
           type="button"
           onClick={() => setAdjusting(true)}
-          className="min-h-9 shrink-0 rounded-full bg-[#32ade6]/10 px-3 text-sm font-semibold text-[#0a84c6] transition hover:bg-[#32ade6]/15 active:scale-95 dark:bg-[#64d2ff]/15 dark:text-[#64d2ff]"
+          className="min-h-9 shrink-0 rounded-full px-3 text-sm font-medium text-emerald-strong transition hover:opacity-70 active:scale-95 dark:text-emerald"
         >
           Adjust
         </button>

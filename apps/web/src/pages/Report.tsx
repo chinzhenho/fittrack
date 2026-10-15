@@ -88,7 +88,7 @@ function CaloriesChart({ rows, gaining }: { rows: DayRow[]; gaining: boolean }) 
             width={bw * 0.7}
             height={Math.max(0.5, y(0) - y(r.kcal))}
             rx={Math.min(2, bw * 0.2)}
-            fill={off(r) ? '#ff9500' : '#34c759'}
+            fill={off(r) ? '#dca46c' : '#4e8a66'}
           />
         ) : null,
       )}
@@ -184,7 +184,7 @@ function WeightChart({
       <path
         d={pts.map((p, k) => `${k ? 'L' : 'M'}${x(p.i).toFixed(1)} ${y(p.w).toFixed(1)}`).join(' ')}
         fill="none"
-        stroke="#5856d6"
+        stroke="#356b4f"
         strokeWidth="1.5"
         strokeLinejoin="round"
       />
@@ -195,7 +195,7 @@ function WeightChart({
           cy={y(p.w)}
           r="1.8"
           fill="#fff"
-          stroke="#5856d6"
+          stroke="#356b4f"
           strokeWidth="1"
         />
       ))}
@@ -264,9 +264,9 @@ export function Report() {
 
   const macros: { label: string; avg: number | null; target: number | undefined; color: string }[] =
     [
-      { label: 'Protein', avg: summary.avgProteinG, target: target?.proteinG, color: '#ff2d55' },
-      { label: 'Carbs', avg: avg('carbsG'), target: target?.carbsG, color: '#32ade6' },
-      { label: 'Fat', avg: avg('fatG'), target: target?.fatG, color: '#ff9500' },
+      { label: 'Protein', avg: summary.avgProteinG, target: target?.proteinG, color: '#356b4f' },
+      { label: 'Carbs', avg: avg('carbsG'), target: target?.carbsG, color: '#dca46c' },
+      { label: 'Fat', avg: avg('fatG'), target: target?.fatG, color: '#c98272' },
     ];
   const th = 'px-1 py-1 font-semibold text-slate-500 print:py-0.5';
   const td = 'px-1 py-1 print:py-[1px]';
@@ -376,11 +376,11 @@ export function Report() {
             <CaloriesChart rows={rows} gaining={gaining} />
             <p className="mt-0.5 flex gap-3 text-[0.6875rem] text-slate-500">
               <span>
-                <span className="mr-1 inline-block size-2 rounded-sm bg-[#34c759]" />
+                <span className="mr-1 inline-block size-2 rounded-sm bg-[#4e8a66]" />
                 On track
               </span>
               <span>
-                <span className="mr-1 inline-block size-2 rounded-sm bg-[#ff9500]" />
+                <span className="mr-1 inline-block size-2 rounded-sm bg-[#dca46c]" />
                 {gaining ? 'Under target' : 'Over target'}
               </span>
             </p>

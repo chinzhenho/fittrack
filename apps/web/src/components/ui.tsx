@@ -1,20 +1,30 @@
 import { useId, useState, type ButtonHTMLAttributes, type ReactNode } from 'react';
 import { useNavigate } from 'react-router';
 
-export function Card({ children, className = '' }: { children: ReactNode; className?: string }) {
-  return (
-    <section
-      className={`rounded-[22px] bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.04)] dark:bg-slate-800 ${className}`}
-    >
-      {children}
-    </section>
-  );
+/**
+ * A page section. Plain sections sit on the page with a thin line above them (no box);
+ * `hero` is the one soft green panel for the main summary of a page.
+ */
+export function Card({
+  children,
+  className = '',
+  tone = 'plain',
+}: {
+  children: ReactNode;
+  className?: string;
+  tone?: 'plain' | 'hero';
+}) {
+  const look =
+    tone === 'hero'
+      ? 'rounded-[20px] bg-emerald-50 p-5 dark:bg-emerald/10'
+      : 'border-t border-slate-200 pt-6 dark:border-white/10';
+  return <section className={`${look} ${className}`}>{children}</section>;
 }
 
 export function CardTitle({ children, action }: { children: ReactNode; action?: ReactNode }) {
   return (
     <div className="mb-3 flex items-center justify-between gap-3">
-      <h2 className="text-[1.0625rem] font-semibold">{children}</h2>
+      <h2 className="text-lg font-semibold tracking-tight">{children}</h2>
       {action}
     </div>
   );
@@ -179,8 +189,8 @@ export function Notice({
 
 export function PageTitle({ children, sub }: { children: ReactNode; sub?: ReactNode }) {
   return (
-    <div className="mb-5 pt-2">
-      <h1 className="text-[2.125rem] leading-tight font-bold">{children}</h1>
+    <div className="mb-6 pt-3">
+      <h1 className="text-[2rem] leading-tight font-bold tracking-tight">{children}</h1>
       {sub && <p className="mt-1 text-[0.9375rem] text-slate-500 dark:text-slate-400">{sub}</p>}
     </div>
   );
@@ -418,17 +428,17 @@ export function List({
   return (
     <section aria-label={title}>
       {title && (
-        <h2 className="mb-1.5 px-4 text-[0.8125rem] text-slate-500 uppercase dark:text-slate-400">
+        <h2 className="mb-1 text-xs font-semibold tracking-[0.08em] text-emerald-strong uppercase dark:text-emerald">
           {title}
         </h2>
       )}
       <div
-        className={`divide-y overflow-hidden rounded-[14px] pl-4 [&>*]:pr-4 ${nested ? 'divide-slate-200 bg-slate-50 dark:divide-slate-600 dark:bg-slate-700/50' : 'divide-slate-100 bg-white dark:divide-slate-700 dark:bg-slate-800'}`}
+        className={`divide-y ${nested ? 'divide-slate-200 rounded-[14px] bg-slate-50 px-3 dark:divide-slate-600 dark:bg-slate-700/50' : 'divide-slate-200 border-y border-slate-200 dark:divide-white/10 dark:border-white/10'}`}
       >
         {children}
       </div>
       {footer && (
-        <p className="mt-1.5 px-4 text-xs leading-relaxed text-slate-500 dark:text-slate-400">
+        <p className="mt-1.5 text-xs leading-relaxed text-slate-500 dark:text-slate-400">
           {footer}
         </p>
       )}
@@ -530,7 +540,7 @@ export function InputRow({
 }
 
 const switchTrack =
-  'relative h-[31px] w-[51px] shrink-0 rounded-full bg-[#787880]/[0.16] transition-colors peer-checked:bg-[#34c759] peer-focus-visible:outline-2 peer-focus-visible:outline-emerald after:absolute after:top-[2px] after:left-[2px] after:size-[27px] after:rounded-full after:bg-white after:shadow-[0_3px_8px_rgba(0,0,0,0.15)] after:transition-transform peer-checked:after:translate-x-5 dark:bg-[#787880]/[0.32]';
+  'relative h-[31px] w-[51px] shrink-0 rounded-full bg-[#787880]/[0.16] transition-colors peer-checked:bg-emerald-strong peer-focus-visible:outline-2 peer-focus-visible:outline-emerald after:absolute after:top-[2px] after:left-[2px] after:size-[27px] after:rounded-full after:bg-white after:shadow-[0_3px_8px_rgba(0,0,0,0.15)] after:transition-transform peer-checked:after:translate-x-5 dark:bg-[#787880]/[0.32]';
 
 /** A standalone iOS-style switch. */
 export function Switch({
