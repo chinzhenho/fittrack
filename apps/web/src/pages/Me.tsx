@@ -933,10 +933,10 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
 
       <Group title="Privacy & data">
         <ul>
-          <li className="flex min-h-14 items-center gap-3 px-2">
+          <li className="flex min-h-[3.75rem] items-center gap-3 py-2">
             <IconTile name="shield" tint="bg-[#34c759]" />
             <span className="min-w-0 flex-1">
-              <span className="block text-sm font-semibold">Where your data is</span>
+              <span className="block text-[0.9375rem] font-semibold">Where your data is</span>
               <span className="block text-xs text-slate-500 dark:text-slate-400">
                 {signedIn
                   ? 'In your account (servers in Singapore) and on this device. Only you can see it.'
@@ -1054,7 +1054,7 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
           )}
         </ul>
         {signedIn && (
-          <p className="mt-1 border-t border-slate-100 px-2 pt-2.5 text-xs text-slate-500 dark:border-slate-700 dark:text-slate-400">
+          <p className="py-3 text-xs text-slate-500 dark:text-slate-400">
             To delete your account, tap your name at the top of this page.
           </p>
         )}
@@ -1068,7 +1068,7 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
           <Row to="/legal/privacy" icon="lock" tint="bg-slate-400" title="Privacy policy" />
           <Row to="/legal/credits" icon="book" tint="bg-[#af52de]" title="Data sources" />
         </ul>
-        <p className="mt-2 border-t border-slate-100 px-2 pt-3 text-xs text-slate-500 dark:border-slate-700 dark:text-slate-400">
+        <p className="py-3 text-xs text-slate-500 dark:text-slate-400">
           App version {__APP_VERSION__} ({__BUILD_DATE__})
         </p>
       </Group>
