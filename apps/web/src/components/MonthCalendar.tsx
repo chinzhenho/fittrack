@@ -82,8 +82,8 @@ export function MonthCalendar({
         </button>
       </div>
       <div className="grid grid-cols-7 gap-1 text-center text-xs text-slate-500 dark:text-slate-400">
-        {WEEKDAYS.map((w) => (
-          <span key={w} className="py-1">
+        {WEEKDAYS.map((w, i) => (
+          <span key={i} className="py-1">
             {w}
           </span>
         ))}

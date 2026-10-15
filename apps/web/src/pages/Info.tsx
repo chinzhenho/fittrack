@@ -175,11 +175,12 @@ export function Privacy() {
       <p>
         <strong>AI photos:</strong> only after you take a photo and agree, the photo is shrunk on
         your phone (removing location and other metadata) and passed through our server to Google
-        Gemini or Cloudflare Workers AI for analysis, together with any note you typed. We do not
-        keep photos, only the food entries you confirm. Google&apos;s free-tier terms allow Google
-        to use uploads to improve its products, so please keep faces and personal details out of the
-        shot. To share the free quota fairly, we record how many photos each account uses per day
-        (not the photos themselves).
+        Gemini or Cloudflare Workers AI for analysis, together with any note you typed. Our servers
+        do not keep photos; a small thumbnail stays only in your browser so your food log can show
+        it, and is deleted when you delete your data. We keep the food entries you confirm.
+        Google&apos;s free-tier terms allow Google to use uploads to improve its products, so please
+        keep faces and personal details out of the shot. To share the free quota fairly, we record
+        how many photos each account uses per day (not the photos themselves).
       </p>
       <h2>How we use it</h2>
       <p>

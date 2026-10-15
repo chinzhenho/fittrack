@@ -1,9 +1,10 @@
 import type { MealType } from '../data/types';
+import type { IconName } from './Icons';
 
-/** Icon and tint for each meal, shared by Today and the diary. */
-export const MEAL_STYLE: Record<MealType, { icon: string; bg: string }> = {
-  breakfast: { icon: '🍳', bg: 'bg-amber-100 dark:bg-amber-500/20' },
-  lunch: { icon: '🍛', bg: 'bg-emerald-100 dark:bg-emerald/20' },
-  dinner: { icon: '🍲', bg: 'bg-sky-100 dark:bg-sky-500/20' },
-  snack: { icon: '🍽️', bg: 'bg-rose-100 dark:bg-rose-500/20' },
+/** Icon and colour for each meal, shared by Today and the diary. */
+export const MEAL_STYLE: Record<MealType, { glyph: IconName; tile: string; text: string }> = {
+  breakfast: { glyph: 'sun', tile: 'bg-[#ff9500]', text: 'text-[#ff9500]' },
+  lunch: { glyph: 'fork', tile: 'bg-emerald-500', text: 'text-emerald-strong dark:text-emerald' },
+  dinner: { glyph: 'moon', tile: 'bg-[#5856d6]', text: 'text-[#5856d6] dark:text-[#7d7aff]' },
+  snack: { glyph: 'star', tile: 'bg-[#ff2d55]', text: 'text-[#ff2d55]' },
 };

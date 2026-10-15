@@ -10,6 +10,8 @@ import {
 } from '@fittrack/engine';
 import { useMemo, useState, type ReactNode } from 'react';
 import { Link, useNavigate } from 'react-router';
+import { IconTile, type IconName } from '../components/Icons';
+import { clearThumbs } from '../data/photoThumbs';
 import { useToast } from '../components/Toast';
 import {
   BackArrow,
@@ -153,11 +155,13 @@ function TargetCompare({
 function Row({
   to,
   icon,
+  tint,
   title,
   sub,
 }: {
   to: string;
-  icon: string;
+  icon: IconName;
+  tint: string;
   title: string;
   sub?: ReactNode;
 }) {
@@ -167,12 +171,7 @@ function Row({
         to={to}
         className="flex min-h-14 w-full items-center gap-3 rounded-2xl px-2 text-left hover:bg-slate-50 dark:hover:bg-slate-700"
       >
-        <span
-          aria-hidden="true"
-          className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-lg dark:bg-slate-700"
-        >
-          {icon}
-        </span>
+        <IconTile name={icon} tint={tint} />
         <span className="min-w-0 flex-1">
           <span className="block text-sm font-semibold">{title}</span>
           {sub && (
@@ -671,19 +670,22 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
         <ul>
           <Row
             to="/me/plan"
-            icon="🎯"
+            icon="target"
+            tint="bg-[#ff9500]"
             title="Goal & lifestyle"
             sub={`${GOAL_LABELS[profile.goal]}${profile.goal !== 'maintain' ? ` · ${profile.ratePctPerWeek}% a week` : ''} · ${ACTIVITY_LABELS[profile.activityLevel].name}`}
           />
           <Row
             to="/me/profile"
-            icon="🙂"
+            icon="person"
+            tint="bg-[#007aff]"
             title="Body details"
             sub={`Height ${profile.heightCm} cm · born ${profile.birthDate}${profile.targetWeightKg !== undefined && !hide ? ` · target ${fmt1(profile.targetWeightKg)} kg` : ''}`}
           />
           <Row
             to="/me/targets"
-            icon="🍽️"
+            icon="fork"
+            tint="bg-emerald-500"
             title="Daily nutrition targets"
             sub={
               target && !hide
@@ -693,7 +695,8 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
           />
           <Row
             to="/progress#weights"
-            icon="⚖️"
+            icon="scale"
+            tint="bg-[#5856d6]"
             title="Weight log"
             sub={
               hide
@@ -712,8 +715,8 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
             label="Theme"
             value={theme}
             options={[
-              { value: 'light', label: '☀️ Light' },
-              { value: 'dark', label: '🌙 Dark' },
+              { value: 'light', label: 'Light' },
+              { value: 'dark', label: 'Dark' },
               { value: 'system', label: 'Match phone' },
             ]}
             onChange={setTheme}
@@ -730,7 +733,7 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
             </p>
           </div>
           <p className="rounded-2xl bg-slate-50 px-3 py-2.5 text-xs text-slate-600 dark:bg-slate-700/60 dark:text-slate-300">
-            📏 Units: metric (kg, cm, kcal). Only metric is supported for now.
+            Units: metric (kg, cm, kcal). Only metric is supported for now.
           </p>
         </div>
       </Group>
@@ -738,7 +741,7 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
       <Group title="Reminders & notifications">
         <div className="space-y-2 p-2 text-sm leading-relaxed">
           <p>
-            🔕 EatHealthee does <strong>not</strong> have push notifications or reminders yet, and
+            EatHealthee does <strong>not</strong> have push notifications or reminders yet, and
             never sends anything in the background.
           </p>
           <p className="text-xs text-slate-500 dark:text-slate-400">
@@ -752,10 +755,10 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
         <div className="space-y-4 p-2 text-sm">
           <p className="text-slate-600 dark:text-slate-300">
             {signedIn
-              ? '🔒 Your data is stored in your account (Supabase, servers in Singapore), and each account can only access its own data. This device keeps a copy for offline use.'
+              ? 'Your data is stored in your account (Supabase, servers in Singapore), and each account can only access its own data. This device keeps a copy for offline use.'
               : isPersistent()
-                ? "📱 Your data is only stored in this device's browser. Clearing browser data or changing phones will lose it, so sign up or export a backup regularly."
-                : "⚠️ This browser can't save data right now (maybe private browsing)."}
+                ? "Your data is only stored in this device's browser. Clearing browser data or changing phones will lose it, so sign up or export a backup regularly."
+                : "This browser can't save data right now (maybe private browsing)."}
           </p>
 
           <div className="rounded-2xl bg-slate-50 p-3 dark:bg-slate-700/60">
@@ -765,7 +768,7 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
               It is saved only on your device and contains health data, so keep it safe.
             </p>
             <Button variant="secondary" className="mt-2" onClick={exportData}>
-              ⬇️ Export backup (JSON)
+              Export backup (JSON)
             </Button>
           </div>
 
@@ -837,6 +840,7 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
                       variant="danger"
                       onClick={() => {
                         replaceState(emptyState);
+                        void clearThumbs();
                         navigate('/welcome', { replace: true });
                       }}
                     >
@@ -880,7 +884,7 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
                 </span>
               </span>
             </li>
-            <Row to="/update-password" icon="🔑" title="Change password" />
+            <Row to="/update-password" icon="key" tint="bg-slate-400" title="Change password" />
           </ul>
           <div className="mt-2 border-t border-slate-100 px-2 pt-3 dark:border-slate-700">
             {danger === 'account' ? (
@@ -936,11 +940,11 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
 
       <Group title="Help & info">
         <ul>
-          <Row to="/how-we-calculate" icon="🧮" title="How we calculate" />
-          <Row to="/help/faq" icon="💬" title="FAQ" />
-          <Row to="/legal/disclaimer" icon="🩺" title="Health disclaimer" />
-          <Row to="/legal/privacy" icon="🔒" title="Privacy policy" />
-          <Row to="/legal/credits" icon="📚" title="Data sources" />
+          <Row to="/how-we-calculate" icon="calc" tint="bg-[#ff9500]" title="How we calculate" />
+          <Row to="/help/faq" icon="question" tint="bg-[#007aff]" title="FAQ" />
+          <Row to="/legal/disclaimer" icon="heart" tint="bg-[#ff2d55]" title="Health disclaimer" />
+          <Row to="/legal/privacy" icon="lock" tint="bg-slate-400" title="Privacy policy" />
+          <Row to="/legal/credits" icon="book" tint="bg-[#af52de]" title="Data sources" />
         </ul>
         <p className="mt-2 border-t border-slate-100 px-2 pt-3 text-xs text-slate-500 dark:border-slate-700 dark:text-slate-400">
           App version {__APP_VERSION__} ({__BUILD_DATE__})

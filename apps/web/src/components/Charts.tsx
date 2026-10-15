@@ -58,10 +58,15 @@ function useWidth<T extends HTMLElement>() {
   return [ref, width] as const;
 }
 
+/** Weigh-ins needed in the range before the smoothed trend line is drawn. */
+export const TREND_MIN_POINTS = 5;
+
 /**
- * Daily weights as dots plus the trend line (spec 4.5). Drawn at the real pixel width
- * so text stays the same size on phones and desktops. Optional start and goal lines
- * are shown when they fall near the visible range.
+ * Weigh-ins joined by a line, plus the smoothed trend (spec 4.5) as a wide soft band
+ * once there are enough weigh-ins for it to mean something; with only a few points the
+ * trend barely moves and looked like a line that missed the dots. Drawn at the real
+ * pixel width so text stays the same size on phones and desktops. Start and goal lines
+ * are labelled on the left, away from the newest data on the right.
  */
 export function WeightChart({
   points,
@@ -104,12 +109,22 @@ export function WeightChart({
   const x = (d: string) =>
     pad.l + (daysBetween(start, d) / Math.max(1, days - 1)) * (W - pad.l - pad.r);
   const y = (v: number) => pad.t + ((hi - v) / (hi - lo)) * (H - pad.t - pad.b);
-  const line = inRange
-    .map((p, i) => `${i ? 'L' : 'M'}${x(p.date).toFixed(1)} ${y(p.trendKg).toFixed(1)}`)
-    .join(' ');
+  const path = (v: (p: TrendPoint) => number) =>
+    inRange
+      .map((p, i) => `${i ? 'L' : 'M'}${x(p.date).toFixed(1)} ${y(v(p)).toFixed(1)}`)
+      .join(' ');
+  const weighLine = path((p) => p.weightKg);
+  const trendLine = inRange.length >= TREND_MIN_POINTS ? path((p) => p.trendKg) : null;
+  // Keep the two reference labels apart when the lines are close together.
+  const goalLabelDy =
+    startKg != null && showGoal && Math.abs(y(startKg) - y(goalKg)) < 14
+      ? y(goalKg) < y(startKg)
+        ? -10
+        : 10
+      : 0;
   const ticks = [lo, (lo + hi) / 2, hi];
   const sel = inRange.find((p) => p.date === selected);
-  const refLine = (v: number, label: string, cls: string) => (
+  const refLine = (v: number, label: string, cls: string, dy = 0) => (
     <g>
       <line
         x1={pad.l}
@@ -120,7 +135,15 @@ export function WeightChart({
         strokeWidth="1.5"
         className={cls}
       />
-      <text x={W - pad.r} y={y(v) - 4} textAnchor="end" fontSize="11" className="fill-slate-500">
+      <text
+        x={pad.l + 4}
+        y={y(v) - 5 + dy}
+        fontSize="11"
+        fontWeight="600"
+        strokeWidth="3"
+        paintOrder="stroke"
+        className="fill-slate-500 stroke-white dark:stroke-slate-800"
+      >
         {label} {v.toFixed(1)}
       </text>
     </g>
@@ -157,11 +180,22 @@ export function WeightChart({
           </g>
         ))}
         {startKg != null && refLine(startKg, 'Start', 'stroke-slate-400')}
-        {showGoal && refLine(goalKg, 'Goal', 'stroke-emerald-strong dark:stroke-emerald')}
+        {showGoal &&
+          refLine(goalKg, 'Goal', 'stroke-emerald-strong dark:stroke-emerald', goalLabelDy)}
+        {trendLine && (
+          <path
+            d={trendLine}
+            fill="none"
+            strokeWidth="8"
+            className="stroke-emerald/25"
+            strokeLinejoin="round"
+            strokeLinecap="round"
+          />
+        )}
         <path
-          d={line}
+          d={weighLine}
           fill="none"
-          strokeWidth="3"
+          strokeWidth="2.5"
           className="stroke-emerald"
           strokeLinejoin="round"
           strokeLinecap="round"
@@ -185,7 +219,7 @@ export function WeightChart({
               className={
                 selected === p.date
                   ? 'fill-emerald-strong stroke-white dark:fill-emerald'
-                  : 'fill-slate-400 dark:fill-slate-500'
+                  : 'fill-white stroke-emerald dark:fill-slate-800'
               }
               strokeWidth="2"
             />

@@ -14,6 +14,7 @@ import {
 import { addCustomFood, logFood } from '../data/actions';
 import { AI_ERROR_TEXT, analyzeFoodPhoto, type AiPhotoError } from '../data/aiPhoto';
 import { takePendingPhoto, type PendingPhoto } from '../data/pendingPhoto';
+import { makeThumb, saveThumbs } from '../data/photoThumbs';
 import { useAuth } from '../data/auth';
 import { BUILT_IN_FOODS } from '../data/foods';
 import { newId, update, useAppState } from '../data/store';
@@ -96,10 +97,11 @@ export function AddFood() {
     setGrams(String(Math.round(f.servings?.[0]?.grams ?? 100)));
   };
 
-  const log = (food: Food, amount: number) =>
+  const log = (food: Food, amount: number) => {
+    const id = newId();
     update((x) =>
       logFood(x, {
-        id: newId(),
+        id,
         date,
         meal,
         food,
@@ -108,6 +110,8 @@ export function AddFood() {
         ...(meal === 'snack' && { label }),
       }),
     );
+    return id;
+  };
 
   const add = () => {
     if (!selected || !gramsOk) return;
@@ -227,8 +231,12 @@ export function AddFood() {
         <>
           <PhotoCard
             where={where}
-            onLog={(items) => {
-              for (const it of items) log(it.food, it.grams);
+            onLog={(items, photo) => {
+              const ids = items.map((it) => log(it.food, it.grams));
+              // Thumbnail for the food log, kept on this device only.
+              void makeThumb(photo)
+                .then((t) => saveThumbs(ids, t))
+                .catch(() => undefined);
               const kcal = items.reduce(
                 (t, it) => t + nutrientsFor(it.food.per100g, it.grams).kcal,
                 0,
@@ -296,7 +304,7 @@ function PhotoCard({
   onLog,
 }: {
   where: string;
-  onLog: (items: { food: Food; grams: number }[]) => void;
+  onLog: (items: { food: Food; grams: number }[], photo: File) => void;
 }) {
   const signedIn = useAuth().status === 'signedIn';
   const [consent, setConsent] = useState(readConsent);
@@ -416,8 +424,9 @@ function PhotoCard({
         <div className="space-y-3 rounded-2xl bg-white p-4 text-sm dark:bg-slate-700">
           <p>
             Photos are shrunk and sent to Google Gemini (or Cloudflare AI as a backup) for analysis.
-            We don't keep photos, but Google's free service may use uploads to improve its products.
-            Please keep faces and personal details out of the shot.
+            Our servers don't keep photos (a small thumbnail stays on this device for your food
+            log), but Google's free service may use uploads to improve its products. Please keep
+            faces and personal details out of the shot.
           </p>
           <Check
             checked={false}
@@ -565,11 +574,13 @@ function PhotoCard({
             className="w-full"
             disabled={chosen.length === 0}
             onClick={() =>
+              photo &&
               onLog(
                 chosen.map((x) => ({
                   food: foodForAiItem(x.item, done.result.model),
                   grams: Number(x.row.grams),
                 })),
+                photo,
               )
             }
           >

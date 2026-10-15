@@ -1,6 +1,7 @@
 import { addDays } from '@fittrack/engine';
 import { useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router';
+import { FoodThumb, IconTile } from '../components/Icons';
 import { MEAL_STYLE } from '../components/mealStyle';
 import { MonthCalendar } from '../components/MonthCalendar';
 import { useToast } from '../components/Toast';
@@ -166,12 +167,7 @@ export function Diary() {
         return (
           <Card key={meal}>
             <div className="flex items-center gap-3">
-              <span
-                aria-hidden="true"
-                className={`flex size-11 shrink-0 items-center justify-center rounded-2xl text-xl ${MEAL_STYLE[meal].bg}`}
-              >
-                {MEAL_STYLE[meal].icon}
-              </span>
+              <IconTile name={MEAL_STYLE[meal].glyph} tint={MEAL_STYLE[meal].tile} />
               <div className="min-w-0 flex-1">
                 <h2 className="text-lg font-semibold">{MEAL_LABELS[meal]}</h2>
                 <p className="text-sm text-slate-600 dark:text-slate-300">
@@ -242,6 +238,7 @@ function MealRow({ item: i, hide }: { item: MealItem; hide: boolean }) {
           aria-label={`Edit ${i.name}`}
           className="flex w-full items-center gap-3 rounded-2xl py-3 text-left hover:bg-slate-50 dark:hover:bg-slate-700"
         >
+          <FoodThumb item={i} size="size-10" />
           <span className="min-w-0 flex-1">
             <span className="block truncate font-medium">
               {i.label && (

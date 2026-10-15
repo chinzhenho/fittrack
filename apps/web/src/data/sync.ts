@@ -1,6 +1,7 @@
 import { useSyncExternalStore } from 'react';
 import { clearHealthRecords } from './actions';
 import { getAuth, onAuthChange } from './auth';
+import { clearThumbs } from './photoThumbs';
 import { decideSync, mergeStates } from './merge';
 import { getState, replaceState, subscribe } from './store';
 import { supabase } from './supabase';
@@ -173,6 +174,7 @@ export async function signOut(): Promise<void> {
 
 function clearBrowserCopy() {
   replaceState(emptyState);
+  void clearThumbs();
   try {
     localStorage.removeItem(META_KEY);
   } catch {
@@ -189,6 +191,7 @@ export async function deleteHealthRecords(): Promise<string | null> {
   const next: AppState = { ...clearHealthRecords(getState()), updatedAt: new Date().toISOString() };
   if (!userId) {
     replaceState(next);
+    void clearThumbs();
     return null;
   }
   clearTimeout(timer);
@@ -199,6 +202,7 @@ export async function deleteHealthRecords(): Promise<string | null> {
     return 'Delete failed. Check your connection and try again. Your records were not deleted.';
   writeMeta(next.updatedAt);
   replaceState(next);
+  void clearThumbs();
   setInfo({ status: 'synced' });
   return null;
 }

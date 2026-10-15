@@ -1,6 +1,7 @@
 import { bmi, bmiCategory, trendOn, type BmiCategory } from '@fittrack/engine';
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router';
+import { FoodThumb, Glyph } from '../components/Icons';
 import { MEAL_STYLE } from '../components/mealStyle';
 import { SnapButton } from '../components/SnapButton';
 import { Bar, Button, Card, Notice } from '../components/ui';
@@ -8,7 +9,6 @@ import { WaterCard } from '../components/WaterCard';
 import { addTarget, setWeightOn } from '../data/actions';
 import { useAuth } from '../data/auth';
 import { newId, update, useAppState } from '../data/store';
-import type { MealType } from '../data/types';
 import { localToday } from '../lib/dates';
 import { fmt1, fmtInt } from '../lib/format';
 import {
@@ -35,13 +35,6 @@ const BMI_TEXT: Record<BmiCategory, string> = {
   normal: 'Healthy',
   overweight: 'Overweight',
   obese: 'Obese',
-};
-
-const MEAL_BUTTON: Record<MealType, string> = {
-  breakfast: '🌅',
-  lunch: '☀️',
-  dinner: '🌙',
-  snack: '🍵',
 };
 
 export function Today() {
@@ -145,7 +138,7 @@ export function Today() {
         <Card className="p-4">
           <div className="flex items-center justify-between gap-3">
             <p className="flex items-center gap-1.5 text-[0.9375rem] font-semibold text-[#5856d6] dark:text-[#7d7aff]">
-              <span aria-hidden="true">⚖️</span> Weight & BMI
+              <Glyph name="scale" className="size-[18px]" /> Weight & BMI
             </p>
             <button
               type="button"
@@ -233,7 +226,7 @@ export function Today() {
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0">
             <p className="flex items-center gap-1.5 text-[0.9375rem] font-semibold text-[#ff9500]">
-              <span aria-hidden="true">🔥</span> Calories today
+              <Glyph name="flame" className="size-[18px]" /> Calories today
             </p>
             {hide ? (
               <p className="mt-0.5 text-lg font-black">{todayMeals.length} items logged</p>
@@ -258,7 +251,7 @@ export function Today() {
             label={`Log ${MEAL_LABELS[nextMeal].toLowerCase()}`}
             className="flex min-h-11 shrink-0 items-center gap-2 rounded-full bg-emerald-strong px-4 text-[0.9375rem] font-semibold text-white transition active:scale-95 dark:bg-emerald dark:text-black"
           >
-            <span aria-hidden="true">📷</span>
+            <Glyph name="camera" className="size-5" />
             Log food
           </SnapButton>
         </div>
@@ -277,9 +270,10 @@ export function Today() {
               label={`Log ${MEAL_LABELS[m].toLowerCase()}`}
               className="group flex flex-col items-center rounded-[14px] bg-[#767680]/[0.08] p-2 text-center transition hover:bg-[#767680]/[0.14] active:scale-95 dark:bg-[#767680]/[0.24]"
             >
-              <span aria-hidden="true" className="text-xl transition group-hover:scale-110">
-                {MEAL_BUTTON[m]}
-              </span>
+              <Glyph
+                name={MEAL_STYLE[m].glyph}
+                className={`size-6 transition group-hover:scale-110 ${MEAL_STYLE[m].text}`}
+              />
               <span className="mt-0.5 text-xs font-medium text-navy dark:text-slate-200">
                 {MEAL_LABELS[m]}
               </span>
@@ -312,12 +306,7 @@ export function Today() {
                   className="flex items-center justify-between gap-3 p-3.5 transition hover:bg-slate-50 dark:hover:bg-slate-700"
                 >
                   <span className="flex min-w-0 items-center gap-3">
-                    <span
-                      aria-hidden="true"
-                      className={`flex size-10 shrink-0 items-center justify-center rounded-xl text-lg ${MEAL_STYLE[i.meal].bg}`}
-                    >
-                      {MEAL_BUTTON[i.meal]}
-                    </span>
+                    <FoodThumb item={i} />
                     <span className="min-w-0">
                       <span className="flex items-center gap-1.5">
                         <span className="shrink-0 text-xs font-semibold text-slate-500 dark:text-slate-400">

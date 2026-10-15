@@ -3,6 +3,7 @@ import { updateProfileDetails } from '../data/actions';
 import { update } from '../data/store';
 import type { Profile } from '../data/types';
 import { fmt1, fmtInt } from '../lib/format';
+import { Glyph } from './Icons';
 import { WATER_ACTIVITY, WATER_CUP_ML, waterRangeMl, type WaterActivity } from '../logic/water';
 import { Button, Card } from './ui';
 
@@ -36,7 +37,7 @@ export function WaterCard({ profile, weightKg }: { profile: Profile; weightKg: n
     <Card className="p-4">
       <div className="flex items-center justify-between gap-3">
         <p className="flex items-center gap-1.5 text-[0.9375rem] font-semibold text-[#32ade6] dark:text-[#64d2ff]">
-          <span aria-hidden="true">💧</span> Daily water guide
+          <Glyph name="drop" className="size-[18px]" /> Daily water guide
         </p>
         <button
           type="button"

@@ -1,7 +1,7 @@
 import { addDays, trendOn } from '@fittrack/engine';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Link, useLocation } from 'react-router';
-import { WeightChart } from '../components/Charts';
+import { TREND_MIN_POINTS, WeightChart } from '../components/Charts';
 import { useToast } from '../components/Toast';
 import { Achievements, Overview, Section, WeekBars } from '../components/ProgressParts';
 import { Bar, Button, Field, inputClass, PageTitle } from '../components/ui';
@@ -163,7 +163,7 @@ function WeeklySection({ s, today, hide }: { s: AppState; today: string; hide: b
   return (
     <Section
       id="summary"
-      icon="📅"
+      icon="calendar"
       tint="bg-[#5ac8fa]"
       title="Weekly trend"
       sub={`${md(start)} – ${md(end)}${week === thisWeek ? ' (Mon to today)' : ''}`}
@@ -342,7 +342,7 @@ function BodySection({ s, profile, today }: { s: AppState; profile: Profile; tod
 
   if (!latest) {
     return (
-      <Section id="body" tint="bg-[#ff2d55]" icon="📈" title="Body changes">
+      <Section id="body" tint="bg-[#ff2d55]" icon="trend" title="Body changes">
         <div className="rounded-2xl bg-slate-50 p-5 text-center dark:bg-slate-700/60">
           <p className="text-3xl" aria-hidden="true">
             ⚖️
@@ -373,7 +373,7 @@ function BodySection({ s, profile, today }: { s: AppState; profile: Profile; tod
   const reached = toGoal !== null && (goal === 'fat_loss' ? toGoal >= 0 : toGoal <= 0);
 
   return (
-    <Section id="body" tint="bg-[#ff2d55]" icon="📈" title="Body changes" action={action}>
+    <Section id="body" tint="bg-[#ff2d55]" icon="trend" title="Body changes" action={action}>
       <div className="mb-3 grid grid-cols-3 gap-2 text-center">
         <div className="rounded-2xl bg-slate-50 px-2 py-2 dark:bg-slate-700/60">
           <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">Start</p>
@@ -420,9 +420,9 @@ function BodySection({ s, profile, today }: { s: AppState; profile: Profile; tod
             goalKg={goal === 'maintain' ? undefined : goalKg}
           />
           <p className="mt-2 text-xs leading-relaxed text-slate-500 dark:text-slate-400">
-            Grey dots are weigh-ins (tap one to see it), the green line is the smoothed trend, and
-            the dashed lines are your start and goal. Weight moves daily with water and salt, so
-            watch the green line.
+            Each dot is a weigh-in (tap one to see it); dashed lines are your start and goal. From{' '}
+            {TREND_MIN_POINTS} weigh-ins, a soft wide band shows the smoothed trend, which matters
+            more than any single day because weight moves with water and salt.
           </p>
         </>
       )}
@@ -452,7 +452,7 @@ function InsightsSection({ s, today }: { s: AppState; today: string }) {
     <Section
       id="insights"
       tint="bg-[#af52de]"
-      icon="🔍"
+      icon="sparkles"
       title="Your insights"
       sub={`From your logs, ${md(addDays(today, -6))} – ${md(today)}`}
     >
@@ -549,7 +549,7 @@ function HabitsSection({ s, today }: { s: AppState; today: string }) {
     <Section
       id="habits"
       tint="bg-emerald-500"
-      icon="🌱"
+      icon="leaf"
       title="Healthy habits"
       sub={`This week, ${md(week)} – ${md(addDays(week, 6))}`}
     >
@@ -563,7 +563,7 @@ function HabitsSection({ s, today }: { s: AppState; today: string }) {
               </th>
               {WEEKDAY_SHORT.map((d, i) => (
                 <th
-                  key={d}
+                  key={i}
                   scope="col"
                   className={`text-xs font-semibold ${addDays(week, i) === today ? 'text-emerald-strong dark:text-emerald' : 'text-slate-500'}`}
                 >
@@ -675,7 +675,7 @@ function NextStepSection({ s, today }: { s: AppState; today: string }) {
       <Section
         id="next"
         tint="bg-[#ff9500]"
-        icon="🎯"
+        icon="target"
         title="Next small goal"
         sub="This week's challenge"
       >
@@ -710,7 +710,7 @@ function NextStepSection({ s, today }: { s: AppState; today: string }) {
 
   if (options.length === 0) {
     return (
-      <Section id="next" tint="bg-[#ff9500]" icon="🎯" title="Next small goal">
+      <Section id="next" tint="bg-[#ff9500]" icon="target" title="Next small goal">
         <p className="text-sm text-slate-600 dark:text-slate-300">
           🎉 You've already met every challenge this week. Come back on Monday for a new one.
         </p>
@@ -724,7 +724,7 @@ function NextStepSection({ s, today }: { s: AppState; today: string }) {
     <Section
       id="next"
       tint="bg-[#ff9500]"
-      icon="🎯"
+      icon="target"
       title="Next small goal"
       sub="Picked from the habit that needs the most help"
     >
@@ -885,7 +885,7 @@ function AdjustSection({ s, profile, today }: { s: AppState; profile: Profile; t
     <Section
       id="adjust"
       tint="bg-slate-400"
-      icon="⚙️"
+      icon="sliders"
       title="Target suggestion"
       sub="Fine-tunes calories from your real logs; you decide"
     >
@@ -925,7 +925,7 @@ function WeightHistorySection({ s, today }: { s: AppState; today: string }) {
     <Section
       id="weights"
       tint="bg-[#5856d6]"
-      icon="⚖️"
+      icon="scale"
       title="Weight log"
       sub="Add past days, edit or delete"
     >

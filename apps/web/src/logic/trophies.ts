@@ -1,4 +1,5 @@
 import { addDays } from '@fittrack/engine';
+import type { IconName } from '../components/Icons';
 import type { AppState } from '../data/types';
 import { loggedDates } from './achievements';
 import { activeChallenge, challengeProgress, type ChallengeId } from './habits';
@@ -28,7 +29,7 @@ export interface TrophyLevel {
 
 export interface TrophyFamily {
   id: string;
-  icon: string;
+  icon: IconName;
   title: string;
   /** e.g. "days in a row"; shown after the goal number. */
   unit: string;
@@ -85,7 +86,7 @@ function longestRun(dates: string[]): { value: number; endedOn: string | null } 
 
 function countFamily(
   id: string,
-  icon: string,
+  icon: IconName,
   title: string,
   unit: string,
   dates: string[],
@@ -144,7 +145,7 @@ export function trophyFamilies(s: AppState, today: string): TrophyFamily[] {
   const families: TrophyFamily[] = [
     {
       id: 'streak',
-      icon: '🔥',
+      icon: 'flame',
       title: 'Logging streak',
       unit: 'days in a row',
       value: streak.value,
@@ -154,17 +155,24 @@ export function trophyFamilies(s: AppState, today: string): TrophyFamily[] {
         earnedOn: streakReachedOn(logged, goal),
       })),
     },
-    countFamily('logged', '🍽️', 'Days logged', 'days', logged, [10, 50, 100, 365]),
-    countFamily('complete', '✅', 'Fully logged days', 'days', completeDates(s), [7, 30, 100, 200]),
+    countFamily('logged', 'fork', 'Days logged', 'days', logged, [10, 50, 100, 365]),
+    countFamily(
+      'complete',
+      'check',
+      'Fully logged days',
+      'days',
+      completeDates(s),
+      [7, 30, 100, 200],
+    ),
     countFamily(
       'protein',
-      '💪',
+      'egg',
       'Protein days',
       'days on target',
       proteinDates(s),
       [7, 30, 100, 200],
     ),
-    countFamily('weigh', '⚖️', 'Weigh-ins', 'days', weighDates(s), [10, 30, 100, 200]),
+    countFamily('weigh', 'scale', 'Weigh-ins', 'days', weighDates(s), [10, 30, 100, 200]),
   ];
 
   const dir = lossDirection(s);
@@ -175,7 +183,7 @@ export function trophyFamilies(s: AppState, today: string): TrophyFamily[] {
     const best = Math.max(0, ...points.map((p) => toward(p.trendKg)));
     families.push({
       id: 'kg',
-      icon: dir < 0 ? '📉' : '📈',
+      icon: 'trend',
       title: dir < 0 ? 'Weight lost' : 'Weight gained',
       unit: 'kg (trend)',
       value: Math.round(best * 10) / 10,
@@ -190,7 +198,7 @@ export function trophyFamilies(s: AppState, today: string): TrophyFamily[] {
   const wins = challengeWins(s, today);
   families.push({
     id: 'challenges',
-    icon: '🎯',
+    icon: 'target',
     title: 'Weekly challenges',
     unit: 'completed',
     value: wins.length,
@@ -298,7 +306,7 @@ export function monthlyTrophies(s: AppState, today: string): MonthlyChallenge[] 
 
 export interface PersonalRecord {
   id: string;
-  icon: string;
+  icon: IconName;
   title: string;
   value: string;
   /** When it was set, shown as a date or a week. */
@@ -316,7 +324,7 @@ export function personalRecords(s: AppState, today: string): PersonalRecord[] {
   if (run.endedOn && run.value >= 2) {
     out.push({
       id: 'streak',
-      icon: '🔥',
+      icon: 'flame',
       title: 'Longest logging streak',
       value: `${run.value} days`,
       on: run.endedOn,
@@ -338,7 +346,7 @@ export function personalRecords(s: AppState, today: string): PersonalRecord[] {
   if (bestWeek && bestWeek.n >= 2) {
     out.push({
       id: 'week',
-      icon: '🗓️',
+      icon: 'calendar',
       title: 'Best week (fully logged)',
       value: `${bestWeek.n} / 7 days`,
       on: bestWeek.week,
@@ -356,7 +364,7 @@ export function personalRecords(s: AppState, today: string): PersonalRecord[] {
   if (bestMonth && bestMonth.n >= 2) {
     out.push({
       id: 'month',
-      icon: '📅',
+      icon: 'star',
       title: 'Best month (days logged)',
       value: `${bestMonth.n} days`,
       on: `${bestMonth.month}-01`,
@@ -372,7 +380,7 @@ export function personalRecords(s: AppState, today: string): PersonalRecord[] {
     for (const w of sorted) if ((w.weightKg - best.weightKg) * dir > 0) best = w;
     out.push({
       id: 'weight',
-      icon: dir < 0 ? '⬇️' : '⬆️',
+      icon: dir < 0 ? 'arrowDown' : 'arrowUp',
       title: dir < 0 ? 'Lowest weigh-in' : 'Highest weigh-in',
       value: `${best.weightKg.toFixed(1)} kg`,
       on: best.date,
@@ -431,7 +439,7 @@ export function previousMonth(month: string): string {
 
 export interface FeedItem {
   date: string;
-  icon: string;
+  icon: IconName;
   text: string;
   tier?: Tier;
 }
@@ -450,12 +458,12 @@ export function achievementFeed(s: AppState, today: string, limit = 6): FeedItem
     }
   }
   const goal = goalReachedOn(s);
-  if (goal) items.push({ date: goal, icon: '🎉', text: 'Reached your goal weight' });
+  if (goal) items.push({ date: goal, icon: 'star', text: 'Reached your goal weight' });
   for (const m of monthlyTrophies(s, today)) {
     if (m.earnedOn)
       items.push({
         date: m.earnedOn,
-        icon: '🏅',
+        icon: 'calendar',
         text: `${monthName(m.month)} challenge complete`,
       });
   }

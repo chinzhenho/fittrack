@@ -1,5 +1,6 @@
 import { addDays } from '@fittrack/engine';
 import { useState, type ReactNode } from 'react';
+import { Glyph, IconTile, type IconName } from './Icons';
 import { useToast } from './Toast';
 import { Bar, Button, Card } from './ui';
 import { joinMonthlyChallenge } from '../data/actions';
@@ -37,7 +38,7 @@ export function Section({
   children,
 }: {
   id: string;
-  icon: string;
+  icon: IconName;
   tint?: string;
   title: string;
   sub?: ReactNode;
@@ -48,12 +49,7 @@ export function Section({
     <Card className="scroll-mt-20">
       <div id={id} className="mb-4 flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
         <div className="flex min-w-0 items-center gap-2.5">
-          <span
-            aria-hidden="true"
-            className={`flex size-8 shrink-0 items-center justify-center rounded-[9px] text-base ${tint}`}
-          >
-            {icon}
-          </span>
+          <IconTile name={icon} tint={tint} />
           <div className="min-w-0">
             <h2 className="text-[1.25rem] leading-tight font-bold">{title}</h2>
             {sub && (
@@ -75,24 +71,32 @@ const TIER_RING: Record<Tier, string> = {
   platinum: 'from-[#e8f4ff] via-[#b9b4ff] to-[#6fb7ff]',
 };
 
+const TIER_TEXT: Record<Tier, string> = {
+  bronze: 'text-[#a0612b]',
+  silver: 'text-[#7c7f86]',
+  gold: 'text-[#c08a00]',
+  platinum: 'text-[#5e5ce6]',
+};
+
 /** A round medal with a metallic ring for its tier, or a grey dashed ring when locked. */
 export function Medal({
   icon,
   tier,
   size = 'md',
 }: {
-  icon: string;
+  icon: IconName;
   tier: Tier | null;
   size?: 'sm' | 'md';
 }) {
-  const box = size === 'sm' ? 'size-10 text-lg' : 'size-16 text-2xl';
+  const box = size === 'sm' ? 'size-10' : 'size-16';
+  const glyph = size === 'sm' ? 'size-[18px]' : 'size-7';
   if (!tier) {
     return (
       <span
         aria-hidden="true"
         className={`flex shrink-0 items-center justify-center rounded-full border-2 border-dashed border-slate-300 bg-slate-50 grayscale dark:border-slate-600 dark:bg-slate-700 ${box}`}
       >
-        <span className="opacity-40">{icon}</span>
+        <Glyph name={icon} className={`${glyph} text-slate-400`} />
       </span>
     );
   }
@@ -101,8 +105,10 @@ export function Medal({
       aria-hidden="true"
       className={`flex shrink-0 items-center justify-center rounded-full bg-gradient-to-br p-[3px] shadow-[0_2px_8px_rgba(0,0,0,0.12)] ${TIER_RING[tier]} ${box}`}
     >
-      <span className="flex size-full items-center justify-center rounded-full bg-white dark:bg-slate-800">
-        {icon}
+      <span
+        className={`flex size-full items-center justify-center rounded-full bg-white dark:bg-slate-800 ${TIER_TEXT[tier]}`}
+      >
+        <Glyph name={icon} className={glyph} strokeWidth={2.2} />
       </span>
     </span>
   );
@@ -229,7 +235,7 @@ export function Achievements({ s, today, hide }: { s: AppState; today: string; h
   return (
     <Section
       id="achievements"
-      icon="🏆"
+      icon="trophy"
       tint="bg-[#ffcc00]"
       title="Achievements"
       sub={`${earned.length + monthTrophies.length} medals earned`}
@@ -237,7 +243,7 @@ export function Achievements({ s, today, hide }: { s: AppState; today: string; h
       {/* Trophy case */}
       {earned.length + monthTrophies.length === 0 ? (
         <div className="flex items-center gap-3 rounded-[18px] bg-slate-50 p-4 dark:bg-slate-700/60">
-          <Medal icon={closest?.f.icon ?? '🏅'} tier={null} />
+          <Medal icon={closest?.f.icon ?? 'star'} tier={null} />
           <p className="text-sm text-slate-600 dark:text-slate-300">
             {closest
               ? `Your first medal: ${closest.f.title}, ${closest.next!.goal} ${closest.f.unit}. You're at ${closest.f.value}.`
@@ -260,7 +266,7 @@ export function Achievements({ s, today, hide }: { s: AppState; today: string; h
           ))}
           {monthTrophies.map((m) => (
             <li key={m.month} className="flex w-20 shrink-0 flex-col items-center text-center">
-              <Medal icon="📅" tier="gold" />
+              <Medal icon="calendar" tier="gold" />
               <p className="mt-1.5 text-xs leading-tight font-semibold">
                 {monthName(m.month).split(' ')[0]}
               </p>
@@ -345,9 +351,7 @@ export function Achievements({ s, today, hide }: { s: AppState; today: string; h
         <ul className="divide-y divide-slate-100 dark:divide-slate-700">
           {records.map((r) => (
             <li key={r.id} className="flex items-center gap-3 py-2.5">
-              <span aria-hidden="true" className="text-xl">
-                {r.icon}
-              </span>
+              <IconTile name={r.icon} tint="bg-[#ff9500]" size="sm" />
               <span className="min-w-0 flex-1">
                 <span className="block text-sm">{r.title}</span>
                 <span className="block text-xs text-slate-500 dark:text-slate-400">
