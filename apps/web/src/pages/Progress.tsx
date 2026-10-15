@@ -75,7 +75,7 @@ export function Progress() {
   const hide = profile.hideNumbers;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <PageTitle sub="How your week went, your weight and what you've achieved.">
         Progress
       </PageTitle>
@@ -91,8 +91,8 @@ export function Progress() {
       )}
       <ThisWeek s={s} today={today} hide={hide} />
       {!hide && <BodySection s={s} profile={profile} today={today} />}
-      <Achievements s={s} today={today} hide={hide} />
       <InsightsSection s={s} today={today} />
+      <Achievements s={s} today={today} hide={hide} />
       {!hide && <AdjustSection s={s} profile={profile} today={today} />}
       {!hide && <WeightHistorySection s={s} today={today} />}
     </div>
@@ -195,10 +195,8 @@ function BodySection({ s, profile, today }: { s: AppState; profile: Profile; tod
             startKg={start}
             goalKg={goal === 'maintain' ? undefined : goalKg}
           />
-          <p className="mt-2 text-xs leading-relaxed text-slate-500 dark:text-slate-400">
-            Each dot is a weigh-in (tap one to see it); the dashed lines are your start and goal.
-            Weight goes up and down a little every day with water and salt, so look at the direction
-            over a few weeks, not one day.
+          <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
+            Weight moves a little every day. Watch the direction over a few weeks.
           </p>
         </>
       )}
@@ -222,7 +220,7 @@ function InsightsSection({ s, today }: { s: AppState; today: string }) {
   const toast = useToast();
   const [showAll, setShowAll] = useState(false);
   const list = insightsFor(s, today);
-  const shown = showAll ? list : list.slice(0, 3);
+  const shown = showAll ? list : list.slice(0, 1);
   // Shown only when there is something to say.
   if (list.length === 0) return null;
 
@@ -286,12 +284,14 @@ function InsightsSection({ s, today }: { s: AppState; today: string }) {
           ))}
         </ul>
       }
-      {list.length > 3 && (
+      {list.length > 1 && (
         <Button variant="ghost" className="mt-2 w-full" onClick={() => setShowAll((v) => !v)}>
-          {showAll ? 'Show less' : `See all ${list.length}`}
+          {showAll
+            ? 'Show less'
+            : `See ${list.length - 1} more ${list.length === 2 ? 'tip' : 'tips'}`}
         </Button>
       )}
-      <p className="mt-3 text-[11px] leading-relaxed text-slate-500 dark:text-slate-400">
+      <p className="mt-3 text-xs leading-relaxed text-slate-500 dark:text-slate-400">
         Tips come from simple rules applied to your own logs. They are not medical advice; for
         health concerns, talk to a doctor or dietitian.
       </p>

@@ -7,10 +7,11 @@
    Sections sit straight on the page and are separated by space and thin lines, not boxes;
    only the one main summary on a page gets a soft green panel.
    The Tailwind slate and emerald scales are remapped here, so every page picks it up.
-   slate-700 and darker stay neutral near-blacks for dark mode. Red is reserved for errors. */
+   slate-700 and darker are the green-tinted darks of dark mode.
+   Text colours meet WCAG AA (4.5:1) on the page in both modes; the smallest normal text is 14px. Red is reserved for errors. */
 @theme {
   --color-navy: #202b25;
-  --color-emerald: #5fa57c;
+  --color-emerald: #8bc49b;
   --color-emerald-strong: #356b4f;
   --color-mist: #faf9f6;
 
@@ -18,13 +19,13 @@
   --color-slate-100: #edeae3;
   --color-slate-200: #e5e1d8;
   --color-slate-300: #d3cec3;
-  --color-slate-400: #9a9f97;
-  --color-slate-500: #737b73;
-  --color-slate-600: #5d645e;
-  --color-slate-700: #2c2c2e;
-  --color-slate-800: #1c1c1e;
-  --color-slate-900: #121212;
-  --color-slate-950: #000000;
+  --color-slate-400: #9ca69b;
+  --color-slate-500: #626b62;
+  --color-slate-600: #4f574f;
+  --color-slate-700: #2e362f;
+  --color-slate-800: #222923;
+  --color-slate-900: #171c18;
+  --color-slate-950: #101411;
 
   --color-emerald-50: #e5eee4;
   --color-emerald-100: #d5e4d3;
@@ -38,7 +39,7 @@
   --color-emerald-900: #1f4330;
   --color-emerald-950: #132a1e;
 
-  --text-xs: 0.8125rem;
+  --text-xs: 0.875rem;
   --text-xs--line-height: 1.25rem;
   --text-sm: 0.9375rem;
   --text-sm--line-height: 1.4rem;
@@ -52,7 +53,7 @@
     -webkit-text-size-adjust: 100%;
   }
   body {
-    @apply bg-mist text-navy antialiased dark:bg-slate-900 dark:text-slate-100;
+    @apply bg-mist text-navy antialiased dark:bg-slate-900 dark:text-[#f4f1e9];
     letter-spacing: -0.01em;
   }
   h1,

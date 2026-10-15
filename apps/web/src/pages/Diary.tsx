@@ -125,7 +125,11 @@ export function Diary() {
             <Bar
               value={total.kcal}
               max={target.caloriesKcal}
-              color={gap?.state === 'over' ? 'bg-[#dca46c]' : 'bg-emerald-strong dark:bg-emerald'}
+              color={
+                gap?.state === 'over'
+                  ? 'bg-[#b5793a] dark:bg-[#e8b978]'
+                  : 'bg-emerald-strong dark:bg-emerald'
+              }
             />
           )}
           <div className="mt-4 grid grid-cols-3 gap-3 text-sm">
@@ -136,8 +140,13 @@ export function Diary() {
                 t: target?.proteinG,
                 c: 'bg-emerald-strong dark:bg-emerald',
               },
-              { n: 'Carbs', v: total.carbsG, t: target?.carbsG, c: 'bg-[#dca46c]' },
-              { n: 'Fat', v: total.fatG, t: target?.fatG, c: 'bg-[#c98272]' },
+              {
+                n: 'Carbs',
+                v: total.carbsG,
+                t: target?.carbsG,
+                c: 'bg-[#b5793a] dark:bg-[#e8b978]',
+              },
+              { n: 'Fat', v: total.fatG, t: target?.fatG, c: 'bg-[#b8664f] dark:bg-[#e69a8a]' },
             ].map((m) => (
               <div key={m.n}>
                 <p className="flex items-center gap-1.5 text-slate-600 dark:text-slate-300">
@@ -250,10 +259,8 @@ function MealRow({ item: i, hide }: { item: MealItem; hide: boolean }) {
               )}
               {i.name}
             </span>
-            <span className="block text-xs text-slate-600 dark:text-slate-300">
+            <span className="mt-0.5 block text-sm text-slate-500 dark:text-slate-400">
               {fmt1(i.grams)} g
-              {!hide &&
-                ` · protein ${fmt1(i.nutrients.proteinG)} g · carbs ${fmt1(i.nutrients.carbsG)} g · fat ${fmt1(i.nutrients.fatG)} g`}
             </span>
           </span>
           {!hide && <span className="shrink-0 font-semibold">{fmtInt(i.nutrients.kcal)} kcal</span>}

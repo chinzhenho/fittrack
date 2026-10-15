@@ -220,7 +220,11 @@ function RemindersCard() {
       >
         {reminders.map((r) => (
           <div key={r.id} className="flex min-h-12 items-center justify-between gap-3 py-2">
-            <span className={`text-[1.0625rem] ${r.on ? '' : 'text-slate-400'}`}>{r.label}</span>
+            <span
+              className={`text-[1.0625rem] ${r.on ? '' : 'text-slate-500 dark:text-slate-400'}`}
+            >
+              {r.label}
+            </span>
             <span className="flex items-center gap-3">
               <input
                 type="time"

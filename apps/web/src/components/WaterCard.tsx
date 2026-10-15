@@ -36,8 +36,8 @@ export function WaterCard({ profile, weightKg }: { profile: Profile; weightKg: n
   return (
     <Card>
       <div className="flex items-center justify-between gap-3">
-        <h2 className="flex items-center gap-1.5 text-lg font-semibold tracking-tight">
-          <Glyph name="drop" className="size-[18px] text-[#5f78ad] dark:text-[#9fb2da]" /> Water
+        <h2 className="flex items-center gap-1.5 text-xl font-semibold tracking-tight">
+          <Glyph name="drop" className="size-[18px] text-[#456da8] dark:text-[#9db8ea]" /> Water
         </h2>
         <button
           type="button"
@@ -48,23 +48,16 @@ export function WaterCard({ profile, weightKg }: { profile: Profile; weightKg: n
         </button>
       </div>
 
-      <div className="mt-3 flex items-end justify-between gap-3">
-        <div>
-          <p className="flex items-baseline gap-1">
-            <span className="text-[1.75rem] leading-none font-bold whitespace-nowrap">
-              {fmtInt(min)}–{fmtInt(max)}
-            </span>
-            <span className="text-sm font-semibold text-slate-500">ml</span>
-          </p>
-          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-            About {Math.round(min / WATER_CUP_ML)}–{Math.round(max / WATER_CUP_ML)} mugs · based on{' '}
-            {fmt1(weightKg)} kg
-          </p>
-        </div>
-        <div className="shrink-0 text-right text-xs leading-relaxed text-slate-500 dark:text-slate-400">
-          <span className="block">On waking 300ml</span>
-          <span className="block">Before meals 200ml</span>
-        </div>
+      <div className="mt-3">
+        <p className="flex items-baseline gap-1.5">
+          <span className="text-[2rem] leading-none font-bold tracking-tight whitespace-nowrap tabular-nums">
+            {Math.round(min / WATER_CUP_ML)}–{Math.round(max / WATER_CUP_ML)}
+          </span>
+          <span className="text-sm text-slate-500 dark:text-slate-400">mugs a day</span>
+        </p>
+        <p className="mt-1.5 text-sm text-slate-500 dark:text-slate-400">
+          {fmtInt(min)}–{fmtInt(max)} ml, based on {fmt1(weightKg)} kg
+        </p>
       </div>
 
       {adjusting && (

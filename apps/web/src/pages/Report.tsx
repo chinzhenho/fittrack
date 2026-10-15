@@ -88,7 +88,7 @@ function CaloriesChart({ rows, gaining }: { rows: DayRow[]; gaining: boolean }) 
             width={bw * 0.7}
             height={Math.max(0.5, y(0) - y(r.kcal))}
             rx={Math.min(2, bw * 0.2)}
-            fill={off(r) ? '#dca46c' : '#4e8a66'}
+            fill={off(r) ? '#b5793a' : '#4e8a66'}
           />
         ) : null,
       )}
@@ -265,8 +265,8 @@ export function Report() {
   const macros: { label: string; avg: number | null; target: number | undefined; color: string }[] =
     [
       { label: 'Protein', avg: summary.avgProteinG, target: target?.proteinG, color: '#356b4f' },
-      { label: 'Carbs', avg: avg('carbsG'), target: target?.carbsG, color: '#dca46c' },
-      { label: 'Fat', avg: avg('fatG'), target: target?.fatG, color: '#c98272' },
+      { label: 'Carbs', avg: avg('carbsG'), target: target?.carbsG, color: '#b5793a' },
+      { label: 'Fat', avg: avg('fatG'), target: target?.fatG, color: '#b8664f' },
     ];
   const th = 'px-1 py-1 font-semibold text-slate-500 print:py-0.5';
   const td = 'px-1 py-1 print:py-[1px]';
@@ -380,7 +380,7 @@ export function Report() {
                 On track
               </span>
               <span>
-                <span className="mr-1 inline-block size-2 rounded-sm bg-[#dca46c]" />
+                <span className="mr-1 inline-block size-2 rounded-sm bg-[#b5793a] dark:bg-[#e8b978]" />
                 {gaining ? 'Under target' : 'Over target'}
               </span>
             </p>

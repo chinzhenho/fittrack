@@ -18,9 +18,14 @@ export function PlanSummary({ plan, goal }: { plan: Plan; goal: Goal }) {
       name: 'Carbs',
       g: macros.carbsG,
       kcal: macros.carbsG * KCAL_PER_G.carbs,
-      color: 'bg-[#dca46c]',
+      color: 'bg-[#b5793a] dark:bg-[#e8b978]',
     },
-    { name: 'Fat', g: macros.fatG, kcal: macros.fatG * KCAL_PER_G.fat, color: 'bg-[#c98272]' },
+    {
+      name: 'Fat',
+      g: macros.fatG,
+      kcal: macros.fatG * KCAL_PER_G.fat,
+      color: 'bg-[#b8664f] dark:bg-[#e69a8a]',
+    },
   ];
   const notes = [
     ...plan.clamps.map((c) => clampMessage(c, plan.calorieFloorKcal)),

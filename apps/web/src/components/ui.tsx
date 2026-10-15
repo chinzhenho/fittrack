@@ -14,17 +14,14 @@ export function Card({
   className?: string;
   tone?: 'plain' | 'hero';
 }) {
-  const look =
-    tone === 'hero'
-      ? 'rounded-[20px] bg-emerald-50 p-5 dark:bg-emerald/10'
-      : 'border-t border-slate-200 pt-6 dark:border-white/10';
+  const look = tone === 'hero' ? 'rounded-[20px] bg-emerald-50 p-5 dark:bg-emerald/10' : 'pt-4';
   return <section className={`${look} ${className}`}>{children}</section>;
 }
 
 export function CardTitle({ children, action }: { children: ReactNode; action?: ReactNode }) {
   return (
     <div className="mb-3 flex items-center justify-between gap-3">
-      <h2 className="text-lg font-semibold tracking-tight">{children}</h2>
+      <h2 className="text-xl font-semibold tracking-tight">{children}</h2>
       {action}
     </div>
   );
@@ -190,7 +187,7 @@ export function Notice({
 export function PageTitle({ children, sub }: { children: ReactNode; sub?: ReactNode }) {
   return (
     <div className="mb-6 pt-3">
-      <h1 className="text-[2rem] leading-tight font-bold tracking-tight">{children}</h1>
+      <h1 className="text-[1.875rem] leading-tight font-bold tracking-tight">{children}</h1>
       {sub && <p className="mt-1 text-[0.9375rem] text-slate-500 dark:text-slate-400">{sub}</p>}
     </div>
   );

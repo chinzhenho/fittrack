@@ -22,7 +22,7 @@ function NavItem({ n }: { n: (typeof NAV)[number] }) {
     <NavLink
       to={n.to}
       className={({ isActive }) =>
-        `flex min-h-[3.25rem] flex-col items-center justify-center gap-0.5 text-[0.6875rem] font-medium ${isActive ? 'text-emerald-strong dark:text-emerald' : 'text-slate-400'}`
+        `flex min-h-[3.25rem] flex-col items-center justify-center gap-0.5 text-[0.6875rem] font-medium ${isActive ? 'text-emerald-strong dark:text-emerald' : 'text-slate-500 dark:text-slate-400'}`
       }
     >
       <Icon d={n.icon} />
@@ -95,7 +95,7 @@ export function AppShell() {
             close the page.
           </p>
         )}
-        <main className="mx-auto max-w-3xl px-5 py-6">
+        <main className="mx-auto max-w-3xl px-6 py-6">
           <Outlet />
         </main>
       </div>

@@ -85,7 +85,7 @@ export function ThisWeek({ s, today, hide }: { s: AppState; today: string; hide:
           {w.loggedDays} of {elapsed} {elapsed === 1 ? 'day' : 'days'}
         </strong>
         {back === 0 && streak > 1 && (
-          <span className="text-[#b07a3c] dark:text-[#e3b47f]"> · 🔥 {streak} days in a row</span>
+          <span className="text-[#8b571f] dark:text-[#e8b978]"> · 🔥 {streak} days in a row</span>
         )}
       </p>
 
@@ -106,7 +106,7 @@ export function ThisWeek({ s, today, hide }: { s: AppState; today: string; hide:
             <div key={d.date} className="flex h-full flex-1 flex-col items-center justify-end">
               {d.logged ? (
                 <div
-                  className={`w-full max-w-9 rounded-[6px] ${offTarget(d.kcal, d.target) ? 'bg-[#dca46c]' : 'bg-emerald-500'}`}
+                  className={`w-full max-w-9 rounded-[6px] ${offTarget(d.kcal, d.target) ? 'bg-[#b5793a] dark:bg-[#e8b978]' : 'bg-emerald-500'}`}
                   style={{ height: hide ? '60%' : `${Math.max(4, (d.kcal / maxKcal) * 100)}%` }}
                   title={hide ? undefined : `${fmtInt(d.kcal)} kcal`}
                 />
@@ -144,7 +144,7 @@ export function ThisWeek({ s, today, hide }: { s: AppState; today: string; hide:
               <span className="size-2.5 rounded-sm bg-emerald-500" /> On track
             </span>
             <span className="flex items-center gap-1">
-              <span className="size-2.5 rounded-sm bg-[#dca46c]" />
+              <span className="size-2.5 rounded-sm bg-[#b5793a] dark:bg-[#e8b978]" />
               {gaining ? 'Under target' : 'Over target'}
             </span>
             <span className="flex items-center gap-1">
