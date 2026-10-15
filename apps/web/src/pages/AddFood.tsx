@@ -142,12 +142,12 @@ export function AddFood() {
         {meal === 'snack' && (
           <div>
             <label htmlFor="snack-name" className="text-sm font-semibold">
-              What is it? <span className="font-normal text-slate-500">(optional)</span>
+              Name this meal <span className="font-normal text-slate-500">(optional)</span>
             </label>
             <input
               id="snack-name"
               maxLength={20}
-              placeholder="e.g. tea time"
+              placeholder="e.g. tea time, supper"
               value={label}
               onChange={(e) => setLabel(e.target.value)}
               className="mt-1.5 block min-h-12 w-full rounded-[14px] bg-white px-4 ring-1 ring-slate-200 focus:ring-2 focus:ring-emerald focus:outline-none dark:bg-slate-800 dark:ring-slate-600"
