@@ -1,9 +1,10 @@
 import { addDays } from '@fittrack/engine';
 import { useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router';
-import { FoodThumb, IconTile } from '../components/Icons';
+import { FoodThumb, Glyph, IconTile } from '../components/Icons';
 import { MEAL_STYLE } from '../components/mealStyle';
 import { MonthCalendar } from '../components/MonthCalendar';
+import { SnapButton } from '../components/SnapButton';
 import { useToast } from '../components/Toast';
 import { Bar, Button, Card, CheckCards, ChoiceCards, PageTitle, Stepper } from '../components/ui';
 import { editMeal, removeMeal, restoreMeal, setDayComplete } from '../data/actions';
@@ -183,13 +184,15 @@ export function Diary() {
                       : `${list.length} ${list.length === 1 ? 'item' : 'items'} · ${fmtInt(sub.kcal)} kcal`}
                 </p>
               </div>
-              <Link
-                to={`/diary/add?date=${date}&meal=${meal}`}
-                aria-label={`Add to ${MEAL_LABELS[meal].toLowerCase()}`}
-                className="inline-flex min-h-11 items-center rounded-2xl bg-emerald-50 px-4 text-sm font-semibold text-emerald-900 hover:bg-emerald-100 dark:bg-emerald/15 dark:text-emerald-100 dark:hover:bg-emerald/25"
+              <SnapButton
+                meal={meal}
+                date={date}
+                label={`Add to ${MEAL_LABELS[meal].toLowerCase()}`}
+                className="inline-flex min-h-11 items-center gap-1.5 rounded-full bg-emerald-strong px-4 text-sm font-semibold text-white transition hover:bg-emerald-800 active:scale-95 dark:bg-emerald dark:text-black"
               >
-                + Add
-              </Link>
+                <Glyph name="camera" className="size-[18px]" />
+                Add
+              </SnapButton>
             </div>
             {list.length > 0 && (
               <ul className="mt-3 divide-y divide-slate-100 border-t border-slate-100 dark:divide-slate-700 dark:border-slate-700">

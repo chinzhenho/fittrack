@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Link, useNavigate, useSearchParams } from 'react-router';
+import { CameraScreen } from '../components/CameraScreen';
 import { useToast } from '../components/Toast';
 import {
   BackButton,
@@ -239,6 +241,8 @@ export function AddFood() {
         <>
           <PhotoCard
             where={where}
+            meal={meal}
+            onMeal={setMeal}
             onLog={(items, photo) => {
               const ids = items.map((it) => log(it.food, it.grams));
               // Thumbnail for the food log, kept on this device only.
@@ -309,9 +313,13 @@ interface Row {
 /** Photo -> AI estimate -> user checks items and amounts -> logged to the meal. */
 function PhotoCard({
   where,
+  meal,
+  onMeal,
   onLog,
 }: {
   where: string;
+  meal: MealType;
+  onMeal: (m: MealType) => void;
   onLog: (items: { food: Food; grams: number }[], photo: File) => void;
 }) {
   const signedIn = useAuth().status === 'signedIn';
@@ -321,6 +329,7 @@ function PhotoCard({
   const [preview, setPreview] = useState<string | null>(null);
   const [photo, setPhoto] = useState<File | null>(null);
   const [hint, setHint] = useState('');
+  const [camera, setCamera] = useState(false);
 
   useEffect(
     () => () => {
@@ -453,10 +462,36 @@ function PhotoCard({
         </div>
       ) : (
         <div className="flex gap-2">
-          {fileButton('📸 Take photo', true)}
+          {/* Same in-app camera as "Log food" on Today. */}
+          <button
+            type="button"
+            disabled={state.status === 'working'}
+            onClick={() => setCamera(true)}
+            className="inline-flex min-h-12 flex-1 items-center justify-center gap-2 rounded-2xl bg-emerald-strong px-4 text-sm font-semibold whitespace-nowrap text-white shadow-sm hover:bg-emerald-800 disabled:opacity-50 dark:bg-emerald dark:text-slate-950"
+          >
+            📸 Take photo
+          </button>
           {fileButton('Choose from album', false)}
         </div>
       )}
+      {camera &&
+        createPortal(
+          <CameraScreen
+            meal={meal}
+            onClose={() => setCamera(false)}
+            onManual={(m) => {
+              onMeal(m);
+              setCamera(false);
+            }}
+            onPhoto={(file, m, note) => {
+              onMeal(m);
+              setCamera(false);
+              setHint(note);
+              void onFile(file, note || undefined);
+            }}
+          />,
+          document.body,
+        )}
 
       {preview && state.status !== 'idle' && (
         <div className="relative overflow-hidden rounded-2xl">
