@@ -111,8 +111,16 @@ describe('AI photo logging', () => {
     fireEvent.click(screen.getByLabelText('I understand, start using AI snaps'));
     const photo = new File(['x'], 'food.jpg', { type: 'image/jpeg' });
     fireEvent.change(screen.getByLabelText('Choose from album'), { target: { files: [photo] } });
+    // Album photos wait for an optional note before they are sent.
+    expect(vi.mocked(analyzeFoodPhoto).mock.calls.some((c) => c[0] === photo)).toBe(false);
+    fireEvent.click(screen.getByRole('button', { name: '+ Ate half' }));
+    fireEvent.change(screen.getByLabelText(/What is it\?/), {
+      target: { value: 'nasi lemak, ate half' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Analyse photo' }));
 
     await screen.findByText('Iced Milo');
+    expect(analyzeFoodPhoto).toHaveBeenLastCalledWith(photo, 'nasi lemak, ate half');
     // Drink: halve the amount. Nasi lemak stays at the database serving.
     fireEvent.change(screen.getAllByRole('spinbutton')[1]!, { target: { value: '150' } });
     // 693.45 (SG FoodID) + 90 (AI estimate, 180 kcal per 300 g, halved)

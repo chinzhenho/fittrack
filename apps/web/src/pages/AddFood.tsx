@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Link, useNavigate, useSearchParams } from 'react-router';
-import { CameraScreen } from '../components/CameraScreen';
+import { addChip, CameraScreen, NOTE_CHIPS } from '../components/CameraScreen';
 import { useToast } from '../components/Toast';
 import {
   BackButton,
@@ -330,6 +330,14 @@ function PhotoCard({
   const [photo, setPhoto] = useState<File | null>(null);
   const [hint, setHint] = useState('');
   const [camera, setCamera] = useState(false);
+  // A photo picked from the album waits here so the user can say what it is first.
+  const [picked, setPicked] = useState<{ file: File; url: string } | null>(null);
+  useEffect(
+    () => () => {
+      if (picked) URL.revokeObjectURL(picked.url);
+    },
+    [picked],
+  );
 
   useEffect(
     () => () => {
@@ -379,8 +387,11 @@ function PhotoCard({
         className="sr-only"
         disabled={state.status === 'working'}
         onChange={(e) => {
-          void onFile(e.target.files?.[0]);
+          const f = e.target.files?.[0];
           e.target.value = '';
+          if (!f) return;
+          setHint('');
+          setPicked({ file: f, url: URL.createObjectURL(f) });
         }}
       />
     </label>
@@ -459,6 +470,57 @@ function PhotoCard({
           >
             {waiting ? 'I understand, analyse my photo' : 'I understand, start using AI snaps'}
           </Check>
+        </div>
+      ) : picked ? (
+        <div className="space-y-3">
+          <img
+            src={picked.url}
+            alt="Your food photo"
+            className="max-h-64 w-full rounded-2xl object-cover"
+          />
+          <div>
+            <label htmlFor="album-note" className="text-sm font-semibold">
+              What is it? <span className="font-normal text-slate-500">(optional)</span>
+            </label>
+            <input
+              id="album-note"
+              maxLength={120}
+              placeholder="e.g. kopi O, half rice"
+              value={hint}
+              onChange={(e) => setHint(e.target.value)}
+              className="mt-1.5 block min-h-12 w-full rounded-[14px] bg-white px-4 ring-1 ring-slate-200 focus:ring-2 focus:ring-emerald focus:outline-none dark:bg-slate-800 dark:ring-slate-600"
+            />
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {NOTE_CHIPS.map((c) => (
+                <button
+                  key={c}
+                  type="button"
+                  onClick={() => setHint((n) => addChip(n, c))}
+                  className="min-h-9 rounded-full bg-white px-3 text-sm font-medium ring-1 ring-slate-200 dark:bg-slate-800 dark:ring-slate-600"
+                >
+                  + {c}
+                </button>
+              ))}
+            </div>
+            <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
+              Telling the AI what the photo can't show makes it more accurate.
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="secondary" className="flex-1" onClick={() => setPicked(null)}>
+              Cancel
+            </Button>
+            <Button
+              className="flex-1"
+              onClick={() => {
+                const f = picked.file;
+                setPicked(null);
+                void onFile(f, hint.trim() || undefined);
+              }}
+            >
+              Analyse photo
+            </Button>
+          </div>
         </div>
       ) : (
         <div className="flex gap-2">
