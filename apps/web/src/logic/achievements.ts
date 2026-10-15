@@ -1,11 +1,7 @@
-import { addDays, trendOn } from '@fittrack/engine';
+import { addDays } from '@fittrack/engine';
 import type { AppState } from '../data/types';
-import { completedChallenges } from './habits';
-import { mealsOn, sumNutrients } from './nutrition';
-import { startWeightKg, targetOn, trendPoints } from './targets';
 
-// Streaks and badges for the progress page. Everything is derived from the records,
-// so deleting an entry also takes back a badge it earned.
+// Logging streaks. Medals and records are in trophies.ts.
 
 /** Dates (YYYY-MM-DD, ascending) with at least one food entry. */
 export function loggedDates(s: AppState): string[] {
@@ -39,90 +35,17 @@ export function longestStreak(dates: string[]): number {
   return best;
 }
 
-export interface Badge {
-  id: string;
-  icon: string;
-  title: string;
-  /** What it takes to earn it. */
-  need: string;
-  unlocked: boolean;
-  progress: { value: number; max: number };
-}
-
 export interface ProgressSummary {
   streak: number;
   longest: number;
   daysLogged: number;
-  /** Trend weight change since the first weigh-in, in the goal's direction (positive = good). */
-  towardGoalKg: number | null;
-  badges: Badge[];
 }
 
 export function progressSummary(s: AppState, today: string): ProgressSummary {
   const dates = loggedDates(s);
-  const streak = currentStreak(dates, today);
-  const longest = longestStreak(dates);
-  const goal = s.profile?.goal;
-
-  const points = trendPoints(s.weights);
-  const start = startWeightKg(s);
-  const trend = trendOn(points, today);
-  const direction = goal === 'fat_loss' ? -1 : goal === 'maintain' || !goal ? 0 : 1;
-  const towardGoalKg =
-    start !== null && trend !== null && direction !== 0 ? (trend - start) * direction : null;
-
-  const proteinDays = dates.filter((d) => {
-    const t = targetOn(s.targets, d);
-    return t !== null && sumNutrients(mealsOn(s.meals, d)).proteinG >= t.proteinG;
-  }).length;
-  const weighIns = new Set(s.weights.map((w) => w.date)).size;
-  const challenges = completedChallenges(s);
-  const goalKg = s.profile?.targetWeightKg;
-  const reached =
-    goalKg !== undefined &&
-    trend !== null &&
-    direction !== 0 &&
-    (direction < 0 ? trend <= goalKg : trend >= goalKg);
-
-  const badge = (
-    id: string,
-    icon: string,
-    title: string,
-    need: string,
-    value: number,
-    max: number,
-  ): Badge => ({
-    id,
-    icon,
-    title,
-    need,
-    unlocked: value >= max,
-    progress: { value: Math.min(value, max), max },
-  });
-
-  const lostWord = direction < 0 ? 'Lost' : 'Gained';
-  const badges: Badge[] = [
-    badge('first', '🌱', 'Good start', 'Log your first meal', dates.length, 1),
-    badge('streak3', '🔥', '3-day streak', 'Log food 3 days in a row', longest, 3),
-    badge('streak7', '⭐', 'Full week', 'Log food 7 days in a row', longest, 7),
-    badge('streak30', '🏆', 'Habit formed', 'Log food 30 days in a row', longest, 30),
-    badge('protein7', '💪', 'Protein pro', 'Hit your protein target on 7 days', proteinDays, 7),
-    badge('weigh10', '⚖️', 'Keeping track', 'Weigh in on 10 days', weighIns, 10),
-    badge('challenge1', '🏅', 'Challenge done', 'Complete 1 weekly challenge', challenges, 1),
-    badge('challenge4', '🎖️', 'Challenge regular', 'Complete 4 weekly challenges', challenges, 4),
-  ];
-  if (direction !== 0) {
-    const kg = Math.max(0, towardGoalKg ?? 0);
-    badges.push(
-      badge('kg1', '🎯', `${lostWord} 1 kg`, `Trend weight ${lostWord.toLowerCase()} 1 kg`, kg, 1),
-      badge('kg5', '🥇', `${lostWord} 5 kg`, `Trend weight ${lostWord.toLowerCase()} 5 kg`, kg, 5),
-    );
-  }
-  if (goalKg !== undefined && direction !== 0) {
-    badges.push(
-      badge('goal', '🎉', 'Goal reached', `Trend weight reaches ${goalKg} kg`, reached ? 1 : 0, 1),
-    );
-  }
-
-  return { streak, longest, daysLogged: dates.length, towardGoalKg, badges };
+  return {
+    streak: currentStreak(dates, today),
+    longest: longestStreak(dates),
+    daysLogged: dates.length,
+  };
 }

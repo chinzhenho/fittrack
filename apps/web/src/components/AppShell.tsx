@@ -22,12 +22,10 @@ function NavItem({ n }: { n: (typeof NAV)[number] }) {
     <NavLink
       to={n.to}
       className={({ isActive }) =>
-        `group flex min-h-16 flex-col items-center justify-center gap-1 text-xs ${isActive ? 'active font-semibold text-emerald-900 dark:text-emerald-100' : 'text-slate-600 dark:text-slate-300'}`
+        `flex min-h-[3.25rem] flex-col items-center justify-center gap-0.5 text-[0.6875rem] font-medium ${isActive ? 'text-emerald-strong dark:text-emerald' : 'text-slate-400'}`
       }
     >
-      <span className="flex h-8 w-12 items-center justify-center rounded-full transition group-[.active]:bg-emerald-100 dark:group-[.active]:bg-emerald/20">
-        <Icon d={n.icon} />
-      </span>
+      <Icon d={n.icon} />
       {n.label}
     </NavLink>
   );
@@ -37,10 +35,10 @@ function Icon({ d }: { d: string }) {
   return (
     <svg
       viewBox="0 0 24 24"
-      className="size-6"
+      className="size-[26px]"
       fill="none"
       stroke="currentColor"
-      strokeWidth="1.8"
+      strokeWidth="1.7"
       strokeLinecap="round"
       strokeLinejoin="round"
       aria-hidden="true"
@@ -55,7 +53,7 @@ export function AppShell() {
     <div className="min-h-dvh lg:flex">
       <nav
         aria-label="Main menu"
-        className="sticky top-0 hidden h-dvh w-60 shrink-0 border-r border-slate-200 bg-white px-3 py-6 lg:block dark:border-slate-700 dark:bg-slate-800"
+        className="sticky top-0 hidden h-dvh w-60 shrink-0 border-r border-black/[0.06] bg-white/70 px-3 py-6 backdrop-blur-xl lg:block dark:border-white/10 dark:bg-slate-800/70"
       >
         <div className="mb-8 flex items-center gap-2 px-3">
           <img
@@ -63,9 +61,7 @@ export function AppShell() {
             alt=""
             className="size-9 rounded-xl bg-[#fbfaf3] ring-1 ring-black/5"
           />
-          <span className="text-xl font-bold text-emerald-strong dark:text-emerald">
-            EatHealthee
-          </span>
+          <span className="text-xl font-semibold tracking-tight">EatHealthee</span>
         </div>
         <ul className="space-y-1">
           {NAV.map((n) => (
@@ -73,7 +69,7 @@ export function AppShell() {
               <NavLink
                 to={n.to}
                 className={({ isActive }) =>
-                  `flex min-h-12 items-center gap-3 rounded-2xl px-4 text-base ${isActive ? 'bg-emerald-50 font-semibold text-emerald-900 dark:bg-emerald/15 dark:text-emerald-100' : 'text-slate-600 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-700'}`
+                  `flex min-h-10 items-center gap-3 rounded-[10px] px-3 text-[0.9375rem] ${isActive ? 'bg-[#767680]/[0.14] font-semibold text-emerald-strong dark:text-emerald' : 'text-navy hover:bg-[#767680]/[0.08] dark:text-slate-100'}`
                 }
               >
                 <Icon d={n.icon} />
@@ -85,7 +81,7 @@ export function AppShell() {
         <SnapButton
           meal={mealForHour(new Date().getHours())}
           label="Log food"
-          className="mt-6 flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-emerald-strong px-4 font-semibold text-white shadow-lg shadow-emerald-600/25 transition hover:bg-emerald-800 dark:bg-emerald dark:text-slate-950"
+          className="mt-6 flex min-h-11 w-full items-center justify-center gap-2 rounded-[14px] bg-emerald-strong px-4 font-semibold text-white transition hover:brightness-110 dark:bg-emerald dark:text-black"
         >
           <Icon d={CAMERA} />
           Log food
@@ -106,7 +102,7 @@ export function AppShell() {
 
       <nav
         aria-label="Main menu"
-        className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 pb-[env(safe-area-inset-bottom)] shadow-[0_-4px_16px_rgba(15,23,42,0.06)] backdrop-blur lg:hidden dark:border-slate-700 dark:bg-slate-800/95"
+        className="fixed inset-x-0 bottom-0 z-40 border-t border-black/[0.08] bg-white/75 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl backdrop-saturate-150 lg:hidden dark:border-white/10 dark:bg-slate-800/75"
       >
         <ul className="grid grid-cols-5 items-end">
           {NAV.slice(0, 2).map((n) => (
@@ -114,15 +110,15 @@ export function AppShell() {
               <NavItem n={n} />
             </li>
           ))}
-          <li className="flex flex-col items-center pb-1.5">
+          <li className="flex flex-col items-center pb-1">
             <SnapButton
               meal={mealForHour(new Date().getHours())}
               label="Log food"
-              className="-mt-7 flex size-15 items-center justify-center rounded-full border-4 border-white bg-emerald-strong text-white shadow-lg shadow-emerald-600/40 transition active:scale-90 dark:border-slate-800 dark:bg-emerald dark:text-slate-950"
+              className="-mt-5 flex size-14 items-center justify-center rounded-full bg-emerald-strong text-white shadow-[0_6px_16px_rgba(36,138,61,0.35)] ring-4 ring-white/80 transition active:scale-90 dark:bg-emerald dark:text-black dark:ring-black/60"
             >
               <Icon d={CAMERA} />
             </SnapButton>
-            <span className="mt-0.5 text-[11px] font-bold text-emerald-strong dark:text-emerald">
+            <span className="mt-0.5 text-[0.6875rem] font-medium text-emerald-strong dark:text-emerald">
               Log food
             </span>
           </li>

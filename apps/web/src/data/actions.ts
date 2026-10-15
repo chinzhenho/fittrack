@@ -175,9 +175,14 @@ export function clearHealthRecords(s: AppState): AppState {
     challenges: [],
     dismissedInsights: [],
     adaptiveKeptOn: [],
+    monthlyJoined: [],
     restDays: [],
     skippedTasks: {},
     sessions: [],
     activities: [],
   };
+}
+
+export function joinMonthlyChallenge(s: AppState, month: string): AppState {
+  return s.monthlyJoined.includes(month) ? s : { ...s, monthlyJoined: [...s.monthlyJoined, month] };
 }

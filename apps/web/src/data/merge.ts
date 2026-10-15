@@ -41,6 +41,7 @@ export function mergeStates(a: AppState, b: AppState): AppState {
     challenges: byId(older.challenges ?? [], newer.challenges ?? []),
     dismissedInsights: union(older.dismissedInsights ?? [], newer.dismissedInsights ?? []),
     adaptiveKeptOn: union(older.adaptiveKeptOn ?? [], newer.adaptiveKeptOn ?? []),
+    monthlyJoined: union(older.monthlyJoined ?? [], newer.monthlyJoined ?? []),
   };
 }
 

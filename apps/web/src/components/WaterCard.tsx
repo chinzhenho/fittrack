@@ -33,48 +33,31 @@ export function WaterCard({ profile, weightKg }: { profile: Profile; weightKg: n
 
   const [min, max] = waterRangeMl(weightKg, activity);
   return (
-    <Card className="p-4 ring-sky-100 dark:ring-sky-500/20">
-      <div className="mb-3 flex items-center justify-between gap-3">
-        <div className="flex min-w-0 items-center gap-2.5">
-          <span
-            aria-hidden="true"
-            className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-sky-100 text-lg shadow-sm dark:bg-sky-500/20"
-          >
-            💧
-          </span>
-          <div>
-            <p className="text-sm font-black whitespace-nowrap">Daily water guide</p>
-            <p className="flex flex-wrap items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
-              <span className="rounded-full bg-sky-50 px-2 py-0.5 text-[11px] font-bold whitespace-nowrap text-sky-700 dark:bg-sky-500/15 dark:text-sky-200">
-                Personalised
-              </span>
-              <span className="whitespace-nowrap">Based on {fmt1(weightKg)} kg</span>
-            </p>
-          </div>
-        </div>
+    <Card className="p-4">
+      <div className="flex items-center justify-between gap-3">
+        <p className="flex items-center gap-1.5 text-[0.9375rem] font-semibold text-[#32ade6] dark:text-[#64d2ff]">
+          <span aria-hidden="true">💧</span> Daily water guide
+        </p>
         <button
           type="button"
           onClick={() => setAdjusting(true)}
-          className="flex min-h-9 shrink-0 items-center gap-1 rounded-xl border border-sky-100 bg-sky-50 px-2.5 text-xs font-bold text-sky-700 transition hover:bg-sky-100 dark:border-sky-500/30 dark:bg-sky-500/15 dark:text-sky-200"
+          className="min-h-9 shrink-0 rounded-full bg-[#32ade6]/10 px-3 text-sm font-semibold text-[#0a84c6] transition hover:bg-[#32ade6]/15 active:scale-95 dark:bg-[#64d2ff]/15 dark:text-[#64d2ff]"
         >
-          <span aria-hidden="true">⚙︎</span> Adjust
+          Adjust
         </button>
       </div>
 
-      <div className="flex items-center justify-between gap-3 rounded-2xl border border-sky-100 bg-gradient-to-br from-sky-50 to-emerald-50/50 p-3 dark:border-sky-500/20 dark:from-sky-500/10 dark:to-emerald-500/5">
+      <div className="mt-3 flex items-end justify-between gap-3">
         <div>
-          <p className="text-xs font-bold text-sky-600 dark:text-sky-300">Suggested daily water</p>
           <p className="flex items-baseline gap-1">
-            <span className="text-xl font-black tracking-tight whitespace-nowrap text-sky-800 dark:text-sky-200">
-              {fmtInt(min)} ~ {fmtInt(max)}
+            <span className="text-[1.75rem] leading-none font-bold whitespace-nowrap">
+              {fmtInt(min)}–{fmtInt(max)}
             </span>
-            <span className="text-xs font-bold text-slate-500">ml</span>
+            <span className="text-sm font-semibold text-slate-500">ml</span>
           </p>
-          <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
-            About{' '}
-            <strong>
-              {Math.round(min / WATER_CUP_ML)} ~ {Math.round(max / WATER_CUP_ML)} mugs
-            </strong>
+          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+            About {Math.round(min / WATER_CUP_ML)}–{Math.round(max / WATER_CUP_ML)} mugs · based on{' '}
+            {fmt1(weightKg)} kg
           </p>
         </div>
         <div className="shrink-0 text-right text-xs leading-relaxed text-slate-500 dark:text-slate-400">

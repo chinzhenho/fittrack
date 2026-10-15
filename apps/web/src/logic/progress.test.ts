@@ -10,7 +10,7 @@ import {
 } from '../data/actions';
 import { mergeStates } from '../data/merge';
 import { emptyState, type AppState, type Food, type MealType, type Profile } from '../data/types';
-import { progressSummary } from './achievements';
+import { trophyFamilies } from './trophies';
 import {
   activeChallenge,
   challengeProgress,
@@ -189,8 +189,8 @@ describe('weekly challenge', () => {
     s = weigh(s, '2026-10-14', 79.7);
     expect(challengeProgress(s, 'weigh3', week).done).toBe(true);
     expect(completedChallenges(s)).toBe(1);
-    const badge = progressSummary(s, TODAY).badges.find((b) => b.id === 'challenge1');
-    expect(badge?.unlocked).toBe(true);
+    const fam = trophyFamilies(s, TODAY).find((f) => f.id === 'challenges');
+    expect(fam?.levels[0]).toEqual({ tier: 'bronze', goal: 1, earnedOn: '2026-10-14' });
     // Deleting a weigh-in takes the completion back.
     s = removeWeight(s, 'w2026-10-14');
     expect(completedChallenges(s)).toBe(0);

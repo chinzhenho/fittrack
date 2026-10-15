@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router';
 export function Card({ children, className = '' }: { children: ReactNode; className?: string }) {
   return (
     <section
-      className={`rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-900/5 dark:bg-slate-800 dark:ring-white/10 ${className}`}
+      className={`rounded-[22px] bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.04)] dark:bg-slate-800 ${className}`}
     >
       {children}
     </section>
@@ -14,7 +14,7 @@ export function Card({ children, className = '' }: { children: ReactNode; classN
 export function CardTitle({ children, action }: { children: ReactNode; action?: ReactNode }) {
   return (
     <div className="mb-3 flex items-center justify-between gap-3">
-      <h2 className="text-lg font-semibold">{children}</h2>
+      <h2 className="text-[1.0625rem] font-semibold">{children}</h2>
       {action}
     </div>
   );
@@ -24,13 +24,13 @@ type Variant = 'primary' | 'secondary' | 'ghost' | 'danger';
 
 const variants: Record<Variant, string> = {
   primary:
-    'bg-emerald-strong text-white font-semibold shadow-sm hover:bg-emerald-800 dark:bg-emerald dark:text-slate-950 dark:hover:bg-emerald-400',
+    'bg-emerald-strong text-white font-semibold hover:brightness-110 active:brightness-95 dark:bg-emerald dark:text-black',
   secondary:
-    'border border-slate-200 bg-white text-navy font-medium hover:border-emerald hover:bg-emerald-50 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 dark:hover:bg-slate-600',
+    'bg-slate-100 text-emerald-strong font-semibold hover:bg-slate-200 dark:bg-slate-700 dark:text-emerald dark:hover:bg-[#3a3a3c]',
   ghost:
     'text-emerald-strong font-medium hover:bg-emerald-50 dark:text-emerald dark:hover:bg-emerald/10',
   danger:
-    'border border-red-300 text-red-700 hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-950',
+    'bg-red-50 font-semibold text-[#ff3b30] hover:bg-red-100 dark:bg-[#ff453a]/15 dark:text-[#ff453a]',
 };
 
 export function Button({
@@ -42,13 +42,13 @@ export function Button({
     <button
       type="button"
       {...props}
-      className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl px-4 text-sm whitespace-nowrap transition focus-visible:outline-2 focus-visible:outline-emerald disabled:cursor-not-allowed disabled:opacity-50 ${variants[variant]} ${className}`}
+      className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-[14px] px-4 text-[0.9375rem] whitespace-nowrap transition active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-emerald disabled:cursor-not-allowed disabled:opacity-50 ${variants[variant]} ${className}`}
     />
   );
 }
 
 export const inputClass =
-  'mt-1.5 block min-h-12 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 text-base text-navy focus:border-emerald focus:bg-white focus:outline-2 focus:outline-emerald/30 aria-invalid:border-red-600 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100';
+  'mt-1.5 block min-h-12 w-full rounded-xl border border-transparent bg-[#767680]/[0.12] px-4 text-[1.0625rem] text-navy placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald/50 aria-invalid:border-[#ff3b30] dark:bg-[#767680]/[0.24] dark:text-slate-100 dark:focus:bg-slate-700';
 
 export function Field({
   label,
@@ -115,7 +115,7 @@ export function Segmented<T extends string>({
         {options.map((o) => (
           <label
             key={o.value}
-            className="flex min-h-11 cursor-pointer flex-col justify-center rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm transition hover:border-emerald has-checked:border-emerald-strong has-checked:bg-emerald-50 has-checked:font-semibold has-checked:text-emerald-900 has-focus-visible:outline-2 has-focus-visible:outline-emerald dark:border-slate-600 dark:bg-slate-700 dark:has-checked:border-emerald dark:has-checked:bg-emerald/20 dark:has-checked:text-emerald-100"
+            className="flex min-h-11 cursor-pointer flex-col justify-center rounded-[14px] bg-[#767680]/[0.12] px-4 py-2 text-[0.9375rem] transition hover:bg-[#767680]/20 has-checked:bg-emerald-strong has-checked:font-semibold has-checked:text-white has-focus-visible:outline-2 has-focus-visible:outline-emerald dark:bg-[#767680]/[0.24] dark:has-checked:bg-emerald dark:has-checked:text-black"
           >
             <input
               type="radio"
@@ -126,11 +126,7 @@ export function Segmented<T extends string>({
               className="sr-only"
             />
             <span>{o.label}</span>
-            {o.sub && (
-              <span className="text-xs font-normal text-slate-600 dark:text-slate-300">
-                {o.sub}
-              </span>
-            )}
+            {o.sub && <span className="text-xs font-normal opacity-75">{o.sub}</span>}
           </label>
         ))}
       </div>
@@ -153,7 +149,7 @@ export function Check({
         type="checkbox"
         checked={checked}
         onChange={(e) => onChange(e.target.checked)}
-        className="size-5 shrink-0 accent-emerald-strong"
+        className="size-[22px] shrink-0 accent-emerald-strong"
       />
       <span>{children}</span>
     </label>
@@ -171,10 +167,10 @@ export function Notice({
 }) {
   const cls =
     tone === 'warn'
-      ? 'border-amber-300 bg-amber-50 text-amber-950 dark:border-amber-700 dark:bg-amber-950/40 dark:text-amber-100'
-      : 'border-emerald-200 bg-emerald-50 text-emerald-950 dark:border-emerald/40 dark:bg-emerald/10 dark:text-slate-100';
+      ? 'bg-[#fff4e5] text-[#5c3a00] dark:bg-[#ff9f0a]/15 dark:text-[#ffd60a]'
+      : 'bg-emerald-50 text-emerald-950 dark:bg-emerald/15 dark:text-slate-100';
   return (
-    <div className={`rounded-2xl border p-4 text-sm leading-relaxed ${cls}`}>
+    <div className={`rounded-[18px] p-4 text-sm leading-relaxed ${cls}`}>
       {title && <p className="mb-1 font-semibold">{title}</p>}
       {children}
     </div>
@@ -183,9 +179,9 @@ export function Notice({
 
 export function PageTitle({ children, sub }: { children: ReactNode; sub?: ReactNode }) {
   return (
-    <div className="mb-4">
-      <h1 className="text-[1.7rem] font-bold tracking-tight">{children}</h1>
-      {sub && <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">{sub}</p>}
+    <div className="mb-5 pt-2">
+      <h1 className="text-[2.125rem] leading-tight font-bold">{children}</h1>
+      {sub && <p className="mt-1 text-[0.9375rem] text-slate-500 dark:text-slate-400">{sub}</p>}
     </div>
   );
 }
@@ -210,7 +206,7 @@ export function Bar({
 }
 
 export const backButtonClass =
-  'inline-flex min-h-11 items-center gap-1.5 rounded-full border border-slate-200 bg-white pr-4 pl-3 text-sm font-semibold text-slate-800 shadow-sm transition hover:border-emerald hover:text-emerald-strong dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:hover:text-emerald';
+  '-ml-1.5 inline-flex min-h-11 items-center gap-0.5 pr-3 text-[1.0625rem] text-emerald-strong transition hover:opacity-70 dark:text-emerald';
 
 export function BackArrow() {
   return (

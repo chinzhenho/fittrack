@@ -3,7 +3,8 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Link, useLocation } from 'react-router';
 import { WeightChart } from '../components/Charts';
 import { useToast } from '../components/Toast';
-import { Bar, Button, Card, Field, inputClass, PageTitle } from '../components/ui';
+import { Achievements, Overview, Section, WeekBars } from '../components/ProgressParts';
+import { Bar, Button, Field, inputClass, PageTitle } from '../components/ui';
 import {
   acceptChallenge,
   addTarget,
@@ -16,7 +17,6 @@ import { newId, update, useAppState } from '../data/store';
 import type { AppState, Profile } from '../data/types';
 import { formatDay, localToday, shortDate } from '../lib/dates';
 import { fmt1, fmtInt } from '../lib/format';
-import { progressSummary } from '../logic/achievements';
 import {
   activeChallenge,
   challengeProgress,
@@ -38,14 +38,7 @@ import {
   targetOn,
   trendPoints,
 } from '../logic/targets';
-import {
-  mondayOf,
-  PERIOD_LABELS,
-  periodRange,
-  weeklySummary,
-  WEEKLY_LOG_GOAL,
-  type Period,
-} from '../logic/weekly';
+import { mondayOf, weeklySummary, WEEKLY_LOG_GOAL } from '../logic/weekly';
 
 const REFUSAL_TEXT: Record<string, string> = {
   window_too_short:
@@ -66,46 +59,6 @@ const WEEKDAY_SHORT = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 
 const md = (d: string) => shortDate(d);
 const signed = (n: number) => `${n > 0 ? '+' : n < 0 ? '−' : '±'}${fmt1(Math.abs(n))}`;
-
-/** Card with an anchor id and a heading row. */
-function Section({
-  id,
-  icon,
-  title,
-  sub,
-  action,
-  children,
-}: {
-  id: string;
-  icon: string;
-  title: string;
-  sub?: ReactNode;
-  action?: ReactNode;
-  children: ReactNode;
-}) {
-  return (
-    <Card className="scroll-mt-20">
-      <div id={id} className="mb-4 flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
-        <div className="flex min-w-0 items-center gap-2.5">
-          <span
-            aria-hidden="true"
-            className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-lg dark:bg-emerald/15"
-          >
-            {icon}
-          </span>
-          <div className="min-w-0">
-            <h2 className="text-lg leading-tight font-black">{title}</h2>
-            {sub && (
-              <p className="text-xs whitespace-nowrap text-slate-500 dark:text-slate-400">{sub}</p>
-            )}
-          </div>
-        </div>
-        {action}
-      </div>
-      {children}
-    </Card>
-  );
-}
 
 function Chips<T extends string>({
   label,
@@ -171,7 +124,7 @@ export function Progress() {
 
   return (
     <div className="space-y-4">
-      <PageTitle sub="Every step counts. Find the pace that works for you.">My progress</PageTitle>
+      <PageTitle sub="Every step counts. Find the pace that works for you.">Progress</PageTitle>
       {hide && (
         <p className="rounded-2xl bg-slate-100 px-4 py-3 text-sm text-slate-600 dark:bg-slate-800 dark:text-slate-300">
           🙈 You've hidden calorie and weight numbers, so only habits and logging are shown. Turn
@@ -182,11 +135,13 @@ export function Progress() {
           .
         </p>
       )}
-      <WeeklySection s={s} today={today} hide={hide} />
+      <Overview s={s} today={today} />
       {!hide && <BodySection s={s} profile={profile} today={today} />}
-      <InsightsSection s={s} today={today} />
+      <WeeklySection s={s} today={today} hide={hide} />
+      <Achievements s={s} today={today} hide={hide} />
       <HabitsSection s={s} today={today} />
       <NextStepSection s={s} today={today} />
+      <InsightsSection s={s} today={today} />
       {!hide && <AdjustSection s={s} profile={profile} today={today} />}
       {!hide && <WeightHistorySection s={s} today={today} />}
     </div>
@@ -194,8 +149,11 @@ export function Progress() {
 }
 
 function WeeklySection({ s, today, hide }: { s: AppState; today: string; hide: boolean }) {
-  const [period, setPeriod] = useState<Period>('this_week');
-  const { start, end } = periodRange(period, today);
+  const thisWeek = mondayOf(today);
+  const weeks = Array.from({ length: 12 }, (_, i) => addDays(thisWeek, (i - 11) * 7));
+  const [week, setWeek] = useState(thisWeek);
+  const start = week;
+  const end = addDays(week, 6) < today ? addDays(week, 6) : today;
   const w = weeklySummary(s, start, end);
   const pct = Math.round((w.loggedDays / w.dayCount) * 100);
   const goalWord =
@@ -206,20 +164,13 @@ function WeeklySection({ s, today, hide }: { s: AppState; today: string; hide: b
     <Section
       id="summary"
       icon="📅"
-      title="Weekly summary"
-      sub={`${md(start)} – ${md(end)}${period === 'this_week' ? ' (Mon to today)' : ''}`}
-      action={
-        <Chips
-          label="Period"
-          value={period}
-          onChange={setPeriod}
-          options={(Object.keys(PERIOD_LABELS) as Period[]).map((p) => ({
-            value: p,
-            label: PERIOD_LABELS[p],
-          }))}
-        />
-      }
+      tint="bg-[#5ac8fa]"
+      title="Weekly trend"
+      sub={`${md(start)} – ${md(end)}${week === thisWeek ? ' (Mon to today)' : ''}`}
     >
+      <div className="mb-4">
+        <WeekBars s={s} today={today} weeks={weeks} selected={week} onSelect={setWeek} />
+      </div>
       {w.loggedDays === 0 ? (
         <div className="rounded-2xl bg-slate-50 p-4 text-center text-sm text-slate-600 dark:bg-slate-700/60 dark:text-slate-300">
           <p className="text-2xl" aria-hidden="true">
@@ -391,7 +342,7 @@ function BodySection({ s, profile, today }: { s: AppState; profile: Profile; tod
 
   if (!latest) {
     return (
-      <Section id="body" icon="📈" title="Body changes">
+      <Section id="body" tint="bg-[#ff2d55]" icon="📈" title="Body changes">
         <div className="rounded-2xl bg-slate-50 p-5 text-center dark:bg-slate-700/60">
           <p className="text-3xl" aria-hidden="true">
             ⚖️
@@ -422,7 +373,7 @@ function BodySection({ s, profile, today }: { s: AppState; profile: Profile; tod
   const reached = toGoal !== null && (goal === 'fat_loss' ? toGoal >= 0 : toGoal <= 0);
 
   return (
-    <Section id="body" icon="📈" title="Body changes" action={action}>
+    <Section id="body" tint="bg-[#ff2d55]" icon="📈" title="Body changes" action={action}>
       <div className="mb-3 grid grid-cols-3 gap-2 text-center">
         <div className="rounded-2xl bg-slate-50 px-2 py-2 dark:bg-slate-700/60">
           <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">Start</p>
@@ -500,6 +451,7 @@ function InsightsSection({ s, today }: { s: AppState; today: string }) {
   return (
     <Section
       id="insights"
+      tint="bg-[#af52de]"
       icon="🔍"
       title="Your insights"
       sub={`From your logs, ${md(addDays(today, -6))} – ${md(today)}`}
@@ -592,16 +544,11 @@ function HabitsSection({ s, today }: { s: AppState; today: string }) {
   const week = mondayOf(today);
   const rows = habitWeek(s, week, today);
   const active = activeChallenge(s, week);
-  const summary = progressSummary(s, today);
-  const unlocked = summary.badges.filter((b) => b.unlocked).length;
-  const next = summary.badges
-    .filter((b) => !b.unlocked)
-    .sort((a, b) => b.progress.value / b.progress.max - a.progress.value / a.progress.max)[0];
-  const [showBadges, setShowBadges] = useState(false);
 
   return (
     <Section
       id="habits"
+      tint="bg-emerald-500"
       icon="🌱"
       title="Healthy habits"
       sub={`This week, ${md(week)} – ${md(addDays(week, 6))}`}
@@ -694,83 +641,6 @@ function HabitsSection({ s, today }: { s: AppState; today: string }) {
           </p>
         )}
       </div>
-
-      <div className="mt-5 border-t border-slate-100 pt-4 dark:border-slate-700">
-        <div className="mb-2 flex items-center justify-between">
-          <h3 className="font-bold">🏆 Badges</h3>
-          <span className="text-sm text-slate-500 dark:text-slate-400">
-            {unlocked} / {summary.badges.length}
-          </span>
-        </div>
-        <div className="mb-3 flex gap-2 text-center text-xs">
-          <div className="flex-1 rounded-2xl bg-orange-50 py-2 dark:bg-orange-500/10">
-            <p className="text-lg font-black">🔥 {summary.streak}</p>
-            <p className="text-slate-600 dark:text-slate-300">Current streak (days)</p>
-          </div>
-          <div className="flex-1 rounded-2xl bg-slate-50 py-2 dark:bg-slate-700/60">
-            <p className="text-lg font-black">{summary.longest}</p>
-            <p className="text-slate-600 dark:text-slate-300">Longest streak (days)</p>
-          </div>
-          <div className="flex-1 rounded-2xl bg-slate-50 py-2 dark:bg-slate-700/60">
-            <p className="text-lg font-black">{summary.daysLogged}</p>
-            <p className="text-slate-600 dark:text-slate-300">Days logged in total</p>
-          </div>
-        </div>
-        {next && (
-          <div className="mb-3 rounded-2xl bg-amber-50 px-3 py-2.5 text-sm dark:bg-amber-500/10">
-            <p>
-              Next:
-              <strong>
-                {next.icon} {next.title}
-              </strong>{' '}
-              — {next.need}
-            </p>
-            {next.progress.max > 1 && (
-              <>
-                <Bar value={next.progress.value} max={next.progress.max} color="bg-amber-400" />
-                <p className="mt-1 text-right text-[11px] text-slate-500">
-                  {fmt1(next.progress.value).replace(/\.0$/, '')} / {next.progress.max}
-                </p>
-              </>
-            )}
-          </div>
-        )}
-        <Button variant="ghost" className="w-full" onClick={() => setShowBadges((v) => !v)}>
-          {showBadges ? 'Hide badges' : 'See all badges'}
-        </Button>
-        {showBadges && (
-          <ul className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3">
-            {summary.badges.map((b) => (
-              <li
-                key={b.id}
-                className={`rounded-2xl p-3 ${b.unlocked ? 'bg-amber-50 ring-1 ring-amber-200 dark:bg-amber-500/10 dark:ring-amber-500/30' : 'bg-slate-50 dark:bg-slate-700'}`}
-              >
-                <p
-                  className={`text-2xl ${b.unlocked ? '' : 'opacity-40 grayscale'}`}
-                  aria-hidden="true"
-                >
-                  {b.icon}
-                </p>
-                <p className="mt-1 text-sm font-semibold">
-                  {b.title}
-                  <span className="sr-only">{b.unlocked ? ' (earned)' : ' (not earned)'}</span>
-                </p>
-                <p className="text-xs text-slate-600 dark:text-slate-300">
-                  {b.unlocked ? '✓ Earned' : b.need}
-                </p>
-                {!b.unlocked && b.progress.max > 1 && (
-                  <>
-                    <Bar value={b.progress.value} max={b.progress.max} color="bg-amber-400" />
-                    <p className="mt-1 text-right text-[11px] text-slate-600 dark:text-slate-300">
-                      {fmt1(b.progress.value).replace(/\.0$/, '')} / {b.progress.max}
-                    </p>
-                  </>
-                )}
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
     </Section>
   );
 }
@@ -802,7 +672,13 @@ function NextStepSection({ s, today }: { s: AppState; today: string }) {
     const id = active.challenge;
     const p = challengeProgress(s, id, week);
     return (
-      <Section id="next" icon="🎯" title="Next small goal" sub="This week's challenge">
+      <Section
+        id="next"
+        tint="bg-[#ff9500]"
+        icon="🎯"
+        title="Next small goal"
+        sub="This week's challenge"
+      >
         <div className="rounded-2xl bg-gradient-to-br from-emerald-50 to-teal-50 p-4 dark:from-emerald/15 dark:to-teal-500/10">
           <ChallengeProgress s={s} id={id} week={week} />
           <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
@@ -834,7 +710,7 @@ function NextStepSection({ s, today }: { s: AppState; today: string }) {
 
   if (options.length === 0) {
     return (
-      <Section id="next" icon="🎯" title="Next small goal">
+      <Section id="next" tint="bg-[#ff9500]" icon="🎯" title="Next small goal">
         <p className="text-sm text-slate-600 dark:text-slate-300">
           🎉 You've already met every challenge this week. Come back on Monday for a new one.
         </p>
@@ -847,6 +723,7 @@ function NextStepSection({ s, today }: { s: AppState; today: string }) {
   return (
     <Section
       id="next"
+      tint="bg-[#ff9500]"
       icon="🎯"
       title="Next small goal"
       sub="Picked from the habit that needs the most help"
@@ -1007,6 +884,7 @@ function AdjustSection({ s, profile, today }: { s: AppState; profile: Profile; t
   return (
     <Section
       id="adjust"
+      tint="bg-slate-400"
       icon="⚙️"
       title="Target suggestion"
       sub="Fine-tunes calories from your real logs; you decide"
@@ -1044,7 +922,13 @@ function WeightHistorySection({ s, today }: { s: AppState; today: string }) {
   );
 
   return (
-    <Section id="weights" icon="⚖️" title="Weight log" sub="Add past days, edit or delete">
+    <Section
+      id="weights"
+      tint="bg-[#5856d6]"
+      icon="⚖️"
+      title="Weight log"
+      sub="Add past days, edit or delete"
+    >
       <form
         className="space-y-3 rounded-2xl bg-slate-50 p-3 dark:bg-slate-700/40"
         onSubmit={(e) => {

@@ -3,21 +3,48 @@
 /* Dark mode follows the .dark class on <html> (set from the user's appearance choice). */
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* Design tokens: fresh green brand on a soft, slightly green-tinted background.
-   Macro colours are used the same way everywhere: protein rose, carbs sky, fat amber.
+/* Design tokens, Apple style: iOS system grays and greens, SF system font, grouped
+   light-gray background with white cards (black and #1c1c1e in dark mode).
+   The Tailwind slate and emerald scales are remapped to Apple's palette, so every page
+   picks it up. Macro colours stay the same everywhere: protein rose, carbs sky, fat amber.
    Red is reserved for errors. */
 @theme {
-  --color-navy: #0f172a;
-  --color-emerald: #10b981;
-  --color-emerald-strong: #047857;
-  --color-mist: #f3f6f4;
+  --color-navy: #1d1d1f;
+  --color-emerald: #34c759;
+  --color-emerald-strong: #248a3d;
+  --color-mist: #f2f2f7;
+
+  --color-slate-50: #f2f2f7;
+  --color-slate-100: #e9e9ee;
+  --color-slate-200: #d1d1d6;
+  --color-slate-300: #c7c7cc;
+  --color-slate-400: #8e8e93;
+  --color-slate-500: #6e6e73;
+  --color-slate-600: #636366;
+  --color-slate-700: #2c2c2e;
+  --color-slate-800: #1c1c1e;
+  --color-slate-900: #000000;
+  --color-slate-950: #000000;
+
+  --color-emerald-50: #eaf8ee;
+  --color-emerald-100: #d4f3dd;
+  --color-emerald-200: #a9e7bb;
+  --color-emerald-300: #74d892;
+  --color-emerald-400: #4cd36f;
+  --color-emerald-500: #34c759;
+  --color-emerald-600: #2fb350;
+  --color-emerald-700: #248a3d;
+  --color-emerald-800: #1d7233;
+  --color-emerald-900: #155426;
+  --color-emerald-950: #0b2e15;
+
   --text-xs: 0.8125rem;
   --text-xs--line-height: 1.25rem;
   --text-sm: 0.9375rem;
   --text-sm--line-height: 1.4rem;
   --font-sans:
-    system-ui, -apple-system, 'Segoe UI', Roboto, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans SC',
-    'PingFang TC', 'Microsoft JhengHei', 'Noto Sans TC', sans-serif;
+    -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', system-ui, 'Segoe UI',
+    'Helvetica Neue', Roboto, Arial, 'PingFang SC', 'Noto Sans SC', sans-serif;
 }
 
 @layer base {
@@ -26,6 +53,12 @@
   }
   body {
     @apply bg-mist text-navy antialiased dark:bg-slate-900 dark:text-slate-100;
+    letter-spacing: -0.01em;
+  }
+  h1,
+  h2,
+  h3 {
+    letter-spacing: -0.022em;
   }
 }
 

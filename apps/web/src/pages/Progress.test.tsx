@@ -46,7 +46,7 @@ afterEach(cleanup);
 describe('My progress', () => {
   it('scenario A: a new user sees empty states, not made-up numbers', () => {
     renderProgress();
-    expect(screen.getByRole('heading', { name: 'My progress' })).toBeTruthy();
+    expect(screen.getByRole('heading', { name: 'Progress' })).toBeTruthy();
     expect(screen.getByText('No food logged in this period')).toBeTruthy();
     expect(screen.getByText('Log your first weight to start seeing changes.')).toBeTruthy();
     expect(screen.getByRole('button', { name: '+ Log weight' })).toBeTruthy();

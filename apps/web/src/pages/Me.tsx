@@ -190,7 +190,7 @@ function Row({
 function Group({ title, children }: { title: string; children: ReactNode }) {
   return (
     <section aria-label={title}>
-      <h2 className="mb-2 px-1 text-xs font-bold tracking-wide text-slate-500 dark:text-slate-400">
+      <h2 className="mb-1.5 px-4 text-[0.8125rem] text-slate-500 uppercase dark:text-slate-400">
         {title}
       </h2>
       <Card className="p-3">{children}</Card>
@@ -616,49 +616,50 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
     <div className="space-y-5">
       <PageTitle sub="Manage your health plan and app settings.">Me</PageTitle>
 
-      <section className="rounded-3xl bg-gradient-to-br from-[#5cae6f] via-[#43955f] to-[#2f6e5b] p-5 text-white shadow-md">
-        <div className="flex items-center gap-4">
+      <section className="overflow-hidden rounded-[22px] bg-white dark:bg-slate-800">
+        <Link
+          to="/me/profile"
+          aria-label="Edit profile"
+          className="flex items-center gap-4 p-4 transition hover:bg-slate-50 dark:hover:bg-slate-700"
+        >
           <span
             aria-hidden="true"
-            className="flex size-16 shrink-0 items-center justify-center rounded-full border-2 border-white/60 bg-white/20 text-3xl font-bold"
+            className="flex size-16 shrink-0 items-center justify-center rounded-full bg-gradient-to-b from-slate-100 to-slate-200 text-3xl font-semibold text-slate-600 dark:from-slate-600 dark:to-slate-700 dark:text-slate-100"
           >
             {initial}
           </span>
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-xl font-black">
+          <span className="min-w-0 flex-1">
+            <span className="block truncate text-[1.375rem] leading-tight font-semibold">
               {profile.nickname ?? (signedIn ? 'No nickname yet' : 'Guest')}
-            </p>
-            <p className="truncate text-sm text-emerald-50">{signedIn ? email : 'Not logged in'}</p>
-          </div>
-          <Link
-            to="/me/profile"
-            className="shrink-0 rounded-full border border-white/50 px-3 py-1.5 text-xs font-bold hover:bg-white/15"
-          >
-            Edit profile
-          </Link>
-        </div>
-        <div className="mt-4 flex flex-wrap gap-2 text-xs font-semibold">
-          <span className="rounded-full bg-white/20 px-3 py-1">🎯 {GOAL_LABELS[profile.goal]}</span>
-          {target && !hide && (
-            <span className="rounded-full bg-white/20 px-3 py-1">
-              🔥 {fmtInt(target.caloriesKcal)} kcal a day
             </span>
-          )}
-        </div>
+            <span className="block truncate text-sm text-slate-500 dark:text-slate-400">
+              {signedIn ? email : 'Not logged in'}
+            </span>
+            <span className="mt-1 block text-xs text-slate-500 dark:text-slate-400">
+              {GOAL_LABELS[profile.goal]}
+              {target && !hide && ` · ${fmtInt(target.caloriesKcal)} kcal a day`}
+            </span>
+          </span>
+          <span aria-hidden="true" className="text-xl text-slate-300 dark:text-slate-500">
+            ›
+          </span>
+        </Link>
         {signedIn && SYNC_TEXT[sync.status] && (
-          <p className="mt-3 text-xs text-emerald-50">{SYNC_TEXT[sync.status]}</p>
+          <p className="border-t border-slate-100 px-4 py-2.5 text-xs text-slate-500 dark:border-slate-700 dark:text-slate-400">
+            {SYNC_TEXT[sync.status]}
+          </p>
         )}
         {!signedIn && (
-          <div className="mt-4 flex gap-2">
+          <div className="flex gap-2 border-t border-slate-100 p-4 dark:border-slate-700">
             <Link
               to="/signup"
-              className="inline-flex min-h-11 flex-1 items-center justify-center rounded-2xl bg-white px-4 text-sm font-semibold text-emerald-900"
+              className="inline-flex min-h-11 flex-1 items-center justify-center rounded-[14px] bg-emerald-strong px-4 text-[0.9375rem] font-semibold text-white dark:bg-emerald dark:text-black"
             >
               Sign up
             </Link>
             <Link
               to="/login"
-              className="inline-flex min-h-11 flex-1 items-center justify-center rounded-2xl border border-white/50 px-4 text-sm font-semibold"
+              className="inline-flex min-h-11 flex-1 items-center justify-center rounded-[14px] bg-[#767680]/[0.12] px-4 text-[0.9375rem] font-semibold text-emerald-strong dark:bg-[#767680]/[0.24] dark:text-emerald"
             >
               Log in
             </Link>

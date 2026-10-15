@@ -169,6 +169,8 @@ export interface AppState {
   dismissedInsights: string[];
   /** Dates on which the user chose to keep the current target over a suggestion. */
   adaptiveKeptOn: string[];
+  /** Months ("YYYY-MM") whose monthly challenge the user joined. */
+  monthlyJoined: string[];
 }
 
 export const emptyState: AppState = {
@@ -189,4 +191,5 @@ export const emptyState: AppState = {
   challenges: [],
   dismissedInsights: [],
   adaptiveKeptOn: [],
+  monthlyJoined: [],
 };

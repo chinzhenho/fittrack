@@ -327,7 +327,7 @@ export function Login() {
       tabs="login"
       footer={
         <>
-          Don't have an account?
+          Don't have an account?{' '}
           <Link to="/signup" replace className={linkClass}>
             Sign up free
           </Link>
@@ -421,7 +421,7 @@ export function Signup() {
       tabs="signup"
       footer={
         <>
-          Have an account?
+          Have an account?{' '}
           <Link to="/login" replace className={linkClass}>
             Log in
           </Link>

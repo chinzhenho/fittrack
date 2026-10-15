@@ -108,26 +108,27 @@ export function Today() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-3">
-        <span
-          aria-hidden="true"
-          className="flex size-11 shrink-0 items-center justify-center rounded-full border-2 border-emerald-500 bg-emerald-50 text-lg font-bold text-emerald-800 dark:bg-emerald/15 dark:text-emerald-100"
-        >
-          {initial}
-        </span>
-        <div>
-          <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+      <div className="flex items-end justify-between gap-3 pt-2">
+        <div className="min-w-0">
+          <p className="text-[0.8125rem] font-semibold text-slate-500 uppercase dark:text-slate-400">
             {new Date().toLocaleDateString('en-MY', {
               month: 'long',
               day: 'numeric',
-              weekday: 'short',
+              weekday: 'long',
             })}
           </p>
-          <h1 className="text-2xl leading-tight font-black tracking-tight">
+          <h1 className="text-[2.125rem] leading-tight font-bold">
             {greeting}
             {profile.nickname ? `, ${profile.nickname}` : ''}
           </h1>
         </div>
+        <Link
+          to="/me"
+          aria-label="Me"
+          className="mb-1 flex size-10 shrink-0 items-center justify-center rounded-full bg-slate-200 text-lg font-semibold text-slate-600 dark:bg-slate-700 dark:text-slate-200"
+        >
+          {initial}
+        </Link>
       </div>
 
       {needsRecompute(s, today) && (
@@ -139,109 +140,107 @@ export function Today() {
         </Notice>
       )}
 
-      {/* Weight & BMI */}
+      {/* Weight & BMI (Apple Health style summary card) */}
       {!hide && (
-        <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#5cae6f] via-[#43955f] to-[#2f6e5b] p-4 text-white shadow-xl shadow-[#2f6e5b]/20">
-          <span
-            aria-hidden="true"
-            className="pointer-events-none absolute -right-6 -bottom-6 size-32 rounded-full bg-white/10 blur-2xl"
-          />
-          <div className="relative flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2">
-              <span
-                aria-hidden="true"
-                className="flex size-9 items-center justify-center rounded-xl bg-white/20 text-lg"
-              >
-                ⚖️
-              </span>
-              <div>
-                <p className="text-xs font-semibold text-emerald-50">Today's weight & BMI</p>
-                <div className="mt-0.5 flex flex-wrap items-center gap-1.5">
-                  {bmiValue !== null && (
-                    <span className="rounded-full bg-white px-2 py-0.5 text-[11px] font-extrabold text-emerald-800">
-                      BMI {fmt1(bmiValue)} {BMI_TEXT[bmiCategory(bmiValue)]}
-                    </span>
-                  )}
-                  {change !== null && Math.abs(change) >= 0.05 && (
-                    <span className="text-xs text-emerald-50">
-                      Total {change > 0 ? '+' : ''}
-                      {fmt1(change)} kg
-                    </span>
-                  )}
-                </div>
-              </div>
-            </div>
+        <Card className="p-4">
+          <div className="flex items-center justify-between gap-3">
+            <p className="flex items-center gap-1.5 text-[0.9375rem] font-semibold text-[#5856d6] dark:text-[#7d7aff]">
+              <span aria-hidden="true">⚖️</span> Weight & BMI
+            </p>
             <button
               type="button"
               onClick={() => setWeighing(true)}
-              className="flex min-h-10 shrink-0 items-center gap-1 rounded-xl bg-white px-3 text-sm font-black text-emerald-800 shadow-sm transition hover:bg-emerald-50 active:scale-95"
+              className="min-h-9 shrink-0 rounded-full bg-[#5856d6]/10 px-3 text-sm font-semibold text-[#5856d6] transition hover:bg-[#5856d6]/15 active:scale-95 dark:bg-[#7d7aff]/20 dark:text-[#a5a3ff]"
             >
-              {weighedToday ? '✎ Edit weight' : '+ Log weight'}
+              {weighedToday ? 'Edit weight' : '+ Log weight'}
             </button>
           </div>
 
-          <div className="relative mt-4 flex items-end justify-between gap-2">
+          <div className="mt-3 grid grid-cols-3 items-end gap-2">
             <div>
-              <p className="text-xs text-emerald-100">Current weight</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400">Current</p>
               <p className="flex items-baseline gap-1">
-                <span className="text-4xl leading-none font-black">
+                <span className="text-[2rem] leading-none font-bold">
                   {current !== null ? fmt1(current) : '—'}
                 </span>
-                <span className="text-sm font-bold text-emerald-100">kg</span>
+                <span className="text-sm font-semibold text-slate-500">kg</span>
               </p>
             </div>
-            {bmiValue !== null && (
-              <div className="rounded-xl border border-white/10 bg-black/15 px-3 py-1.5 text-center">
-                <p className="text-[11px] text-emerald-100">BMI</p>
-                <p className="text-lg leading-tight font-black">{fmt1(bmiValue)}</p>
-                <p className="text-[10px] text-emerald-200">Height {profile.heightCm} cm</p>
-              </div>
-            )}
+            <div className="text-center">
+              <p className="text-xs text-slate-500 dark:text-slate-400">BMI</p>
+              <p className="text-xl leading-tight font-bold">
+                {bmiValue !== null ? fmt1(bmiValue) : '—'}
+              </p>
+              {bmiValue !== null && (
+                <p className="text-[0.6875rem] font-semibold text-slate-500 dark:text-slate-400">
+                  {BMI_TEXT[bmiCategory(bmiValue)]}
+                </p>
+              )}
+            </div>
             <div className="text-right">
-              <p className="text-xs text-emerald-100">Target weight</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400">Target</p>
               {goalKg !== undefined ? (
                 <p className="flex items-baseline justify-end gap-1">
-                  <span className="text-xl font-black">{fmt1(goalKg)}</span>
-                  <span className="text-sm font-semibold text-emerald-200">kg</span>
+                  <span className="text-xl font-bold">{fmt1(goalKg)}</span>
+                  <span className="text-sm font-semibold text-slate-500">kg</span>
                 </p>
               ) : (
-                <Link to="/me/profile" className="text-sm font-semibold underline">
+                <Link
+                  to="/me/profile"
+                  className="text-sm font-semibold text-emerald-strong dark:text-emerald"
+                >
                   Set
                 </Link>
               )}
             </div>
           </div>
+          {bmiValue !== null && (
+            <span className="sr-only">
+              BMI {fmt1(bmiValue)} {BMI_TEXT[bmiCategory(bmiValue)]}
+            </span>
+          )}
 
           {toGoal !== null && current !== null && goalKg !== undefined && (
-            <div className="relative mt-3 space-y-1 border-t border-white/15 pt-3">
-              <div className="flex justify-between text-xs text-emerald-100">
-                <span>{losing ? 'Weight loss progress' : 'Weight gain progress'}</span>
-                <span className="font-bold text-white">
+            <div className="mt-4 space-y-1.5">
+              <div className="flex justify-between text-xs text-slate-500 dark:text-slate-400">
+                <span>
+                  {losing ? 'Weight loss progress' : 'Weight gain progress'}
+                  {change !== null && Math.abs(change) >= 0.05 && (
+                    <>
+                      {' '}
+                      · total {change > 0 ? '+' : ''}
+                      {fmt1(change)} kg
+                    </>
+                  )}
+                </span>
+                <span className="font-semibold text-navy dark:text-slate-100">
                   {reached ? 'Goal reached! 🎉' : `${fmt1(Math.abs(current - goalKg))} kg to go`}
                 </span>
               </div>
-              <div className="h-2 overflow-hidden rounded-full bg-black/20 p-0.5">
+              <div className="h-1.5 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-700">
                 <div
-                  className="h-full rounded-full bg-white transition-all duration-500"
+                  className="h-full rounded-full bg-[#5856d6] transition-all duration-500 dark:bg-[#7d7aff]"
                   style={{ width: `${Math.round(toGoal * 100)}%` }}
                 />
               </div>
             </div>
           )}
-        </section>
+        </Card>
       )}
 
       {/* Calories & photo logging */}
       <Card className="space-y-3 p-4">
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0">
-            <p className="text-xs font-bold text-slate-500 dark:text-slate-400">Calories today</p>
+            <p className="flex items-center gap-1.5 text-[0.9375rem] font-semibold text-[#ff9500]">
+              <span aria-hidden="true">🔥</span> Calories today
+            </p>
             {hide ? (
               <p className="mt-0.5 text-lg font-black">{todayMeals.length} items logged</p>
             ) : (
               <>
                 <p className="mt-0.5 flex items-baseline gap-1">
-                  <span className="text-3xl font-black">{fmtInt(eaten.kcal)}</span>
+                  <span className="text-[2rem] leading-none font-bold">{fmtInt(eaten.kcal)}</span>
                   <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
                     / {fmtInt(target.caloriesKcal)} kcal target
                   </span>
@@ -257,14 +256,9 @@ export function Today() {
           <SnapButton
             meal={nextMeal}
             label={`Log ${MEAL_LABELS[nextMeal].toLowerCase()}`}
-            className="flex shrink-0 items-center gap-2 rounded-2xl bg-gradient-to-r from-emerald-600 to-emerald-700 px-4 py-3 text-sm font-extrabold text-white shadow-lg shadow-emerald-600/25 transition active:scale-95"
+            className="flex min-h-11 shrink-0 items-center gap-2 rounded-full bg-emerald-strong px-4 text-[0.9375rem] font-semibold text-white transition active:scale-95 dark:bg-emerald dark:text-black"
           >
-            <span
-              aria-hidden="true"
-              className="flex size-7 items-center justify-center rounded-lg bg-white/20"
-            >
-              📷
-            </span>
+            <span aria-hidden="true">📷</span>
             Log food
           </SnapButton>
         </div>
@@ -281,12 +275,12 @@ export function Today() {
               key={m}
               meal={m}
               label={`Log ${MEAL_LABELS[m].toLowerCase()}`}
-              className="group flex flex-col items-center rounded-xl border border-slate-200 bg-slate-50 p-2 text-center transition hover:border-emerald-200 hover:bg-emerald-50 active:scale-95 dark:border-slate-600 dark:bg-slate-700"
+              className="group flex flex-col items-center rounded-[14px] bg-[#767680]/[0.08] p-2 text-center transition hover:bg-[#767680]/[0.14] active:scale-95 dark:bg-[#767680]/[0.24]"
             >
               <span aria-hidden="true" className="text-xl transition group-hover:scale-110">
                 {MEAL_BUTTON[m]}
               </span>
-              <span className="mt-0.5 text-xs font-black text-slate-700 group-hover:text-emerald-700 dark:text-slate-200">
+              <span className="mt-0.5 text-xs font-medium text-navy dark:text-slate-200">
                 {MEAL_LABELS[m]}
               </span>
             </SnapButton>
@@ -297,28 +291,25 @@ export function Today() {
       {/* Today's food log */}
       <section className="space-y-3">
         <div className="flex items-center justify-between">
-          <h2 className="flex items-center gap-1.5 text-sm font-black tracking-wider text-slate-500 dark:text-slate-400">
-            <span aria-hidden="true">📅</span>
-            Today's food log
-          </h2>
+          <h2 className="text-[1.25rem] font-bold">Today's food log</h2>
           <Link
             to="/diary"
-            className="text-xs font-semibold text-emerald-strong hover:underline dark:text-emerald"
+            className="text-[0.9375rem] text-emerald-strong hover:opacity-70 dark:text-emerald"
           >
-            Edit / see all ›
+            See all
           </Link>
         </div>
         {todayMeals.length === 0 ? (
-          <p className="rounded-2xl border-2 border-dashed border-slate-200 p-5 text-center text-sm text-slate-500 dark:border-slate-700 dark:text-slate-400">
+          <p className="rounded-[22px] bg-white p-5 text-center text-sm text-slate-500 dark:bg-slate-800 dark:text-slate-400">
             Nothing logged yet today. Tap "Log food" above to start.
           </p>
         ) : (
-          <ul className="space-y-2.5">
+          <ul className="divide-y divide-slate-100 overflow-hidden rounded-[22px] bg-white dark:divide-slate-700 dark:bg-slate-800">
             {MEAL_TYPES.flatMap((m) => todayMeals.filter((i) => i.meal === m)).map((i) => (
               <li key={i.id}>
                 <Link
                   to="/diary"
-                  className="flex items-center justify-between gap-3 rounded-2xl bg-white p-3.5 shadow-sm ring-1 ring-slate-900/5 transition hover:ring-emerald-200 dark:bg-slate-800 dark:ring-white/10"
+                  className="flex items-center justify-between gap-3 p-3.5 transition hover:bg-slate-50 dark:hover:bg-slate-700"
                 >
                   <span className="flex min-w-0 items-center gap-3">
                     <span
@@ -329,10 +320,10 @@ export function Today() {
                     </span>
                     <span className="min-w-0">
                       <span className="flex items-center gap-1.5">
-                        <span className="shrink-0 rounded bg-emerald-100 px-1.5 py-0.5 text-[11px] font-extrabold text-emerald-800 dark:bg-emerald/20 dark:text-emerald-100">
+                        <span className="shrink-0 text-xs font-semibold text-slate-500 dark:text-slate-400">
                           {i.label ?? MEAL_LABELS[i.meal]}
                         </span>
-                        <span className="truncate text-sm font-black">{i.name}</span>
+                        <span className="truncate text-[0.9375rem] font-semibold">{i.name}</span>
                       </span>
                       {!hide && (
                         <span className="mt-0.5 block text-xs text-slate-500 dark:text-slate-400">
@@ -343,7 +334,7 @@ export function Today() {
                     </span>
                   </span>
                   {!hide && (
-                    <span className="shrink-0 text-sm font-black">
+                    <span className="shrink-0 text-[0.9375rem] font-semibold">
                       {fmtInt(i.nutrients.kcal)} kcal
                     </span>
                   )}
