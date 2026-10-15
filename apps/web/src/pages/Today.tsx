@@ -7,7 +7,6 @@ import { SnapButton } from '../components/SnapButton';
 import { Bar, Button, Card, Notice } from '../components/ui';
 import { WaterCard } from '../components/WaterCard';
 import { addTarget, setWeightOn } from '../data/actions';
-import { useAuth } from '../data/auth';
 import { newId, update, useAppState } from '../data/store';
 import { localToday } from '../lib/dates';
 import { fmt1, fmtInt } from '../lib/format';
@@ -41,7 +40,6 @@ export function Today() {
   const s = useAppState();
   const today = useMemo(() => localToday(), []);
   const [weighing, setWeighing] = useState(false);
-  const auth = useAuth();
   const profile = s.profile;
   const target = targetOn(s.targets, today);
   if (!profile || !target) return null;
@@ -80,9 +78,6 @@ export function Today() {
           ? 'Good afternoon'
           : 'Good evening';
   const nextMeal = mealForHour(hour);
-  const initial =
-    profile.avatar ??
-    (auth.status === 'signedIn' ? (auth.user.email?.[0] ?? '🙂').toUpperCase() : '🙂');
 
   // Weight card: the latest weigh-in, the very first weight as the start, BMI from height.
   const current = latestWeight(s.weights)?.weightKg ?? null;
@@ -125,13 +120,6 @@ export function Today() {
             {profile.nickname ? `, ${profile.nickname}` : ''}
           </h1>
         </div>
-        <Link
-          to="/me"
-          aria-label="Me"
-          className="mb-1 flex size-10 shrink-0 items-center justify-center rounded-full bg-slate-200 text-lg font-semibold text-slate-600 dark:bg-slate-700 dark:text-slate-200"
-        >
-          {initial}
-        </Link>
       </div>
 
       {needsRecompute(s, today) && (

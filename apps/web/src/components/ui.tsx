@@ -397,3 +397,208 @@ export function PasswordStrength({ value }: { value: string }) {
     </div>
   );
 }
+
+// iOS-style grouped lists: a label on the left, the value on the right, native pickers
+// on tap and switches for on/off. Used for settings and edit screens instead of stacked
+// boxed form fields.
+
+/** A titled group of rows on a white rounded card, with an optional footer note. */
+export function List({
+  title,
+  footer,
+  nested = false,
+  children,
+}: {
+  title?: string;
+  footer?: ReactNode;
+  /** Inside a white card: use a light grey group instead. */
+  nested?: boolean;
+  children: ReactNode;
+}) {
+  return (
+    <section aria-label={title}>
+      {title && (
+        <h2 className="mb-1.5 px-4 text-[0.8125rem] text-slate-500 uppercase dark:text-slate-400">
+          {title}
+        </h2>
+      )}
+      <div
+        className={`divide-y overflow-hidden rounded-[14px] pl-4 [&>*]:pr-4 ${nested ? 'divide-slate-200 bg-slate-50 dark:divide-slate-600 dark:bg-slate-700/50' : 'divide-slate-100 bg-white dark:divide-slate-700 dark:bg-slate-800'}`}
+      >
+        {children}
+      </div>
+      {footer && (
+        <p className="mt-1.5 px-4 text-xs leading-relaxed text-slate-500 dark:text-slate-400">
+          {footer}
+        </p>
+      )}
+    </section>
+  );
+}
+
+const rowClass = 'relative flex min-h-12 items-center justify-between gap-3 py-2';
+const rowLabelClass = 'shrink-0 text-[1.0625rem] text-navy dark:text-slate-100';
+const rowValueClass = 'min-w-0 text-right text-[1.0625rem] text-slate-500 dark:text-slate-400';
+
+/** A row showing a value; tapping opens the phone's own picker (a wheel on iPhone). */
+export function SelectRow<T extends string>({
+  label,
+  value,
+  options,
+  onChange,
+}: {
+  label: string;
+  value: T;
+  options: { value: T; label: string }[];
+  onChange: (value: T) => void;
+}) {
+  const id = useId();
+  const current = options.find((o) => o.value === value)?.label ?? '';
+  return (
+    <div className={rowClass}>
+      <label htmlFor={id} className={rowLabelClass}>
+        {label}
+      </label>
+      <span className={`flex items-center gap-1 ${rowValueClass}`}>
+        <span className="truncate">{current}</span>
+        <svg
+          viewBox="0 0 24 24"
+          aria-hidden="true"
+          className="size-4 shrink-0 text-slate-400"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M8 9.5l4-4 4 4M8 14.5l4 4 4-4" />
+        </svg>
+      </span>
+      <select
+        id={id}
+        value={value}
+        onChange={(e) => onChange(e.target.value as T)}
+        className="absolute inset-0 cursor-pointer opacity-0"
+      >
+        {options.map((o) => (
+          <option key={o.value} value={o.value}>
+            {o.label}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+}
+
+/** A row with a borderless, right-aligned input and an optional unit. */
+export function InputRow({
+  label,
+  unit,
+  error,
+  ...input
+}: {
+  label: string;
+  unit?: string;
+  error?: string | null | undefined;
+  ref?: React.Ref<HTMLInputElement>;
+} & React.InputHTMLAttributes<HTMLInputElement>) {
+  const id = useId();
+  return (
+    <div>
+      <div className={rowClass}>
+        <label htmlFor={id} className={rowLabelClass}>
+          {label}
+        </label>
+        <span className="flex min-w-0 items-center justify-end gap-1">
+          <input
+            id={id}
+            {...input}
+            aria-invalid={error ? true : undefined}
+            aria-describedby={error ? `${id}-err` : undefined}
+            className={`w-full min-w-0 bg-transparent text-right text-[1.0625rem] text-slate-600 placeholder:text-slate-400 focus:text-navy focus:outline-none dark:text-slate-300 dark:focus:text-white ${error ? 'text-[#ff3b30]' : ''} ${input.className ?? ''}`}
+          />
+          {unit && <span className="shrink-0 text-[1.0625rem] text-slate-500">{unit}</span>}
+        </span>
+      </div>
+      {error && (
+        <p id={`${id}-err`} className="-mt-1 pb-2 text-right text-xs text-[#ff3b30]">
+          {error}
+        </p>
+      )}
+    </div>
+  );
+}
+
+const switchTrack =
+  'relative h-[31px] w-[51px] shrink-0 rounded-full bg-[#787880]/[0.16] transition-colors peer-checked:bg-[#34c759] peer-focus-visible:outline-2 peer-focus-visible:outline-emerald after:absolute after:top-[2px] after:left-[2px] after:size-[27px] after:rounded-full after:bg-white after:shadow-[0_3px_8px_rgba(0,0,0,0.15)] after:transition-transform peer-checked:after:translate-x-5 dark:bg-[#787880]/[0.32]';
+
+/** A standalone iOS-style switch. */
+export function Switch({
+  label,
+  checked,
+  onChange,
+}: {
+  label: string;
+  checked: boolean;
+  onChange: (value: boolean) => void;
+}) {
+  return (
+    <label className="relative inline-flex cursor-pointer">
+      <input
+        type="checkbox"
+        role="switch"
+        aria-label={label}
+        checked={checked}
+        onChange={(e) => onChange(e.target.checked)}
+        className="peer sr-only"
+      />
+      <span aria-hidden="true" className={switchTrack} />
+    </label>
+  );
+}
+
+/** An on/off row with an iOS-style switch. */
+export function ToggleRow({
+  label,
+  sub,
+  checked,
+  onChange,
+}: {
+  label: ReactNode;
+  sub?: ReactNode;
+  checked: boolean;
+  onChange: (value: boolean) => void;
+}) {
+  return (
+    <label className={`${rowClass} cursor-pointer`}>
+      <span className="min-w-0">
+        <span className="block text-[1.0625rem] text-navy dark:text-slate-100">{label}</span>
+        {sub && <span className="block text-xs text-slate-500 dark:text-slate-400">{sub}</span>}
+      </span>
+      <input
+        type="checkbox"
+        role="switch"
+        checked={checked}
+        onChange={(e) => onChange(e.target.checked)}
+        className="peer sr-only"
+      />
+      <span aria-hidden="true" className={switchTrack} />
+    </label>
+  );
+}
+
+/** A tappable row that navigates or acts, with a value and chevron on the right. */
+export function LinkRowContent({ label, value }: { label: ReactNode; value?: ReactNode }) {
+  return (
+    <>
+      <span className={rowLabelClass}>{label}</span>
+      <span className={`flex items-center gap-1.5 ${rowValueClass}`}>
+        {value}
+        <span aria-hidden="true" className="text-slate-300 dark:text-slate-500">
+          ›
+        </span>
+      </span>
+    </>
+  );
+}
+export const linkRowClass = `${rowClass} hover:opacity-80`;

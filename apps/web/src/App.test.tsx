@@ -99,12 +99,12 @@ describe('app flow', () => {
     // Manual entry from a nutrition label (tofu, per 100 g), then 150 g logged.
     fireEvent.click(screen.getByRole('button', { name: '+ Enter' }));
     change('Name', 'Firm tofu');
-    change('Calories (kcal)', '144');
-    change('Protein (g)', '17.3');
-    change('Carbs (g)', '2.78');
-    change('Fat (g)', '8.72');
+    change('Calories', '144');
+    change('Protein', '17.3');
+    change('Carbs', '2.78');
+    change('Fat', '8.72');
     fireEvent.click(screen.getByRole('button', { name: 'Save and choose' }));
-    change('Amount (g)', '150');
+    change('Amount', '150');
     fireEvent.click(screen.getByRole('button', { name: 'Add to Lunch' }));
     const meal = getState().meals[0];
     expect(meal).toMatchObject({ meal: 'lunch', grams: 150, name: 'Firm tofu' });

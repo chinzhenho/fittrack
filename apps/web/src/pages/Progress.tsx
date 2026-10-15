@@ -5,7 +5,7 @@ import { WeightChart } from '../components/Charts';
 import { useToast } from '../components/Toast';
 import { Achievements, Section } from '../components/ProgressParts';
 import { ThisWeek } from '../components/ThisWeek';
-import { Button, Field, inputClass, PageTitle } from '../components/ui';
+import { Button, InputRow, List, PageTitle } from '../components/ui';
 import { addTarget, dismissInsight, keepTarget, removeWeight, setWeightOn } from '../data/actions';
 import { newId, update, useAppState } from '../data/store';
 import type { AppState, Profile } from '../data/types';
@@ -469,7 +469,7 @@ function WeightHistorySection({ s, today }: { s: AppState; today: string }) {
 
       {formOpen ? (
         <form
-          className="mb-3 space-y-3 rounded-[18px] bg-slate-50 p-3 dark:bg-slate-700/40"
+          className="mb-3 space-y-3"
           onSubmit={(e) => {
             e.preventDefault();
             if (!valid) return;
@@ -490,50 +490,36 @@ function WeightHistorySection({ s, today }: { s: AppState; today: string }) {
             resetForm();
           }}
         >
-          <p className="text-sm font-semibold">
-            {editingId ? 'Edit weigh-in' : 'Add a past weigh-in'}
-          </p>
-          <Field label="Date">
-            {(p) => (
-              <input
-                {...p}
-                type="date"
-                max={today}
-                value={wDate}
-                onChange={(e) => setWDate(e.target.value)}
-                className={inputClass}
-              />
-            )}
-          </Field>
-          <div className="grid grid-cols-2 gap-3">
-            <Field label="Weight (kg)">
-              {(p) => (
-                <input
-                  {...p}
-                  ref={inputRef}
-                  type="number"
-                  inputMode="decimal"
-                  step="0.1"
-                  value={w}
-                  onChange={(e) => setW(e.target.value)}
-                  className={inputClass}
-                />
-              )}
-            </Field>
-            <Field label="Waist (cm, optional)">
-              {(p) => (
-                <input
-                  {...p}
-                  type="number"
-                  inputMode="decimal"
-                  step="0.1"
-                  value={waist}
-                  onChange={(e) => setWaist(e.target.value)}
-                  className={inputClass}
-                />
-              )}
-            </Field>
-          </div>
+          <List nested title={editingId ? 'Edit weigh-in' : 'Add a past weigh-in'}>
+            <InputRow
+              label="Date"
+              type="date"
+              max={today}
+              value={wDate}
+              onChange={(e) => setWDate(e.target.value)}
+            />
+            <InputRow
+              ref={inputRef}
+              label="Weight"
+              unit="kg"
+              type="number"
+              inputMode="decimal"
+              step="0.1"
+              placeholder="0.0"
+              value={w}
+              onChange={(e) => setW(e.target.value)}
+            />
+            <InputRow
+              label="Waist"
+              unit="cm"
+              type="number"
+              inputMode="decimal"
+              step="0.1"
+              placeholder="Optional"
+              value={waist}
+              onChange={(e) => setWaist(e.target.value)}
+            />
+          </List>
           {w.trim() !== '' && (kg < 30 || kg > 300) && (
             <p className="text-xs text-red-700 dark:text-red-400">Weight must be 30–300 kg.</p>
           )}

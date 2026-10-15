@@ -9,11 +9,11 @@ import {
   Bar,
   Button,
   Card,
-  Check,
-  Field,
-  inputClass,
+  InputRow,
+  List,
   PageTitle,
-  Segmented,
+  SelectRow,
+  ToggleRow,
 } from '../components/ui';
 import { editMeal, removeMeal, restoreMeal, setDayComplete } from '../data/actions';
 import { update, useAppState } from '../data/store';
@@ -197,15 +197,13 @@ export function Diary() {
         );
       })}
 
-      <Card>
-        <Check checked={complete} onChange={(v) => update((x) => setDayComplete(x, date, v))}>
-          I logged everything I ate this day
-        </Check>
-        <p className="text-xs text-slate-600 dark:text-slate-300">
-          Tick this when every meal is logged. Only complete days are used to check what you really
-          burn and to suggest target changes.
-        </p>
-      </Card>
+      <List footer="Turn this on when every meal is logged. Only complete days are used to check what you really burn and to suggest target changes.">
+        <ToggleRow
+          label="I logged everything I ate this day"
+          checked={complete}
+          onChange={(v) => update((x) => setDayComplete(x, date, v))}
+        />
+      </List>
     </div>
   );
 }
@@ -264,48 +262,38 @@ function MealRow({ item: i, hide }: { item: MealItem; hide: boolean }) {
   }
 
   return (
-    <li className="space-y-3 rounded-2xl bg-slate-50 p-3 my-2 dark:bg-slate-700">
-      <p className="font-medium">{i.name}</p>
-      <div className="grid grid-cols-2 gap-3">
-        <Field label="Amount (g)" error={ok ? null : 'Must be 1 to 5000 g'}>
-          {(p) => (
-            <input
-              {...p}
-              type="number"
-              inputMode="decimal"
-              step="1"
-              value={grams}
-              onChange={(e) => setGrams(e.target.value)}
-              className={inputClass}
-            />
-          )}
-        </Field>
-        {!hide && ok && (
-          <div className="self-end pb-3 text-sm">
-            ≈ <strong>{fmtInt((i.nutrients.kcal * g) / i.grams)}</strong> kcal
-          </div>
+    <li className="my-2 space-y-3">
+      <List
+        nested
+        title={i.name}
+        footer={!hide && ok ? `About ${fmtInt((i.nutrients.kcal * g) / i.grams)} kcal` : undefined}
+      >
+        <InputRow
+          label="Amount"
+          unit="g"
+          type="number"
+          inputMode="decimal"
+          step="1"
+          value={grams}
+          onChange={(e) => setGrams(e.target.value)}
+          error={ok ? null : 'Must be 1 to 5000 g'}
+        />
+        <SelectRow
+          label="Meal"
+          value={meal}
+          options={MEAL_TYPES.map((m) => ({ value: m, label: MEAL_LABELS[m] }))}
+          onChange={setMeal}
+        />
+        {meal === 'snack' && (
+          <InputRow
+            label="Name"
+            maxLength={20}
+            value={label}
+            placeholder="e.g. tea time"
+            onChange={(e) => setLabel(e.target.value)}
+          />
         )}
-      </div>
-      <Segmented
-        label="Meal"
-        value={meal}
-        options={MEAL_TYPES.map((m) => ({ value: m, label: MEAL_LABELS[m] }))}
-        onChange={setMeal}
-      />
-      {meal === 'snack' && (
-        <Field label="Name (optional)">
-          {(p) => (
-            <input
-              {...p}
-              maxLength={20}
-              value={label}
-              placeholder="e.g. tea time, supper"
-              onChange={(e) => setLabel(e.target.value)}
-              className={inputClass}
-            />
-          )}
-        </Field>
-      )}
+      </List>
       <div className="flex gap-2">
         <Button variant="danger" onClick={remove}>
           Delete

@@ -19,12 +19,17 @@ import {
   Button,
   Card,
   CardTitle,
-  Check,
   Field,
   inputClass,
+  InputRow,
+  LinkRowContent,
+  linkRowClass,
+  List,
   Notice,
   PageTitle,
-  Segmented,
+  SelectRow,
+  Switch,
+  ToggleRow,
 } from '../components/ui';
 import { addTarget, saveProfile, setHideNumbers, updateProfileDetails } from '../data/actions';
 import { useAuth } from '../data/auth';
@@ -208,37 +213,37 @@ function RemindersCard() {
     toast({ text: 'Open the downloaded file to add the reminders to your calendar' });
   };
   return (
-    <Group title="Reminders">
-      <div className="space-y-3 p-2">
-        <p className="text-sm text-slate-600 dark:text-slate-300">
-          Get a daily nudge from your phone&apos;s calendar. Choose the times, then add them once.
-        </p>
-        <ul className="divide-y divide-slate-100 dark:divide-slate-700">
-          {reminders.map((r) => (
-            <li key={r.id} className="flex items-center justify-between gap-3 py-1.5">
-              <Check checked={r.on} onChange={(on) => setOne(r.id, { on })}>
-                {r.label}
-              </Check>
+    <div className="space-y-2">
+      <List
+        title="Reminders"
+        footer="Reminders are added to your phone's calendar (iPhone Calendar, Google Calendar or Outlook). To change or stop them later, edit or delete the EatHealthee events there."
+      >
+        {reminders.map((r) => (
+          <div key={r.id} className="flex min-h-12 items-center justify-between gap-3 py-2">
+            <span className={`text-[1.0625rem] ${r.on ? '' : 'text-slate-400'}`}>{r.label}</span>
+            <span className="flex items-center gap-3">
               <input
                 type="time"
                 aria-label={`${r.label} reminder time`}
                 value={r.time}
                 disabled={!r.on}
                 onChange={(e) => e.target.value && setOne(r.id, { time: e.target.value })}
-                className="min-h-10 rounded-[10px] bg-[#767680]/[0.12] px-3 text-[0.9375rem] disabled:opacity-40 dark:bg-[#767680]/[0.24]"
+                className="min-h-8 rounded-[8px] bg-[#767680]/[0.12] px-2 text-[1.0625rem] disabled:opacity-40 dark:bg-[#767680]/[0.24]"
               />
-            </li>
-          ))}
-        </ul>
-        <Button className="w-full" disabled={!anyOn} onClick={download}>
+              <Switch label={r.label} checked={r.on} onChange={(on) => setOne(r.id, { on })} />
+            </span>
+          </div>
+        ))}
+        <button
+          type="button"
+          disabled={!anyOn}
+          onClick={download}
+          className="min-h-12 w-full text-left text-[1.0625rem] text-emerald-strong disabled:opacity-40 dark:text-emerald"
+        >
           Add to my calendar
-        </Button>
-        <p className="text-xs text-slate-500 dark:text-slate-400">
-          Works with iPhone Calendar, Google Calendar and Outlook. To change or stop the reminders
-          later, edit or delete the &quot;EatHealthee&quot; events in your calendar.
-        </p>
-      </div>
-    </Group>
+        </button>
+      </List>
+    </div>
   );
 }
 
@@ -248,7 +253,7 @@ function Group({ title, children }: { title: string; children: ReactNode }) {
       <h2 className="mb-1.5 px-4 text-[0.8125rem] text-slate-500 uppercase dark:text-slate-400">
         {title}
       </h2>
-      <Card className="p-3">{children}</Card>
+      <Card className="!rounded-[14px] p-2">{children}</Card>
     </section>
   );
 }
@@ -422,70 +427,100 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
         <BackToMe />
         <PageTitle sub="Your name, picture and account.">Profile & account</PageTitle>
 
-        <Card className="space-y-5">
-          <div className="flex items-center gap-4">
-            <span
-              aria-hidden="true"
-              className="flex size-20 shrink-0 items-center justify-center rounded-full border-4 border-emerald-500 bg-emerald-50 text-4xl font-bold text-emerald-800 dark:bg-emerald/15 dark:text-emerald-100"
-            >
-              {avatarNow}
-            </span>
-            <div className="min-w-0 flex-1">
-              <Field label="Nickname (optional)">
-                {(p) => (
-                  <input
-                    {...p}
-                    maxLength={20}
-                    placeholder="e.g. Alex"
-                    value={draft.nickname ?? ''}
-                    onChange={(e) => setDraft({ ...draft, nickname: e.target.value })}
-                    className={inputClass}
-                  />
-                )}
-              </Field>
-            </div>
+        <div className="flex flex-col items-center gap-2 pb-1">
+          <span
+            aria-hidden="true"
+            className="flex size-24 items-center justify-center rounded-full bg-gradient-to-b from-slate-100 to-slate-200 text-5xl font-semibold text-slate-600 dark:from-slate-600 dark:to-slate-700 dark:text-slate-100"
+          >
+            {avatarNow}
+          </span>
+          {signedIn && <p className="text-sm text-slate-500 dark:text-slate-400">{email}</p>}
+        </div>
+
+        <List>
+          <InputRow
+            label="Nickname"
+            placeholder="Add a name"
+            maxLength={20}
+            value={draft.nickname ?? ''}
+            onChange={(e) => setDraft({ ...draft, nickname: e.target.value })}
+          />
+        </List>
+
+        <List title="Picture">
+          <div className="grid grid-cols-6 gap-2 py-3" role="group" aria-label="Avatar">
+            {AVATARS.map((a) => (
+              <button
+                key={a}
+                type="button"
+                aria-label={`Avatar ${a}`}
+                aria-pressed={draft.avatar === a}
+                onClick={() => setDraft({ ...draft, avatar: a })}
+                className={`flex aspect-square items-center justify-center rounded-full text-2xl transition ${draft.avatar === a ? 'bg-emerald-100 ring-2 ring-emerald-strong dark:bg-emerald/20 dark:ring-emerald' : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-700'}`}
+              >
+                {a}
+              </button>
+            ))}
           </div>
-          <fieldset>
-            <legend className="text-sm font-medium">Avatar</legend>
-            <div className="mt-2 grid grid-cols-6 gap-2">
-              {AVATARS.map((a) => (
-                <button
-                  key={a}
-                  type="button"
-                  aria-label={`Avatar ${a}`}
-                  aria-pressed={draft.avatar === a}
-                  onClick={() => setDraft({ ...draft, avatar: a })}
-                  className={`flex aspect-square items-center justify-center rounded-2xl text-2xl transition ${draft.avatar === a ? 'bg-emerald-100 ring-2 ring-emerald-strong dark:bg-emerald/20 dark:ring-emerald' : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-700'}`}
-                >
-                  {a}
-                </button>
-              ))}
-            </div>
-          </fieldset>
-        </Card>
+        </List>
 
         {saveBar('Save profile')}
 
         {signedIn && (
-          <Group title="Account">
-            <ul>
-              <li className="flex min-h-14 items-center gap-3 px-2">
-                <IconTile name="mail" tint="bg-[#007aff]" />
-                <span className="min-w-0 flex-1">
-                  <span className="block text-sm font-semibold">Login email</span>
-                  <span className="block truncate text-xs text-slate-500 dark:text-slate-400">
-                    {email}
-                  </span>
-                </span>
-              </li>
-              <Row to="/update-password" icon="key" tint="bg-slate-400" title="Change password" />
-            </ul>
-            <div className="mt-2 border-t border-slate-100 px-2 pt-3 dark:border-slate-700">
-              {danger === 'account' ? (
+          <List title="Account">
+            <div className="flex min-h-12 items-center justify-between gap-3 py-2">
+              <span className="text-[1.0625rem]">Email</span>
+              <span className="truncate text-[1.0625rem] text-slate-500 dark:text-slate-400">
+                {email}
+              </span>
+            </div>
+            <Link to="/update-password" className={linkRowClass}>
+              <LinkRowContent label="Change password" />
+            </Link>
+          </List>
+        )}
+
+        {!signedIn && (
+          <List
+            title="Account"
+            footer="Without an account your data is only on this device. Sign up to back it up and use it on any phone."
+          >
+            <Link to="/signup" className={linkRowClass}>
+              <LinkRowContent
+                label={<span className="text-emerald-strong dark:text-emerald">Sign up</span>}
+              />
+            </Link>
+            <Link to="/login" className={linkRowClass}>
+              <LinkRowContent label="Log in" />
+            </Link>
+          </List>
+        )}
+
+        {signedIn && (
+          <List footer="Your logs are synced before logging out, so you can get them back on any device.">
+            <button
+              type="button"
+              disabled={busy}
+              onClick={async () => {
+                setBusy(true);
+                await signOut();
+                navigate('/welcome', { replace: true });
+              }}
+              className="min-h-12 w-full text-center text-[1.0625rem] text-[#ff3b30] disabled:opacity-50"
+            >
+              {busy ? 'Logging out…' : 'Log out'}
+            </button>
+          </List>
+        )}
+
+        {signedIn && (
+          <List>
+            {danger === 'account' ? (
+              <div className="py-3">
                 <Notice tone="warn" title="Permanently delete your account?">
                   Your login email, password, all food and weight logs in the cloud, plan and
-                  settings will be permanently deleted and can't be recovered. Export a backup first
-                  (Me → Privacy & data).
+                  settings will be permanently deleted and can&apos;t be recovered. Download your
+                  data first if you want a copy (Me → Privacy & data).
                   <Field label="Type DELETE to confirm">
                     {(p) => (
                       <input
@@ -517,65 +552,20 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
                     </Button>
                   </div>
                 </Notice>
-              ) : (
-                <button
-                  type="button"
-                  className="min-h-11 w-full rounded-2xl text-sm font-semibold text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950"
-                  onClick={() => {
-                    closeDanger();
-                    setDanger('account');
-                  }}
-                >
-                  Delete account
-                </button>
-              )}
-            </div>
-          </Group>
-        )}
-
-        {!signedIn && (
-          <Group title="Account">
-            <div className="space-y-3 p-2">
-              <p className="text-sm text-slate-600 dark:text-slate-300">
-                You&apos;re using EatHealthee without an account, so your data is only on this
-                device. Sign up to back it up and use it on any phone.
-              </p>
-              <div className="flex gap-2">
-                <Link
-                  to="/signup"
-                  className="inline-flex min-h-11 flex-1 items-center justify-center rounded-[14px] bg-emerald-strong px-4 text-[0.9375rem] font-semibold text-white dark:bg-emerald dark:text-black"
-                >
-                  Sign up
-                </Link>
-                <Link
-                  to="/login"
-                  className="inline-flex min-h-11 flex-1 items-center justify-center rounded-[14px] bg-[#767680]/[0.12] px-4 text-[0.9375rem] font-semibold text-emerald-strong dark:bg-[#767680]/[0.24] dark:text-emerald"
-                >
-                  Log in
-                </Link>
               </div>
-            </div>
-          </Group>
-        )}
-
-        {signedIn && (
-          <div className="pb-4">
-            <Button
-              variant="danger"
-              className="w-full"
-              disabled={busy}
-              onClick={async () => {
-                setBusy(true);
-                await signOut();
-                navigate('/welcome', { replace: true });
-              }}
-            >
-              {busy ? 'Logging out…' : 'Log out'}
-            </Button>
-            <p className="mt-2 text-center text-xs text-slate-500 dark:text-slate-400">
-              Your logs are synced before logging out, so you can get them back on any device.
-            </p>
-          </div>
+            ) : (
+              <button
+                type="button"
+                className="min-h-12 w-full text-center text-[1.0625rem] text-[#ff3b30]"
+                onClick={() => {
+                  closeDanger();
+                  setDanger('account');
+                }}
+              >
+                Delete account
+              </button>
+            )}
+          </List>
         )}
       </div>
     );
@@ -586,10 +576,9 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
       <div className="space-y-4">
         <BackToMe />
         <PageTitle sub="Used to work out your daily calorie target.">Body details</PageTitle>
-        <Card className="space-y-5">
-          <Segmented
+        <List footer="The Mifflin–St Jeor formula has male and female versions; neutral is the average of both.">
+          <SelectRow
             label="Formula"
-            hint="The Mifflin–St Jeor formula has male and female versions; neutral is the average"
             value={draft.formulaSex}
             options={(Object.keys(SEX_LABELS) as FormulaSex[]).map((x) => ({
               value: x,
@@ -597,78 +586,60 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
             }))}
             onChange={(v) => set('formulaSex', v)}
           />
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Field
-              label="Date of birth"
-              error={invalid === 'birthDate' ? fieldMessage('birthDate') : null}
-            >
-              {(p) => (
-                <input
-                  {...p}
-                  type="date"
-                  max={today}
-                  value={draft.birthDate}
-                  onChange={(e) => set('birthDate', e.target.value)}
-                  className={inputClass}
-                />
-              )}
-            </Field>
-            <Field
-              label="Height (cm)"
-              error={invalid === 'heightCm' ? fieldMessage('heightCm') : null}
-            >
-              {(p) => (
-                <input
-                  {...p}
-                  type="number"
-                  inputMode="decimal"
-                  step="0.1"
-                  value={heightText}
-                  onChange={(e) => setHeightText(e.target.value)}
-                  className={inputClass}
-                />
-              )}
-            </Field>
-          </div>
+          <InputRow
+            label="Date of birth"
+            type="date"
+            max={today}
+            value={draft.birthDate}
+            onChange={(e) => set('birthDate', e.target.value)}
+            error={invalid === 'birthDate' ? fieldMessage('birthDate') : null}
+          />
+          <InputRow
+            label="Height"
+            unit="cm"
+            type="number"
+            inputMode="decimal"
+            step="0.1"
+            value={heightText}
+            onChange={(e) => setHeightText(e.target.value)}
+            error={invalid === 'heightCm' ? fieldMessage('heightCm') : null}
+          />
+        </List>
+
+        <List
+          footer={
+            draft.goal !== 'maintain'
+              ? "Target weight is optional and only used to show your progress; it doesn't change your daily calories."
+              : undefined
+          }
+        >
           {draft.goal !== 'maintain' && (
-            <Field
-              label="Target weight (kg, optional)"
-              hint="Only used to show progress; doesn't change daily calories"
+            <InputRow
+              label="Target weight"
+              unit="kg"
+              type="number"
+              inputMode="decimal"
+              step="0.1"
+              placeholder="Optional"
+              value={targetText}
+              onChange={(e) => setTargetText(e.target.value)}
               error={
                 invalid === 'targetWeightKg'
                   ? draft.goal === 'fat_loss'
-                    ? 'Target weight must be below your current weight.'
-                    : 'Target weight must be above your current weight.'
+                    ? 'Must be below your current weight'
+                    : 'Must be above your current weight'
                   : null
               }
-            >
-              {(p) => (
-                <input
-                  {...p}
-                  type="number"
-                  inputMode="decimal"
-                  step="0.1"
-                  value={targetText}
-                  onChange={(e) => setTargetText(e.target.value)}
-                  className={inputClass}
-                />
-              )}
-            </Field>
+            />
           )}
-          <div className="flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-3 text-sm dark:bg-slate-700">
-            <span>
-              Current weight{' '}
-              <strong>{profile.hideNumbers ? 'hidden' : `${fmt1(weight)} kg`}</strong>
-            </span>
-            <Link
-              to="/progress#weights"
-              className="font-semibold text-emerald-strong dark:text-emerald"
-            >
-              Log weight ›
-            </Link>
-          </div>
-          {saveBar('Save')}
-        </Card>
+          <Link to="/progress#weights" className={linkRowClass}>
+            <LinkRowContent
+              label="Current weight"
+              value={profile.hideNumbers ? 'Hidden' : `${fmt1(weight)} kg`}
+            />
+          </Link>
+        </List>
+        {saveBar('Save')}
       </div>
     );
   }
@@ -680,9 +651,15 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
         <PageTitle sub="You'll see old and new targets side by side before anything changes.">
           Goal & lifestyle
         </PageTitle>
-        <Card className="space-y-5">
-          <CardTitle>Goal</CardTitle>
-          <Segmented
+        <List
+          title="Goal"
+          footer={
+            draft.goal !== 'maintain'
+              ? 'A slower pace is easier to keep up and helps you keep muscle.'
+              : undefined
+          }
+        >
+          <SelectRow
             label="Goal"
             value={draft.goal}
             options={(Object.keys(GOAL_LABELS) as Goal[]).map((g) => ({
@@ -694,68 +671,68 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
             }
           />
           {draft.goal !== 'maintain' && (
-            <Segmented
-              label="Weekly weight change (% of body weight)"
+            <SelectRow
+              label="Pace"
               value={String(draft.ratePctPerWeek)}
-              options={RATE_OPTIONS[draft.goal].map((r) => ({ value: String(r), label: `${r}%` }))}
+              options={RATE_OPTIONS[draft.goal].map((r) => ({
+                value: String(r),
+                label: weight
+                  ? `${r}% a week (~${((r / 100) * weight).toFixed(2)} kg)`
+                  : `${r}% of body weight a week`,
+              }))}
               onChange={(v) => set('ratePctPerWeek', Number(v))}
             />
           )}
-        </Card>
+        </List>
 
-        <Card className="space-y-5">
-          <CardTitle>Lifestyle & health</CardTitle>
-          <Segmented
-            label="Daily activity level"
+        <List title="Activity" footer={ACTIVITY_LABELS[draft.activityLevel].hint}>
+          <SelectRow
+            label="Daily activity"
             value={draft.activityLevel}
             options={(Object.keys(ACTIVITY_LABELS) as ActivityLevel[]).map((a) => ({
               value: a,
               label: ACTIVITY_LABELS[a].name,
-              sub: ACTIVITY_LABELS[a].hint,
             }))}
             onChange={(v) => set('activityLevel', v)}
           />
-          <fieldset className="space-y-1">
-            <legend className="text-sm font-medium">Health</legend>
-            <Check
-              checked={draft.screening.pregnantOrLactating}
-              onChange={(v) => set('screening', { ...draft.screening, pregnantOrLactating: v })}
-            >
-              Pregnant or breastfeeding
-            </Check>
-            <Check
-              checked={draft.screening.eatingDisorderHistory}
-              onChange={(v) => set('screening', { ...draft.screening, eatingDisorderHistory: v })}
-            >
-              Diagnosed with, or being treated for, an eating disorder
-            </Check>
-            <Check
-              checked={draft.screening.kidneyDisease}
-              onChange={(v) => set('screening', { ...draft.screening, kidneyDisease: v })}
-            >
-              Kidney disease
-            </Check>
-          </fieldset>
-          <fieldset className="space-y-1">
-            <legend className="text-sm font-medium">Diet preferences</legend>
-            {(Object.keys(DIET_LABELS) as DietTag[]).map((t) => (
-              <Check
-                key={t}
-                checked={draft.dietTags.includes(t)}
-                onChange={(on) =>
-                  set(
-                    'dietTags',
-                    on ? [...draft.dietTags, t] : draft.dietTags.filter((x) => x !== t),
-                  )
-                }
-              >
-                {DIET_LABELS[t]}
-              </Check>
-            ))}
-          </fieldset>
+        </List>
 
-          {saveBar('Save')}
-        </Card>
+        <List
+          title="Health"
+          footer="Only used to keep our advice safe for you. Turn on any that apply."
+        >
+          <ToggleRow
+            label="Pregnant or breastfeeding"
+            checked={draft.screening.pregnantOrLactating}
+            onChange={(v) => set('screening', { ...draft.screening, pregnantOrLactating: v })}
+          />
+          <ToggleRow
+            label="Eating disorder"
+            sub="Diagnosed with, or being treated for, one"
+            checked={draft.screening.eatingDisorderHistory}
+            onChange={(v) => set('screening', { ...draft.screening, eatingDisorderHistory: v })}
+          />
+          <ToggleRow
+            label="Kidney disease"
+            checked={draft.screening.kidneyDisease}
+            onChange={(v) => set('screening', { ...draft.screening, kidneyDisease: v })}
+          />
+        </List>
+
+        <List title="Diet">
+          {(Object.keys(DIET_LABELS) as DietTag[]).map((t) => (
+            <ToggleRow
+              key={t}
+              label={DIET_LABELS[t]}
+              checked={draft.dietTags.includes(t)}
+              onChange={(on) =>
+                set('dietTags', on ? [...draft.dietTags, t] : draft.dietTags.filter((x) => x !== t))
+              }
+            />
+          ))}
+        </List>
+
+        {saveBar('Save')}
       </div>
     );
   }
@@ -873,30 +850,26 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
         </ul>
       </Group>
 
-      <Group title="Appearance">
-        <div className="space-y-4 p-2">
-          <Segmented<Theme>
-            label="Theme"
-            value={theme}
-            options={[
-              { value: 'light', label: 'Light' },
-              { value: 'dark', label: 'Dark' },
-              { value: 'system', label: 'Match phone' },
-            ]}
-            onChange={setTheme}
-          />
-          <div>
-            <Check checked={hide} onChange={(v) => update((x) => setHideNumbers(x, v))}>
-              Hide calories and weight
-            </Check>
-            <p className="mt-1 pl-1 text-xs leading-relaxed text-slate-500 dark:text-slate-400">
-              For when numbers stress you out, or someone can see your screen. You still log food
-              and weight as usual, but the app shows your habits (days logged, streaks) instead of
-              calories and kilograms. Turn it off any time to see the numbers again.
-            </p>
-          </div>
-        </div>
-      </Group>
+      <List
+        title="Appearance"
+        footer="Hide calories and weight if the numbers stress you out, or someone can see your screen. You still log as usual; the app shows your habits (days logged, streaks) instead."
+      >
+        <SelectRow<Theme>
+          label="Theme"
+          value={theme}
+          options={[
+            { value: 'light', label: 'Light' },
+            { value: 'dark', label: 'Dark' },
+            { value: 'system', label: 'Match phone' },
+          ]}
+          onChange={setTheme}
+        />
+        <ToggleRow
+          label="Hide calories and weight"
+          checked={hide}
+          onChange={(v) => update((x) => setHideNumbers(x, v))}
+        />
+      </List>
 
       <RemindersCard />
 

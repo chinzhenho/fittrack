@@ -85,8 +85,8 @@ afterEach(cleanup);
 describe('edit profile', () => {
   it('profile page has only nickname and avatar, saved without a new calorie target', async () => {
     renderProfile();
-    expect(screen.queryByLabelText('Height (cm)')).toBeNull();
-    fireEvent.change(screen.getByLabelText('Nickname (optional)'), { target: { value: ' Alex ' } });
+    expect(screen.queryByLabelText('Height')).toBeNull();
+    fireEvent.change(screen.getByLabelText('Nickname'), { target: { value: ' Alex ' } });
     fireEvent.click(screen.getByRole('button', { name: 'Avatar 🥑' }));
     fireEvent.click(screen.getByRole('button', { name: 'Save profile' }));
     await screen.findByText('me page');
@@ -97,8 +97,8 @@ describe('edit profile', () => {
 
   it('body details: a target weight alone does not create a new calorie target', async () => {
     renderProfile(false, '/me/body');
-    expect(screen.queryByLabelText('Nickname (optional)')).toBeNull();
-    fireEvent.change(screen.getByLabelText('Target weight (kg, optional)'), {
+    expect(screen.queryByLabelText('Nickname')).toBeNull();
+    fireEvent.change(screen.getByLabelText('Target weight'), {
       target: { value: '68' },
     });
     fireEvent.click(screen.getByRole('button', { name: 'Save' }));
@@ -109,16 +109,16 @@ describe('edit profile', () => {
 
   it('rejects a fat-loss target weight above the current weight', () => {
     renderProfile(false, '/me/body');
-    fireEvent.change(screen.getByLabelText('Target weight (kg, optional)'), {
+    fireEvent.change(screen.getByLabelText('Target weight'), {
       target: { value: '80' },
     });
-    expect(screen.getByText('Target weight must be below your current weight.')).toBeTruthy();
+    expect(screen.getByText('Must be below your current weight')).toBeTruthy();
     expect((screen.getByRole('button', { name: 'Save' }) as HTMLButtonElement).disabled).toBe(true);
   });
 
   it('recalculates the target when height changes', async () => {
     renderProfile(false, '/me/body');
-    fireEvent.change(screen.getByLabelText('Height (cm)'), { target: { value: '180' } });
+    fireEvent.change(screen.getByLabelText('Height'), { target: { value: '180' } });
     fireEvent.click(screen.getByRole('button', { name: 'Save' }));
     await screen.findByText('me page');
     expect(getState().profile?.heightCm).toBe(180);
@@ -127,7 +127,7 @@ describe('edit profile', () => {
 
   it('scenario E: shows old and new targets and keeps the plan when asked', async () => {
     renderProfile(true, '/me/body');
-    fireEvent.change(screen.getByLabelText('Height (cm)'), { target: { value: '180' } });
+    fireEvent.change(screen.getByLabelText('Height'), { target: { value: '180' } });
     fireEvent.click(screen.getByRole('button', { name: 'Preview new daily target' }));
     const compare = screen.getByRole('region', { name: 'Old and new targets' });
     expect(compare.textContent).toContain('1,960 kcal');
@@ -139,8 +139,10 @@ describe('edit profile', () => {
 
   it('scenario E: confirming a goal change adds a target and keeps history and food records', async () => {
     renderProfile(true, '/me/plan');
-    fireEvent.click(screen.getByRole('radio', { name: 'Maintain weight' }));
-    fireEvent.click(screen.getByRole('radio', { name: /^Moderate/ }));
+    fireEvent.change(screen.getByRole('combobox', { name: 'Goal' }), {
+      target: { value: 'maintain' },
+    });
+    fireEvent.change(screen.getByLabelText('Daily activity'), { target: { value: 'moderate' } });
     fireEvent.click(screen.getByRole('button', { name: 'Preview new daily target' }));
     fireEvent.click(screen.getByRole('button', { name: 'Confirm update' }));
     await screen.findByText('me page');

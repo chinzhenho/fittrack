@@ -6,10 +6,10 @@ import {
   Button,
   Card,
   Check,
-  Field,
-  inputClass,
+  InputRow,
+  List,
   PageTitle,
-  Segmented,
+  SelectRow,
 } from '../components/ui';
 import { addCustomFood, logFood } from '../data/actions';
 import { AI_ERROR_TEXT, analyzeFoodPhoto, type AiPhotoError } from '../data/aiPhoto';
@@ -124,26 +124,26 @@ export function AddFood() {
     <div className="space-y-4">
       <BackButton fallback="/diary" />
       <PageTitle sub={`For ${formatDay(date, localToday())}`}>Add food</PageTitle>
-      <Segmented
-        label="Meal"
-        value={meal}
-        options={MEAL_TYPES.map((m) => ({ value: m, label: MEAL_LABELS[m] }))}
-        onChange={setMeal}
-      />
+      <List>
+        <SelectRow
+          label="Meal"
+          value={meal}
+          options={MEAL_TYPES.map((m) => ({ value: m, label: MEAL_LABELS[m] }))}
+          onChange={setMeal}
+        />
+        {meal === 'snack' && (
+          <InputRow
+            label="Name"
+            maxLength={20}
+            placeholder="Optional"
+            value={label}
+            onChange={(e) => setLabel(e.target.value)}
+          />
+        )}
+      </List>
       {meal === 'snack' && (
         <div>
-          <Field label="What is it? (optional)" hint="e.g. tea time, supper, drink">
-            {(p) => (
-              <input
-                {...p}
-                maxLength={20}
-                value={label}
-                onChange={(e) => setLabel(e.target.value)}
-                className={inputClass}
-              />
-            )}
-          </Field>
-          <div className="mt-2 flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2">
             {['Tea time', 'Supper', 'Drink', 'Snack', 'Fruit'].map((x) => (
               <Button
                 key={x}
@@ -195,19 +195,18 @@ export function AddFood() {
               </div>
             </div>
           ))}
-          <Field label="Amount (g)" error={gramsOk ? null : 'Amount must be 1 to 5000 g.'}>
-            {(p) => (
-              <input
-                {...p}
-                type="number"
-                inputMode="decimal"
-                step="1"
-                value={grams}
-                onChange={(e) => setGrams(e.target.value)}
-                className={inputClass}
-              />
-            )}
-          </Field>
+          <List nested>
+            <InputRow
+              label="Amount"
+              unit="g"
+              type="number"
+              inputMode="decimal"
+              step="1"
+              value={grams}
+              onChange={(e) => setGrams(e.target.value)}
+              error={gramsOk ? null : 'Must be 1 to 5000 g'}
+            />
+          </List>
           {gramsOk && <NutrientLine food={selected} grams={g} />}
           <div className="flex gap-3">
             <Button variant="secondary" onClick={() => setSelected(null)}>
@@ -670,20 +669,18 @@ function CustomFoodForm({ onSave, onCancel }: { onSave: (f: Food) => void; onCan
   const empty = [v.kcal, v.protein, v.carbs, v.fat].some((x) => x.trim() === '');
   const errors = validateCustomFood(v.name, per100g);
   const show = (e: CustomFoodError) => (tried && errors.includes(e) ? ERROR_TEXT[e] : null);
-  const num = (k: keyof typeof v, label: string, err?: string | null) => (
-    <Field label={label} error={err}>
-      {(p) => (
-        <input
-          {...p}
-          type="number"
-          inputMode="decimal"
-          step="0.1"
-          value={v[k]}
-          onChange={(e) => setV({ ...v, [k]: e.target.value })}
-          className={inputClass}
-        />
-      )}
-    </Field>
+  const num = (k: keyof typeof v, label: string, unit: string, err?: string | null) => (
+    <InputRow
+      label={label}
+      unit={unit}
+      type="number"
+      inputMode="decimal"
+      step="0.1"
+      placeholder={k === 'sodium' ? 'Optional' : '0'}
+      value={v[k]}
+      onChange={(e) => setV({ ...v, [k]: e.target.value })}
+      error={err}
+    />
   );
 
   return (
@@ -694,23 +691,22 @@ function CustomFoodForm({ onSave, onCancel }: { onSave: (f: Food) => void; onCan
           Enter the "per 100 g" values from the nutrition label. Only you can see this food.
         </p>
       </div>
-      <Field label="Name" error={show('name')}>
-        {(p) => (
-          <input
-            {...p}
-            value={v.name}
-            onChange={(e) => setV({ ...v, name: e.target.value })}
-            className={inputClass}
-          />
-        )}
-      </Field>
-      <div className="grid grid-cols-2 gap-3">
-        {num('kcal', 'Calories (kcal)', show('kcal'))}
-        {num('protein', 'Protein (g)')}
-        {num('carbs', 'Carbs (g)')}
-        {num('fat', 'Fat (g)')}
-        {num('sodium', 'Sodium (mg, optional)', show('sodium'))}
-      </div>
+      <List nested>
+        <InputRow
+          label="Name"
+          placeholder="e.g. Gardenia bread"
+          value={v.name}
+          onChange={(e) => setV({ ...v, name: e.target.value })}
+          error={show('name')}
+        />
+      </List>
+      <List nested title="Per 100 g">
+        {num('kcal', 'Calories', 'kcal', show('kcal'))}
+        {num('protein', 'Protein', 'g')}
+        {num('carbs', 'Carbs', 'g')}
+        {num('fat', 'Fat', 'g')}
+        {num('sodium', 'Sodium', 'mg', show('sodium'))}
+      </List>
       {tried && (errors.includes('macro') || errors.includes('macroSum')) && (
         <p className="text-sm text-red-700 dark:text-red-400">
           {ERROR_TEXT[errors.includes('macro') ? 'macro' : 'macroSum']}
