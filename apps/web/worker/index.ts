@@ -1,19 +1,22 @@
 // Cloudflare Worker in front of the static site. Only /api/* runs here (see
 // wrangler.jsonc run_worker_first); every other path is served from the built assets.
 //
-// POST /api/food-photo  { image: base64 JPEG }  with the user's Supabase access token.
+// POST /api/food-photo  { image: base64 JPEG, hint?: string }  with the user's Supabase
+// access token. `hint` is the user's own short note about the meal (e.g. "half rice").
 // 1. The token is checked by Supabase and one photo is counted against the daily limit
 //    (public.use_photo_quota, 8 a day per account).
 // 2. Vision models are tried in order until one answers: the Gemini models listed in
 //    GEMINI_MODELS (each has its own free daily quota), then Workers AI models (share
-//    the account's free 10,000 neurons a day). A 50 s overall deadline stops the chain.
+//    the account's free 10,000 neurons a day). Only models whose published input schema
+//    takes an image are listed: a text-only model would invent a meal it cannot see.
+//    A 55 s overall deadline stops the chain.
 // 3. The answer is validated (normalizeAiResult) before it reaches the browser.
 // The Gemini key is a Worker secret (GEMINI_API_KEY) and never reaches the browser.
 
 import {
-  AI_PROMPT,
   AI_RESPONSE_SCHEMA,
   normalizeAiResult,
+  promptWithHint,
   type AiFoodResult,
 } from '../src/logic/aiFood';
 
@@ -27,15 +30,29 @@ interface Env {
 }
 
 const MAX_IMAGE_BASE64 = 2_000_000; // about 1.5 MB of JPEG; the app sends ~150 KB
-const DEADLINE_MS = 50_000;
+const DEADLINE_MS = 55_000;
 const JSON_SHAPE =
   'Answer with JSON only, in this shape: {"is_food":true,"confidence":"medium","items":[{"name_zh":"","grams":0,"match_id":"","kcal":0,"protein_g":0,"carbs_g":0,"fat_g":0}]}';
 
-/** Workers AI vision models, last to first resort. `format` is how each takes the image. */
-const WORKERS_AI_MODELS: { id: string; format: 'image_url' | 'bytes'; licence?: true }[] = [
-  { id: '@cf/meta/llama-4-scout-17b-16e-instruct', format: 'image_url' },
-  { id: '@cf/mistralai/mistral-small-3.1-24b-instruct', format: 'image_url' },
-  { id: '@cf/meta/llama-3.2-11b-vision-instruct', format: 'bytes', licence: true },
+/**
+ * Thinking level per Gemini model (Gemini API docs, "Controlling thinking"). Portion
+ * estimation improves with more reasoning; models not listed keep their default.
+ */
+const GEMINI_THINKING: Record<string, 'high'> = {
+  'gemini-3.8-flash': 'high',
+  'gemini-3.6-flash': 'high',
+  'gemini-3-flash-preview': 'high',
+  'gemini-3.5-flash-lite': 'high',
+};
+
+/**
+ * Workers AI fallbacks whose input schema accepts image_url (checked against the
+ * Cloudflare model schemas on 2026-10-15). Llama 4 Scout and Mistral Small 3.1 were
+ * removed: on Workers AI they only take a text prompt.
+ */
+const WORKERS_AI_MODELS: { id: string; extra: Record<string, unknown> }[] = [
+  { id: '@cf/qwen/qwen3.8-27b', extra: { reasoning_effort: 'medium' } },
+  { id: '@cf/google/gemma-4-26b-a4b-it', extra: {} },
 ];
 
 const json = (status: number, body: unknown) =>
@@ -59,10 +76,12 @@ async function foodPhoto(request: Request, env: Env): Promise<Response> {
   if (!token) return json(401, { error: 'login' });
 
   let image: string;
+  let prompt: string;
   try {
-    const body = (await request.json()) as { image?: unknown };
+    const body = (await request.json()) as { image?: unknown; hint?: unknown };
     if (typeof body.image !== 'string' || body.image.length > MAX_IMAGE_BASE64) throw new Error();
     image = body.image;
+    prompt = promptWithHint(typeof body.hint === 'string' ? body.hint : undefined);
   } catch {
     return json(400, { error: 'bad_image' });
   }
@@ -93,12 +112,12 @@ async function foodPhoto(request: Request, env: Env): Promise<Response> {
   const timeLeft = () => DEADLINE_MS - (Date.now() - started);
   for (const model of env.GEMINI_API_KEY ? models : []) {
     if (timeLeft() < 5_000) break;
-    const result = await tryGemini(env.GEMINI_API_KEY ?? '', model, image, timeLeft());
+    const result = await tryGemini(env.GEMINI_API_KEY ?? '', model, image, prompt, timeLeft());
     if (result) return json(200, { result, remaining });
   }
   for (const model of env.AI ? WORKERS_AI_MODELS : []) {
     if (timeLeft() < 5_000 || !env.AI) break;
-    const result = await tryWorkersAi(env.AI, model, image);
+    const result = await tryWorkersAi(env.AI, model, image, prompt);
     if (result) return json(200, { result, remaining });
   }
   return json(503, { error: 'unavailable' });
@@ -108,8 +127,10 @@ async function tryGemini(
   key: string,
   model: string,
   image: string,
+  prompt: string,
   budgetMs: number,
 ): Promise<AiFoodResult | null> {
+  const thinking = GEMINI_THINKING[model];
   try {
     const res = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
@@ -120,19 +141,17 @@ async function tryGemini(
           contents: [
             {
               role: 'user',
-              parts: [
-                { inline_data: { mime_type: 'image/jpeg', data: image } },
-                { text: AI_PROMPT },
-              ],
+              parts: [{ inline_data: { mime_type: 'image/jpeg', data: image } }, { text: prompt }],
             },
           ],
           generationConfig: {
             responseMimeType: 'application/json',
             responseSchema: AI_RESPONSE_SCHEMA,
             temperature: 0.2,
+            ...(thinking && { thinkingConfig: { thinkingLevel: thinking } }),
           },
         }),
-        signal: AbortSignal.timeout(Math.min(25_000, budgetMs)),
+        signal: AbortSignal.timeout(Math.min(35_000, budgetMs)),
       },
     );
     if (!res.ok) {
@@ -142,15 +161,14 @@ async function tryGemini(
     const data = (await res.json()) as {
       candidates?: { content?: { parts?: { text?: string }[] } }[];
     };
-    const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    // With thinking on, the answer is the last text part (earlier parts may be thoughts).
+    const text = data.candidates?.[0]?.content?.parts?.filter((p) => p.text).at(-1)?.text;
     return text ? normalizeAiResult(JSON.parse(text), model) : null;
   } catch (e) {
     console.warn(`gemini ${model} failed`, e);
     return null;
   }
 }
-
-const agreed = new Set<string>();
 
 /** Pulls the first {...} block out of a free-text answer. */
 function parseJsonBlock(text: string): unknown {
@@ -164,39 +182,35 @@ async function tryWorkersAi(
   ai: NonNullable<Env['AI']>,
   model: (typeof WORKERS_AI_MODELS)[number],
   image: string,
+  prompt: string,
 ): Promise<AiFoodResult | null> {
   try {
-    if (model.licence && !agreed.has(model.id)) {
-      // Meta's Llama 3.2 licence must be accepted once per account (owner approved).
-      await ai.run(model.id, { prompt: 'agree' }).catch(() => undefined);
-      agreed.add(model.id);
-    }
-    const prompt = `${AI_PROMPT}
-${JSON_SHAPE}`;
-    const input =
-      model.format === 'image_url'
-        ? {
-            messages: [
-              {
-                role: 'user',
-                content: [
-                  { type: 'text', text: prompt },
-                  { type: 'image_url', image_url: { url: `data:image/jpeg;base64,${image}` } },
-                ],
-              },
-            ],
-            max_tokens: 1000,
-            temperature: 0.2,
-          }
-        : {
-            messages: [{ role: 'user', content: prompt }],
-            image: [...Uint8Array.from(atob(image), (c) => c.charCodeAt(0))],
-            max_tokens: 1000,
-            temperature: 0.2,
-          };
-    const out = (await ai.run(model.id, input)) as { response?: unknown };
-    // Some models already return parsed JSON in `response`.
-    const raw = typeof out.response === 'string' ? parseJsonBlock(out.response) : out.response;
+    const out = (await ai.run(model.id, {
+      messages: [
+        {
+          role: 'user',
+          content: [
+            {
+              type: 'text',
+              text: `${prompt}
+${JSON_SHAPE}`,
+            },
+            { type: 'image_url', image_url: { url: `data:image/jpeg;base64,${image}` } },
+          ],
+        },
+      ],
+      response_format: { type: 'json_object' },
+      max_tokens: 4000,
+      temperature: 0.2,
+      ...model.extra,
+    })) as {
+      response?: unknown;
+      choices?: { message?: { content?: unknown } }[];
+    };
+    // Chat-completions models answer in choices[0].message.content; older ones in
+    // `response`, which some return already parsed.
+    const answer = out.choices?.[0]?.message?.content ?? out.response;
+    const raw = typeof answer === 'string' ? parseJsonBlock(answer) : answer;
     return normalizeAiResult(raw, model.id.replace('@cf/', 'workers-ai/'));
   } catch (e) {
     console.warn(`workers ai ${model.id} failed`, e);

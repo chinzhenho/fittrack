@@ -74,7 +74,24 @@ describe('AI photo logging', () => {
     expect(analyzeFoodPhoto).not.toHaveBeenCalled(); // waits for consent
     fireEvent.click(screen.getByLabelText('我明白，开始分析刚才的照片'));
     await screen.findByText('冰美禄');
-    expect(analyzeFoodPhoto).toHaveBeenCalledWith(photo);
+    expect(analyzeFoodPhoto).toHaveBeenCalledWith(photo, undefined);
+  });
+
+  it('re-analyses the same photo with the user note', async () => {
+    vi.mocked(analyzeFoodPhoto).mockClear();
+    const photo = new File(['x'], 'snap.jpg', { type: 'image/jpeg' });
+    setPendingPhoto(photo);
+    renderAdd();
+    fireEvent.click(screen.getByLabelText('我明白，开始分析刚才的照片'));
+    await screen.findByText('冰美禄');
+    fireEvent.click(screen.getByText('认错了或份量不对？补充说明后重新分析'));
+    const again = screen.getByRole('button', { name: /重新分析/ }) as HTMLButtonElement;
+    expect(again.disabled).toBe(true); // needs a note first
+    fireEvent.change(screen.getByLabelText('补充说明'), { target: { value: '饭只有半碗' } });
+    fireEvent.click(again);
+    await screen.findByText('冰美禄');
+    expect(analyzeFoodPhoto).toHaveBeenLastCalledWith(photo, '饭只有半碗');
+    expect(analyzeFoodPhoto).toHaveBeenCalledTimes(2);
   });
 
   it('asks once for consent, then logs the checked items with edited amounts', async () => {

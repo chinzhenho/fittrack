@@ -301,6 +301,8 @@ function PhotoCard({
   const [state, setState] = useState<PhotoState>({ status: 'idle' });
   const [rows, setRows] = useState<Row[]>([]);
   const [preview, setPreview] = useState<string | null>(null);
+  const [photo, setPhoto] = useState<File | null>(null);
+  const [hint, setHint] = useState('');
 
   useEffect(
     () => () => {
@@ -312,12 +314,16 @@ function PhotoCard({
   // A photo taken with the camera button waits here until consent is given.
   const [waiting, setWaiting] = useState<File | null>(() => (signedIn ? takePendingPhoto() : null));
 
-  const onFile = async (file: File | undefined) => {
+  const onFile = async (file: File | undefined, note?: string) => {
     if (!file) return;
     setWaiting(null);
-    setPreview(URL.createObjectURL(file));
+    if (file !== photo) {
+      setPhoto(file);
+      setPreview(URL.createObjectURL(file));
+      if (note === undefined) setHint('');
+    }
     setState({ status: 'working' });
-    const r = await analyzeFoodPhoto(file);
+    const r = await analyzeFoodPhoto(file, note);
     if (!r.ok) return setState({ status: 'error', error: r.error });
     setRows(r.result.items.map((i) => ({ include: true, grams: String(i.grams) })));
     setState({ status: 'done', result: r.result, remaining: r.remaining });
@@ -445,7 +451,7 @@ function PhotoCard({
       )}
       {state.status === 'working' && (
         <p className="text-sm" role="status">
-          AI 分析中，大约需要 5–15 秒…
+          AI 正在仔细分析，大约需要 10–30 秒…
         </p>
       )}
       {state.status === 'error' && (
@@ -454,6 +460,35 @@ function PhotoCard({
         </p>
       )}
 
+      {done && photo && (
+        <details className="rounded-2xl bg-white/70 p-3 text-sm dark:bg-slate-700/60">
+          <summary className="cursor-pointer font-semibold">
+            认错了或份量不对？补充说明后重新分析
+          </summary>
+          <p className="mt-2 text-xs text-slate-600 dark:text-slate-300">
+            例如：“这是 nasi kandar，饭只有半碗，没有淋咖喱” 或 “饮料是 kopi O
+            无糖”。照片看不到的东西写下来，AI 会更准。
+          </p>
+          <textarea
+            value={hint}
+            maxLength={120}
+            rows={2}
+            aria-label="补充说明"
+            onChange={(e) => setHint(e.target.value)}
+            className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 dark:border-slate-600 dark:bg-slate-900"
+          />
+          <Button
+            variant="secondary"
+            className="mt-2 w-full"
+            disabled={hint.trim() === '' || done.remaining <= 0}
+            onClick={() => void onFile(photo, hint)}
+          >
+            {done.remaining > 0
+              ? `重新分析（会用掉 1 次，今天还剩 ${done.remaining} 次）`
+              : '今天的次数已用完'}
+          </Button>
+        </details>
+      )}
       {done && !done.result.isFood && (
         <p className="text-sm text-amber-800 dark:text-amber-300" role="alert">
           这张照片看起来不是食物，请再拍一次。

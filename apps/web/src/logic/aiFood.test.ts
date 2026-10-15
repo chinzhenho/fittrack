@@ -71,3 +71,14 @@ describe('AI answer validation', () => {
     expect(normalizeAiResult(null, 'm')).toBeNull();
   });
 });
+
+describe('user note in the prompt', () => {
+  it('adds a short one-line note, quoted as facts', async () => {
+    const { AI_PROMPT, promptWithHint } = await import('./aiFood');
+    expect(promptWithHint(undefined)).toBe(AI_PROMPT);
+    expect(promptWithHint('   ')).toBe(AI_PROMPT);
+    const p = promptWithHint('半碗饭\n没有咖喱' + 'x'.repeat(200));
+    expect(p).toContain('"""半碗饭 没有咖喱');
+    expect(p.length - AI_PROMPT.length).toBeLessThan(400);
+  });
+});

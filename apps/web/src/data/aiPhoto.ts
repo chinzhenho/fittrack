@@ -39,6 +39,7 @@ export async function shrinkToJpegBase64(file: Blob): Promise<string> {
 
 export async function analyzeFoodPhoto(
   file: Blob,
+  hint?: string,
 ): Promise<
   { ok: true; result: AiFoodResult; remaining: number } | { ok: false; error: AiPhotoError }
 > {
@@ -56,7 +57,7 @@ export async function analyzeFoodPhoto(
     res = await fetch('/api/food-photo', {
       method: 'POST',
       headers: { authorization: `Bearer ${token}`, 'content-type': 'application/json' },
-      body: JSON.stringify({ image }),
+      body: JSON.stringify({ image, ...(hint?.trim() && { hint: hint.trim().slice(0, 120) }) }),
     });
   } catch {
     return { ok: false, error: 'network' };
