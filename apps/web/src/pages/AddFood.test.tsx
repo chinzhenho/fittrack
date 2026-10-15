@@ -77,6 +77,19 @@ describe('AI photo logging', () => {
     expect(analyzeFoodPhoto).toHaveBeenCalledWith(photo, undefined);
   });
 
+  it('offers Try again with the same photo when the AI is busy', async () => {
+    vi.mocked(analyzeFoodPhoto).mockClear();
+    vi.mocked(analyzeFoodPhoto).mockResolvedValueOnce({ ok: false, error: 'unavailable' });
+    const photo = new File(['x'], 'snap.jpg', { type: 'image/jpeg' });
+    setPendingPhoto(photo, 'kopi O');
+    renderAdd();
+    fireEvent.click(screen.getByLabelText('I understand, analyse my photo'));
+    fireEvent.click(await screen.findByRole('button', { name: 'Try again' }));
+    await screen.findByText('Iced Milo');
+    expect(analyzeFoodPhoto).toHaveBeenCalledTimes(2);
+    expect(analyzeFoodPhoto).toHaveBeenLastCalledWith(photo, 'kopi O');
+  });
+
   it('re-analyses the same photo with the user note', async () => {
     vi.mocked(analyzeFoodPhoto).mockClear();
     const photo = new File(['x'], 'snap.jpg', { type: 'image/jpeg' });

@@ -12,6 +12,6 @@ export default defineConfig({
   server: { host: true },
   test: {
     environment: 'jsdom',
-    include: ['src/**/*.test.{ts,tsx}'],
+    include: ['src/**/*.test.{ts,tsx}', 'worker/**/*.test.ts'],
   },
 });

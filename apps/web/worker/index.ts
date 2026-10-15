@@ -3,8 +3,10 @@
 //
 // POST /api/food-photo  { image: base64 JPEG, hint?: string }  with the user's Supabase
 // access token. `hint` is the user's own short note about the meal (e.g. "half rice").
-// 1. The token is checked by Supabase and one photo is counted against the daily limit
-//    (public.use_photo_quota, 20 a day per account).
+// 1. The token is checked by Supabase and the daily limit is checked without counting
+//    (public.photo_quota_left, 20 a day per account). The photo is only counted
+//    (public.use_photo_quota) once the AI has answered, so a busy AI costs no snap.
+//    Until photo_quota_left exists in the database, photos are counted up front.
 // 2. Vision models are tried in order until one answers: the Gemini models listed in
 //    GEMINI_MODELS (each has its own free daily quota), then Workers AI models (share
 //    the account's free 10,000 neurons a day). Only models whose published input schema
@@ -86,23 +88,34 @@ async function foodPhoto(request: Request, env: Env): Promise<Response> {
     return json(400, { error: 'bad_image' });
   }
 
-  // Count this photo (also proves the token is valid).
-  const quota = await fetch(`${env.SUPABASE_URL}/rest/v1/rpc/use_photo_quota`, {
-    method: 'POST',
-    headers: {
-      apikey: env.SUPABASE_KEY,
-      authorization: `Bearer ${token}`,
-      'content-type': 'application/json',
-    },
-    body: '{}',
-  });
-  if (quota.status === 401 || quota.status === 403) return json(401, { error: 'login' });
-  if (!quota.ok) {
-    const err = (await quota.json().catch(() => ({}))) as { message?: string };
-    if (err.message?.includes('limit')) return json(429, { error: 'quota' });
-    return json(503, { error: 'unavailable' });
+  // Check the daily limit (also proves the token is valid).
+  const left = await quotaCall(env, token, 'photo_quota_left');
+  let counted = false;
+  let remaining: number;
+  if (left.kind === 'missing') {
+    // Older database without photo_quota_left: count up front as before.
+    const used = await quotaCall(env, token, 'use_photo_quota');
+    if (used.kind !== 'ok') return quotaError(used);
+    counted = true;
+    remaining = used.value;
+  } else if (left.kind !== 'ok') {
+    return quotaError(left);
+  } else if (left.value <= 0) {
+    return json(429, { error: 'quota' });
+  } else {
+    remaining = left.value - 1;
   }
-  const remaining = Number(await quota.json());
+
+  // Count the photo once the AI has answered; a limit hit here (several photos sent
+  // at once) still refuses the answer.
+  const answer = async (result: AiFoodResult): Promise<Response> => {
+    if (!counted) {
+      const used = await quotaCall(env, token, 'use_photo_quota');
+      if (used.kind !== 'ok') return quotaError(used);
+      remaining = used.value;
+    }
+    return json(200, { result, remaining });
+  };
 
   const models = (env.GEMINI_MODELS ?? '')
     .split(',')
@@ -113,13 +126,49 @@ async function foodPhoto(request: Request, env: Env): Promise<Response> {
   for (const model of env.GEMINI_API_KEY ? models : []) {
     if (timeLeft() < 5_000) break;
     const result = await tryGemini(env.GEMINI_API_KEY ?? '', model, image, prompt, timeLeft());
-    if (result) return json(200, { result, remaining });
+    if (result) return answer(result);
   }
   for (const model of env.AI ? WORKERS_AI_MODELS : []) {
     if (timeLeft() < 5_000 || !env.AI) break;
     const result = await tryWorkersAi(env.AI, model, image, prompt);
-    if (result) return json(200, { result, remaining });
+    if (result) return answer(result);
   }
+  return json(503, { error: 'unavailable' });
+}
+
+type QuotaResult =
+  { kind: 'ok'; value: number } | { kind: 'login' | 'limit' | 'missing' | 'error' };
+
+/** Calls a quota function in Supabase as the signed-in user. */
+async function quotaCall(
+  env: Env,
+  token: string,
+  fn: 'photo_quota_left' | 'use_photo_quota',
+): Promise<QuotaResult> {
+  const res = await fetch(`${env.SUPABASE_URL}/rest/v1/rpc/${fn}`, {
+    method: 'POST',
+    headers: {
+      apikey: env.SUPABASE_KEY,
+      authorization: `Bearer ${token}`,
+      'content-type': 'application/json',
+    },
+    body: '{}',
+  });
+  if (res.status === 401 || res.status === 403) return { kind: 'login' };
+  if (!res.ok) {
+    const err = (await res.json().catch(() => ({}))) as { code?: string; message?: string };
+    if (err.code === 'PGRST202') return { kind: 'missing' };
+    if (err.message?.includes('limit')) return { kind: 'limit' };
+    if (err.message?.includes('not signed in')) return { kind: 'login' };
+    return { kind: 'error' };
+  }
+  const value = Number(await res.json());
+  return Number.isFinite(value) ? { kind: 'ok', value } : { kind: 'error' };
+}
+
+function quotaError(r: QuotaResult): Response {
+  if (r.kind === 'login') return json(401, { error: 'login' });
+  if (r.kind === 'limit') return json(429, { error: 'quota' });
   return json(503, { error: 'unavailable' });
 }
 

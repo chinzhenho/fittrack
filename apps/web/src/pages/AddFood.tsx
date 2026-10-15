@@ -579,9 +579,18 @@ function PhotoCard({
         </p>
       )}
       {state.status === 'error' && (
-        <p className="text-sm text-red-700 dark:text-red-400" role="alert">
-          {AI_ERROR_TEXT[state.error]}
-        </p>
+        <div className="space-y-2">
+          <p className="text-sm text-red-700 dark:text-red-400" role="alert">
+            {AI_ERROR_TEXT[state.error]}
+          </p>
+          {/* Busy or offline: the same photo and note can be sent again. A failed try
+              doesn't use a snap (the Worker only counts answered photos). */}
+          {photo && (state.error === 'unavailable' || state.error === 'network') && (
+            <Button className="w-full" onClick={() => void onFile(photo, hint.trim() || undefined)}>
+              Try again
+            </Button>
+          )}
+        </div>
       )}
 
       {done && photo && (
