@@ -117,7 +117,8 @@
 /* Printing (the report's "Save as PDF"): plain white page, no app background. */
 @media print {
   @page {
-    margin: 14mm;
+    size: A4;
+    margin: 10mm;
   }
   body {
     background: white !important;

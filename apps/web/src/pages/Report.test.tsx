@@ -35,7 +35,7 @@ const profile: Profile = {
 afterEach(cleanup);
 
 describe('report', () => {
-  it('lists food and weight for the chosen period and prints to save as PDF', () => {
+  it('one page of charts and daily rows, optional food list, prints to save as PDF', () => {
     const today = localToday();
     const old = addDays(today, -60);
     const meal = (id: string, date: string, name: string, kcal: number) => ({
@@ -63,10 +63,15 @@ describe('report', () => {
         </ToastProvider>
       </MemoryRouter>,
     );
-    // Last 30 days by default: today's meal, not the one from 60 days ago.
-    expect(screen.getByText('鸡饭')).toBeTruthy();
-    expect(screen.queryByText('Old soup')).toBeNull();
+    // One summary page: 30 day rows, charts, no food list until asked for.
+    expect(screen.getAllByRole('row')).toHaveLength(31);
+    expect(screen.getByRole('img', { name: 'Calories per day' })).toBeTruthy();
     expect(screen.getAllByText('78.4 kg').length).toBeGreaterThan(0);
+    expect(screen.queryByText('鸡饭')).toBeNull();
+    fireEvent.click(screen.getByLabelText(/Include each food I ate/));
+    expect(screen.getByText('鸡饭')).toBeTruthy();
+    // Last 30 days by default: not the meal from 60 days ago.
+    expect(screen.queryByText('Old soup')).toBeNull();
     fireEvent.click(screen.getByRole('button', { name: 'Everything' }));
     expect(screen.getByText('Old soup')).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: 'Save as PDF' }));
