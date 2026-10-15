@@ -100,11 +100,16 @@ describe('Me page sections', () => {
     expect(screen.queryByText(/1,960/)).toBeNull();
   });
 
-  it('is honest that there are no notifications (no fake toggles)', () => {
+  it('reminders: pick times, and nothing to add when all are off', () => {
     renderMe();
-    const section = screen.getByRole('region', { name: 'Reminders & notifications' });
-    expect(section.textContent).toContain('not');
-    expect(section.querySelector('input')).toBeNull();
+    const section = screen.getByRole('region', { name: 'Reminders' });
+    expect(section.querySelectorAll('input[type="time"]')).toHaveLength(4);
+    const add = screen.getByRole('button', { name: 'Add to my calendar' }) as HTMLButtonElement;
+    expect(add.disabled).toBe(false);
+    for (const name of ['Weigh-in', 'Breakfast', 'Lunch', 'Dinner']) {
+      fireEvent.click(screen.getByLabelText(name));
+    }
+    expect(add.disabled).toBe(true);
   });
 
   it('scenario H: a failed account deletion shows the error and no success', async () => {
@@ -142,9 +147,9 @@ describe('Me page sections', () => {
     );
     renderMe();
     fireEvent.click(screen.getByRole('button', { name: 'Delete all health records' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Delete' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Delete logs' }));
     expect((await screen.findByRole('alert')).textContent).toContain('not deleted');
-    expect(screen.queryByText('All health records deleted')).toBeNull();
+    expect(screen.queryByText('All logs deleted')).toBeNull();
   });
 });
 

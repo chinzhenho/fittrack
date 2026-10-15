@@ -38,6 +38,7 @@ import {
 import { getState, isPersistent, newId, replaceState, update, useAppState } from '../data/store';
 import { emptyState, type DietTag, type Profile, type TargetVersion } from '../data/types';
 import { localToday } from '../lib/dates';
+import { DEFAULT_REMINDERS, remindersIcs, type Reminder } from '../lib/reminders';
 import { fmt1, fmtInt } from '../lib/format';
 import {
   ACTIVITY_LABELS,
@@ -183,6 +184,61 @@ function Row({
         </span>
       </Link>
     </li>
+  );
+}
+
+const rowButtonClass =
+  'flex min-h-14 w-full items-center gap-3 rounded-2xl px-2 text-left hover:bg-slate-50 dark:hover:bg-slate-700';
+
+/** Daily reminders added to the phone's own calendar (see lib/reminders.ts). */
+function RemindersCard() {
+  const [reminders, setReminders] = useState<Reminder[]>(DEFAULT_REMINDERS);
+  const toast = useToast();
+  const anyOn = reminders.some((r) => r.on);
+  const setOne = (id: Reminder['id'], patch: Partial<Reminder>) =>
+    setReminders((list) => list.map((r) => (r.id === id ? { ...r, ...patch } : r)));
+  const download = () => {
+    const ics = remindersIcs(reminders, localToday(), `${window.location.origin}/today`);
+    const url = URL.createObjectURL(new Blob([ics], { type: 'text/calendar;charset=utf-8' }));
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'eathealthee-reminders.ics';
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    toast({ text: 'Open the downloaded file to add the reminders to your calendar' });
+  };
+  return (
+    <Group title="Reminders">
+      <div className="space-y-3 p-2">
+        <p className="text-sm text-slate-600 dark:text-slate-300">
+          Get a daily nudge from your phone&apos;s calendar. Choose the times, then add them once.
+        </p>
+        <ul className="divide-y divide-slate-100 dark:divide-slate-700">
+          {reminders.map((r) => (
+            <li key={r.id} className="flex items-center justify-between gap-3 py-1.5">
+              <Check checked={r.on} onChange={(on) => setOne(r.id, { on })}>
+                {r.label}
+              </Check>
+              <input
+                type="time"
+                aria-label={`${r.label} reminder time`}
+                value={r.time}
+                disabled={!r.on}
+                onChange={(e) => e.target.value && setOne(r.id, { time: e.target.value })}
+                className="min-h-10 rounded-[10px] bg-[#767680]/[0.12] px-3 text-[0.9375rem] disabled:opacity-40 dark:bg-[#767680]/[0.24]"
+              />
+            </li>
+          ))}
+        </ul>
+        <Button className="w-full" disabled={!anyOn} onClick={download}>
+          Add to my calendar
+        </Button>
+        <p className="text-xs text-slate-500 dark:text-slate-400">
+          Works with iPhone Calendar, Google Calendar and Outlook. To change or stop the reminders
+          later, edit or delete the &quot;EatHealthee&quot; events in your calendar.
+        </p>
+      </div>
+    </Group>
   );
 }
 
@@ -842,148 +898,150 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
           />
           <div>
             <Check checked={hide} onChange={(v) => update((x) => setHideNumbers(x, v))}>
-              Hide calorie and weight numbers
+              Hide calories and weight
             </Check>
             <p className="mt-1 pl-1 text-xs leading-relaxed text-slate-500 dark:text-slate-400">
-              When on, Today, Diary and Progress show habits and logging instead of calorie and
-              weight numbers. Useful if numbers affect your mood, or when others can see your
-              screen. This is screen privacy only: your data is still saved and synced, and exports
-              include the numbers.
+              For when numbers stress you out, or someone can see your screen. You still log food
+              and weight as usual, but the app shows your habits (days logged, streaks) instead of
+              calories and kilograms. Turn it off any time to see the numbers again.
             </p>
           </div>
-          <p className="rounded-2xl bg-slate-50 px-3 py-2.5 text-xs text-slate-600 dark:bg-slate-700/60 dark:text-slate-300">
-            Units: metric (kg, cm, kcal). Only metric is supported for now.
-          </p>
         </div>
       </Group>
 
-      <Group title="Reminders & notifications">
-        <div className="space-y-2 p-2 text-sm leading-relaxed">
-          <p>
-            EatHealthee does <strong>not</strong> have push notifications or reminders yet, and
-            never sends anything in the background.
-          </p>
-          <p className="text-xs text-slate-500 dark:text-slate-400">
-            To build the habit, set your phone's alarm or reminders app for breakfast, lunch and
-            dinner.
-          </p>
-        </div>
-      </Group>
+      <RemindersCard />
 
       <Group title="Privacy & data">
-        <div className="space-y-4 p-2 text-sm">
-          <p className="text-slate-600 dark:text-slate-300">
-            {signedIn
-              ? 'Your data is stored in your account (Supabase, servers in Singapore), and each account can only access its own data. This device keeps a copy for offline use.'
-              : isPersistent()
-                ? "Your data is only stored in this device's browser. Clearing browser data or changing phones will lose it, so sign up or export a backup regularly."
-                : "This browser can't save data right now (maybe private browsing)."}
-          </p>
-
-          <div className="rounded-2xl bg-slate-50 p-3 dark:bg-slate-700/60">
-            <p className="font-semibold">Export my data</p>
-            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-              Downloads a JSON file with your profile, plan, target history, food and weight logs.
-              It is saved only on your device and contains health data, so keep it safe.
-            </p>
-            <Button variant="secondary" className="mt-2" onClick={exportData}>
-              Export backup (JSON)
-            </Button>
-          </div>
-
-          <div className="space-y-2 rounded-2xl border border-slate-200 p-3 dark:border-slate-600">
-            <p className="font-semibold">Delete data</p>
-            <ul className="space-y-1.5 text-xs text-slate-600 dark:text-slate-300">
-              <li>
-                <strong>Delete one entry:</strong> tap ✕ in the Diary or in Progress → Weight log.
-                You can undo it.
-              </li>
-              <li>
-                <strong>Delete all health records:</strong> clears all food, weight and habit logs,
-                keeping your {signedIn ? 'account, ' : ''}profile and plan.
-              </li>
-              {signedIn && (
-                <li>
-                  <strong>Delete account:</strong> under "Account & security" below; permanently
-                  deletes your login email and all data.
-                </li>
-              )}
-            </ul>
+        <ul>
+          <li className="flex min-h-14 items-center gap-3 px-2">
+            <IconTile name="shield" tint="bg-[#34c759]" />
+            <span className="min-w-0 flex-1">
+              <span className="block text-sm font-semibold">Where your data is</span>
+              <span className="block text-xs text-slate-500 dark:text-slate-400">
+                {signedIn
+                  ? 'In your account (servers in Singapore) and on this device. Only you can see it.'
+                  : isPersistent()
+                    ? "Only on this device. Sign up so you don't lose it if you change phones."
+                    : "This browser can't save data (maybe private browsing)."}
+              </span>
+            </span>
+          </li>
+          <li>
+            <button type="button" onClick={exportData} className={rowButtonClass}>
+              <IconTile name="download" tint="bg-[#007aff]" />
+              <span className="min-w-0 flex-1">
+                <span className="block text-sm font-semibold">Download my data</span>
+                <span className="block text-xs text-slate-500 dark:text-slate-400">
+                  A copy of everything you logged, as a file
+                </span>
+              </span>
+            </button>
+          </li>
+          <li>
             {danger === 'records' ? (
-              <Notice tone="warn" title="Delete all health records?">
-                All food, weight, water and habit logs will be permanently deleted from{' '}
-                {signedIn ? 'the cloud and this device' : 'this device'}. This can't be undone. Your
-                profile, plan and target history are kept. Export a backup first.
-                {error && (
-                  <p role="alert" className="mt-2 font-semibold text-red-700 dark:text-red-400">
-                    {error}
-                  </p>
-                )}
-                <div className="mt-3 flex gap-2">
-                  <Button
-                    variant="danger"
-                    disabled={busy}
-                    onClick={() =>
-                      void run(deleteHealthRecords, () => {
-                        closeDanger();
-                        toast({ text: 'All health records deleted' });
-                      })
-                    }
-                  >
-                    {busy ? 'Deleting…' : 'Delete'}
-                  </Button>
-                  <Button variant="secondary" disabled={busy} onClick={closeDanger}>
-                    Cancel
-                  </Button>
-                </div>
-              </Notice>
+              <div className="p-2">
+                <Notice tone="warn" title="Delete all your logs?">
+                  All food, weight and water logs will be permanently deleted from{' '}
+                  {signedIn ? 'your account and this device' : 'this device'}. Your profile and plan
+                  stay. This can&apos;t be undone, so download your data first if you want a copy.
+                  {error && (
+                    <p role="alert" className="mt-2 font-semibold text-red-700 dark:text-red-400">
+                      {error}
+                    </p>
+                  )}
+                  <div className="mt-3 flex gap-2">
+                    <Button
+                      variant="danger"
+                      disabled={busy}
+                      onClick={() =>
+                        void run(deleteHealthRecords, () => {
+                          closeDanger();
+                          toast({ text: 'All logs deleted' });
+                        })
+                      }
+                    >
+                      {busy ? 'Deleting…' : 'Delete logs'}
+                    </Button>
+                    <Button variant="secondary" disabled={busy} onClick={closeDanger}>
+                      Cancel
+                    </Button>
+                  </div>
+                </Notice>
+              </div>
             ) : (
-              <Button
-                variant="danger"
-                className="w-full"
+              <button
+                type="button"
+                aria-label="Delete all health records"
+                className={rowButtonClass}
                 onClick={() => {
                   closeDanger();
                   setDanger('records');
                 }}
               >
-                Delete all health records
-              </Button>
+                <IconTile name="trash" tint="bg-[#ff3b30]" />
+                <span className="min-w-0 flex-1">
+                  <span className="block text-sm font-semibold text-[#ff3b30]">
+                    Delete all my logs
+                  </span>
+                  <span className="block text-xs text-slate-500 dark:text-slate-400">
+                    Start fresh but keep your profile and plan
+                  </span>
+                </span>
+              </button>
             )}
-            {!signedIn &&
-              (danger === 'device' ? (
-                <Notice tone="warn" title="Delete all data on this device?">
-                  Your profile, plan and all logs will be permanently deleted. This can't be undone,
-                  and you'll start again from the welcome page.
-                  <div className="mt-3 flex gap-2">
-                    <Button
-                      variant="danger"
-                      onClick={() => {
-                        replaceState(emptyState);
-                        void clearThumbs();
-                        navigate('/welcome', { replace: true });
-                      }}
-                    >
-                      Delete
-                    </Button>
-                    <Button variant="secondary" onClick={closeDanger}>
-                      Cancel
-                    </Button>
-                  </div>
-                </Notice>
+          </li>
+          {!signedIn && (
+            <li>
+              {danger === 'device' ? (
+                <div className="p-2">
+                  <Notice tone="warn" title="Delete everything on this device?">
+                    Your profile, plan and all logs will be permanently deleted, and you&apos;ll
+                    start again from the welcome page.
+                    <div className="mt-3 flex gap-2">
+                      <Button
+                        variant="danger"
+                        onClick={() => {
+                          replaceState(emptyState);
+                          void clearThumbs();
+                          navigate('/welcome', { replace: true });
+                        }}
+                      >
+                        Delete everything
+                      </Button>
+                      <Button variant="secondary" onClick={closeDanger}>
+                        Cancel
+                      </Button>
+                    </div>
+                  </Notice>
+                </div>
               ) : (
-                <Button
-                  variant="danger"
-                  className="w-full"
+                <button
+                  type="button"
+                  className={rowButtonClass}
                   onClick={() => {
                     closeDanger();
                     setDanger('device');
                   }}
                 >
-                  Delete all data on this device
-                </Button>
-              ))}
-          </div>
-        </div>
+                  <IconTile name="trash" tint="bg-[#ff3b30]" />
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-sm font-semibold text-[#ff3b30]">
+                      Delete everything on this device
+                    </span>
+                    <span className="block text-xs text-slate-500 dark:text-slate-400">
+                      Logs, profile and plan
+                    </span>
+                  </span>
+                </button>
+              )}
+            </li>
+          )}
+        </ul>
+        {signedIn && (
+          <p className="mt-1 border-t border-slate-100 px-2 pt-2.5 text-xs text-slate-500 dark:border-slate-700 dark:text-slate-400">
+            To delete your account, tap your name at the top of this page.
+          </p>
+        )}
       </Group>
 
       <Group title="Help & info">
