@@ -19,7 +19,7 @@ export interface Insight {
   tone: InsightTone;
   title: string;
   body: string;
-  /** The numbers behind it, e.g. "近 7 天：5 天有记录". */
+  /** The numbers behind it, e.g. "Last 7 days: 5 days logged". */
   data: string;
   action?: { label: string; to: string };
   /** Contains calories or weight, so it is hidden when numbers are hidden. */
@@ -29,13 +29,13 @@ export interface Insight {
 }
 
 export const CATEGORY_LABELS: Record<InsightCategory, string> = {
-  recording: '记录',
-  consistency: '坚持',
-  protein: '蛋白质',
-  calories: '热量',
-  meals: '餐次',
-  weight: '体重趋势',
-  adjust: '目标',
+  recording: 'Logging',
+  consistency: 'Consistency',
+  protein: 'Protein',
+  calories: 'Calories',
+  meals: 'Meals',
+  weight: 'Weight trend',
+  adjust: 'Target',
 };
 
 export function insightKey(id: string, today: string): string {
@@ -56,10 +56,10 @@ export function insightsFor(s: AppState, today: string): Insight[] {
       id: 'few_logs',
       category: 'recording',
       tone: 'tip',
-      title: '再多记录几天',
-      body: '有 3 天以上的记录，才看得出你的饮食规律。不用每样都很精准，先记下大概就好。',
-      data: `近 7 天：${w.loggedDays} 天有饮食记录`,
-      action: { label: '去记录饮食', to: '/diary' },
+      title: 'Log a few more days',
+      body: "With 3 or more days logged, your eating patterns start to show. It doesn't need to be perfect; a rough log is fine.",
+      data: `Last 7 days: food logged on ${w.loggedDays} days`,
+      action: { label: 'Log food', to: '/diary' },
       numeric: false,
       priority: 1,
     });
@@ -68,9 +68,9 @@ export function insightsFor(s: AppState, today: string): Insight[] {
       id: 'steady_logs',
       category: 'consistency',
       tone: 'good',
-      title: '记录很稳定',
-      body: '你最近几乎每天都有记录，这是看清自己饮食习惯最重要的一步。',
-      data: `近 7 天：${w.loggedDays} 天有饮食记录`,
+      title: "You're logging consistently",
+      body: "You've logged almost every day recently. That's the most important step to understanding your eating habits.",
+      data: `Last 7 days: food logged on ${w.loggedDays} days`,
       numeric: false,
       priority: 8,
     });
@@ -82,10 +82,10 @@ export function insightsFor(s: AppState, today: string): Insight[] {
       id: 'mark_complete',
       category: 'recording',
       tone: 'tip',
-      title: '记完一天后，标记“已完整记录”',
-      body: '只有标记为完整的日子，才会用来判断热量是否在目标内，以及计算目标调整建议。没有吃完或漏记的日子不用标记。',
-      data: `近 7 天：${w.loggedDays} 天有记录，其中 ${w.completeDays} 天已标记完整`,
-      action: { label: '去饮食页标记', to: '/diary' },
+      title: 'Mark days as "fully logged"',
+      body: 'Only fully logged days are used to check calories against your target and to suggest target changes. Skip marking days where you missed something.',
+      data: `Last 7 days: ${w.loggedDays} days logged, ${w.completeDays} marked fully logged`,
+      action: { label: 'Go to Diary', to: '/diary' },
       numeric: false,
       priority: 2,
     });
@@ -99,9 +99,9 @@ export function insightsFor(s: AppState, today: string): Insight[] {
         id: 'protein_low',
         category: 'protein',
         tone: 'tip',
-        title: '蛋白质常常不够',
-        body: '可以在每一餐加一份蛋白质，例如鸡蛋、豆腐、鱼、鸡肉或一杯牛奶。',
-        data: `近 7 天完整记录的 ${w.proteinJudgedDays} 天中，${w.proteinMetDays} 天达到 ${w.targetProteinG} g`,
+        title: 'Protein is often low',
+        body: 'Try adding a protein to each meal, such as eggs, tofu, fish, chicken or a glass of milk.',
+        data: `${w.proteinMetDays} of ${w.proteinJudgedDays} fully logged days reached ${w.targetProteinG} g (last 7 days)`,
         numeric: false,
         priority: 3,
       });
@@ -110,9 +110,9 @@ export function insightsFor(s: AppState, today: string): Insight[] {
         id: 'protein_good',
         category: 'protein',
         tone: 'good',
-        title: '蛋白质吃得很稳',
-        body: '大部分日子都达到蛋白质目标，继续保持这个习惯。',
-        data: `近 7 天完整记录的 ${w.proteinJudgedDays} 天中，${w.proteinMetDays} 天达标`,
+        title: 'Protein is on track',
+        body: 'You hit your protein target on most days. Keep it up.',
+        data: `${w.proteinMetDays} of ${w.proteinJudgedDays} fully logged days on target (last 7 days)`,
         numeric: false,
         priority: 9,
       });
@@ -123,14 +123,14 @@ export function insightsFor(s: AppState, today: string): Insight[] {
   const t = targetOn(s.targets, today);
   if (t && w.completeDays >= 3 && w.avgCompleteKcal !== null) {
     const avg = w.avgCompleteKcal;
-    const data = `近 7 天 ${w.completeDays} 个完整记录日，平均 ${fmtInt(avg)} kcal；目标 ${fmtInt(t.caloriesKcal)} kcal`;
+    const data = `Last 7 days: average ${fmtInt(avg)} kcal over ${w.completeDays} fully logged days; target ${fmtInt(t.caloriesKcal)} kcal`;
     if (avg < t.calorieFloorKcal) {
       out.push({
         id: 'kcal_below_floor',
         category: 'calories',
         tone: 'care',
-        title: '吃得比安全下限还少',
-        body: `长期吃得太少可能让人疲倦、难以坚持，也可能流失肌肉。建议每天至少吃到 ${fmtInt(t.calorieFloorKcal)} kcal；如果有不适，请咨询医生或营养师。`,
+        title: 'Eating below your safety floor',
+        body: `Eating too little for long can leave you tired, make it hard to keep going, and cost muscle. Aim for at least ${fmtInt(t.calorieFloorKcal)} kcal a day; if you feel unwell, talk to a doctor or dietitian.`,
         data,
         numeric: true,
         priority: 0,
@@ -140,8 +140,8 @@ export function insightsFor(s: AppState, today: string): Insight[] {
         id: 'kcal_above',
         category: 'calories',
         tone: 'tip',
-        title: '热量常常超出目标',
-        body: '可以留意分量较大或含油、含糖较多的一餐，从一餐开始调整就好，不必每天都完美。',
+        title: 'Often over your calorie target',
+        body: "Look for the meal with the biggest portion or the most oil or sugar, and start there. It doesn't have to be perfect every day.",
         data,
         numeric: true,
         priority: 4,
@@ -151,8 +151,8 @@ export function insightsFor(s: AppState, today: string): Insight[] {
         id: 'kcal_below_gain',
         category: 'calories',
         tone: 'tip',
-        title: '热量还没吃够',
-        body: '增重需要吃得比消耗多。可以加一份点心，或在正餐多加一些饭、坚果或牛奶。',
+        title: 'Not eating enough to gain',
+        body: 'Gaining weight means eating more than you burn. Add a snack, or a little more rice, nuts or milk at meals.',
         data,
         numeric: true,
         priority: 4,
@@ -171,9 +171,9 @@ export function insightsFor(s: AppState, today: string): Insight[] {
         id: 'breakfast_rare',
         category: 'meals',
         tone: 'tip',
-        title: '早餐很少出现在记录里',
-        body: '如果你习惯不吃早餐，那没有问题；如果只是忘了记，补记早餐会让一天的热量更准确。',
-        data: `近 7 天有记录的 ${days.length} 天中，${breakfast} 天有早餐`,
+        title: 'Breakfast is rarely logged',
+        body: "If you usually skip breakfast, that's fine. If you just forget to log it, adding it makes your daily calories more accurate.",
+        data: `Breakfast on ${breakfast} of ${days.length} logged days (last 7 days)`,
         numeric: false,
         priority: 6,
       });
@@ -189,15 +189,15 @@ export function insightsFor(s: AppState, today: string): Insight[] {
   if (weighIns >= 4 && now !== null && before !== null) {
     const change = now - before;
     const perWeekPct = ((change / before) * 100) / 2;
-    const data = `近 14 天量了 ${weighIns} 次，趋势体重 ${change > 0 ? '+' : ''}${fmt1(change)} kg`;
+    const data = `Last 14 days: ${weighIns} weigh-ins, trend ${change > 0 ? '+' : ''}${fmt1(change)} kg`;
     const toward = goal === 'fat_loss' ? change < -0.2 : goal === 'maintain' ? false : change > 0.2;
     if (goal === 'fat_loss' && perWeekPct < -1) {
       out.push({
         id: 'loss_fast',
         category: 'weight',
         tone: 'care',
-        title: '体重下降得比较快',
-        body: '每周减超过体重的 1% 比较难坚持，也较容易流失肌肉。可以确认是否吃得太少。',
+        title: 'Losing weight quite fast',
+        body: "Losing more than 1% of body weight a week is hard to keep up and can cost muscle. Check that you're not eating too little.",
         data,
         numeric: true,
         priority: 1,
@@ -207,8 +207,8 @@ export function insightsFor(s: AppState, today: string): Insight[] {
         id: 'trend_toward',
         category: 'weight',
         tone: 'good',
-        title: '体重趋势在往目标方向走',
-        body: '看的是平滑后的趋势，而不是某一天的数字。继续保持现在的做法。',
+        title: 'Your weight trend is heading toward your goal',
+        body: "This looks at the smoothed trend, not any single day. Keep doing what you're doing.",
         data,
         numeric: true,
         priority: 7,
@@ -218,8 +218,8 @@ export function insightsFor(s: AppState, today: string): Insight[] {
         id: 'trend_stable',
         category: 'weight',
         tone: 'good',
-        title: '体重维持得很稳定',
-        body: '两周内的趋势变化很小，代表你现在的吃法大致符合消耗。',
+        title: 'Your weight is steady',
+        body: "Your trend barely moved in two weeks, so you're eating about what you burn.",
         data,
         numeric: true,
         priority: 7,
@@ -229,8 +229,8 @@ export function insightsFor(s: AppState, today: string): Insight[] {
         id: 'trend_flat',
         category: 'weight',
         tone: 'tip',
-        title: '最近两周趋势变化不大',
-        body: '体重会受水分、盐分和生理周期影响，两周不变很常见。先确认记录是否完整，再考虑调整。',
+        title: 'Little change in the last two weeks',
+        body: 'Water, salt and hormonal cycles all affect weight, so two flat weeks are common. Check your logs are complete before changing anything.',
         data,
         numeric: true,
         priority: 5,
@@ -246,10 +246,10 @@ export function insightsFor(s: AppState, today: string): Insight[] {
       id: 'adjust_ready',
       category: 'adjust',
       tone: 'tip',
-      title: '有新的目标调整建议',
-      body: '根据你最近的记录，系统算出了一个可能更合适的每日目标。要不要采用由你决定。',
-      data: `根据 ${adaptive.windowDays} 天的记录`,
-      action: { label: '查看建议', to: '#adjust' },
+      title: 'A new target suggestion is ready',
+      body: "Based on your recent logs, we worked out a daily target that may suit you better. It's your choice whether to use it.",
+      data: `Based on ${adaptive.windowDays} days of logs`,
+      action: { label: 'See suggestion', to: '#adjust' },
       numeric: true,
       priority: 2,
     });

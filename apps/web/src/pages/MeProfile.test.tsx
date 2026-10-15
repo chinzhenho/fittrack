@@ -50,7 +50,7 @@ const meal = {
   date: '2026-10-02',
   meal: 'lunch' as const,
   foodId: 'f',
-  name: '鸡饭',
+  name: 'Chicken rice',
   grams: 300,
   nutrients: { kcal: 600, proteinG: 30, carbsG: 80, fatG: 15 },
   sourceRef: 'test',
@@ -84,29 +84,33 @@ afterEach(cleanup);
 describe('edit profile', () => {
   it('saves nickname, avatar and target weight without creating a new calorie target', async () => {
     renderProfile();
-    fireEvent.change(screen.getByLabelText('昵称（选填）'), { target: { value: ' 小明 ' } });
-    fireEvent.click(screen.getByRole('button', { name: '头像 🥑' }));
-    fireEvent.change(screen.getByLabelText('目标体重（kg，选填）'), { target: { value: '68' } });
-    fireEvent.click(screen.getByRole('button', { name: '保存个人资料' }));
+    fireEvent.change(screen.getByLabelText('Nickname (optional)'), { target: { value: ' Alex ' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Avatar 🥑' }));
+    fireEvent.change(screen.getByLabelText('Target weight (kg, optional)'), {
+      target: { value: '68' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Save profile' }));
     await screen.findByText('me page');
     const s = getState();
-    expect(s.profile).toMatchObject({ nickname: '小明', avatar: '🥑', targetWeightKg: 68 });
+    expect(s.profile).toMatchObject({ nickname: 'Alex', avatar: '🥑', targetWeightKg: 68 });
     expect(s.targets).toHaveLength(0);
   });
 
   it('rejects a fat-loss target weight above the current weight', () => {
     renderProfile();
-    fireEvent.change(screen.getByLabelText('目标体重（kg，选填）'), { target: { value: '80' } });
-    expect(screen.getByText('目标体重需低于现在的体重。')).toBeTruthy();
+    fireEvent.change(screen.getByLabelText('Target weight (kg, optional)'), {
+      target: { value: '80' },
+    });
+    expect(screen.getByText('Target weight must be below your current weight.')).toBeTruthy();
     expect(
-      (screen.getByRole('button', { name: '保存个人资料' }) as HTMLButtonElement).disabled,
+      (screen.getByRole('button', { name: 'Save profile' }) as HTMLButtonElement).disabled,
     ).toBe(true);
   });
 
   it('recalculates the target when height changes', async () => {
     renderProfile();
-    fireEvent.change(screen.getByLabelText('身高（cm）'), { target: { value: '180' } });
-    fireEvent.click(screen.getByRole('button', { name: '保存个人资料' }));
+    fireEvent.change(screen.getByLabelText('Height (cm)'), { target: { value: '180' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Save profile' }));
     await screen.findByText('me page');
     expect(getState().profile?.heightCm).toBe(180);
     expect(getState().targets).toHaveLength(1);
@@ -114,11 +118,11 @@ describe('edit profile', () => {
 
   it('scenario E: shows old and new targets and keeps the plan when asked', async () => {
     renderProfile(true);
-    fireEvent.change(screen.getByLabelText('身高（cm）'), { target: { value: '180' } });
-    fireEvent.click(screen.getByRole('button', { name: '预览新的每日目标' }));
-    const compare = screen.getByRole('region', { name: '新旧目标比较' });
+    fireEvent.change(screen.getByLabelText('Height (cm)'), { target: { value: '180' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Preview new daily target' }));
+    const compare = screen.getByRole('region', { name: 'Old and new targets' });
     expect(compare.textContent).toContain('1,960 kcal');
-    fireEvent.click(screen.getByRole('button', { name: '保留原计划' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Keep current plan' }));
     await screen.findByText('me page');
     expect(getState().profile?.heightCm).toBe(175);
     expect(getState().targets).toHaveLength(1);
@@ -126,10 +130,10 @@ describe('edit profile', () => {
 
   it('scenario E: confirming a goal change adds a target and keeps history and food records', async () => {
     renderProfile(true, '/me/plan');
-    fireEvent.click(screen.getByRole('radio', { name: '维持体重' }));
-    fireEvent.click(screen.getByRole('radio', { name: /^中度/ }));
-    fireEvent.click(screen.getByRole('button', { name: '预览新的每日目标' }));
-    fireEvent.click(screen.getByRole('button', { name: '确认更新' }));
+    fireEvent.click(screen.getByRole('radio', { name: 'Maintain weight' }));
+    fireEvent.click(screen.getByRole('radio', { name: /^Moderate/ }));
+    fireEvent.click(screen.getByRole('button', { name: 'Preview new daily target' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Confirm update' }));
     await screen.findByText('me page');
     const s = getState();
     expect(s.profile?.goal).toBe('maintain');
@@ -140,8 +144,8 @@ describe('edit profile', () => {
 
   it('explains the current target with the Mifflin–St Jeor steps', () => {
     renderProfile(true, '/me/targets');
-    expect(screen.getByText(/基础代谢（BMR）：1,700 kcal/)).toBeTruthy();
-    expect(screen.getByText(/每日总消耗（TDEE）：2,340 kcal/)).toBeTruthy();
-    expect(screen.getByText(/安全下限：1,700 kcal/)).toBeTruthy();
+    expect(screen.getByText(/Basal metabolic rate \(BMR\): 1,700 kcal/)).toBeTruthy();
+    expect(screen.getByText(/\(TDEE\): 2,340 kcal/)).toBeTruthy();
+    expect(screen.getByText(/Safety floor: 1,700 kcal/)).toBeTruthy();
   });
 });

@@ -27,13 +27,13 @@ vi.mock('../data/aiPhoto', async (original) => ({
         model: 'gemini-test',
         items: [
           {
-            name: 'Nasi lemak（炸鱼）',
+            name: 'Nasi lemak (fried fish)',
             grams: 335,
             matchId: 'sg-F05100089',
             nutrients: { kcal: 600, proteinG: 25, carbsG: 70, fatG: 25 },
           },
           {
-            name: '冰美禄',
+            name: 'Iced Milo',
             grams: 300,
             nutrients: { kcal: 180, proteinG: 5, carbsG: 30, fatG: 4 },
           },
@@ -72,8 +72,8 @@ describe('AI photo logging', () => {
     setPendingPhoto(photo);
     renderAdd();
     expect(analyzeFoodPhoto).not.toHaveBeenCalled(); // waits for consent
-    fireEvent.click(screen.getByLabelText('我明白，开始分析刚才的照片'));
-    await screen.findByText('冰美禄');
+    fireEvent.click(screen.getByLabelText('I understand, analyse my photo'));
+    await screen.findByText('Iced Milo');
     expect(analyzeFoodPhoto).toHaveBeenCalledWith(photo, undefined);
   });
 
@@ -82,15 +82,17 @@ describe('AI photo logging', () => {
     const photo = new File(['x'], 'snap.jpg', { type: 'image/jpeg' });
     setPendingPhoto(photo);
     renderAdd();
-    fireEvent.click(screen.getByLabelText('我明白，开始分析刚才的照片'));
-    await screen.findByText('冰美禄');
-    fireEvent.click(screen.getByText('认错了或份量不对？补充说明后重新分析'));
-    const again = screen.getByRole('button', { name: /重新分析/ }) as HTMLButtonElement;
+    fireEvent.click(screen.getByLabelText('I understand, analyse my photo'));
+    await screen.findByText('Iced Milo');
+    fireEvent.click(screen.getByText('Wrong food or amount? Add a note and re-analyse'));
+    const again = screen.getByRole('button', { name: /Re-analyse/ }) as HTMLButtonElement;
     expect(again.disabled).toBe(true); // needs a note first
-    fireEvent.change(screen.getByLabelText('补充说明'), { target: { value: '饭只有半碗' } });
+    fireEvent.change(screen.getByLabelText('Note for the AI'), {
+      target: { value: 'only half the rice' },
+    });
     fireEvent.click(again);
-    await screen.findByText('冰美禄');
-    expect(analyzeFoodPhoto).toHaveBeenLastCalledWith(photo, '饭只有半碗');
+    await screen.findByText('Iced Milo');
+    expect(analyzeFoodPhoto).toHaveBeenLastCalledWith(photo, 'only half the rice');
     expect(analyzeFoodPhoto).toHaveBeenCalledTimes(2);
   });
 
@@ -105,22 +107,22 @@ describe('AI photo logging', () => {
         </ToastProvider>
       </MemoryRouter>,
     );
-    expect(screen.queryByLabelText('从相册选择')).toBeNull();
-    fireEvent.click(screen.getByLabelText('我明白，开始使用 AI 拍照'));
+    expect(screen.queryByLabelText('Choose from album')).toBeNull();
+    fireEvent.click(screen.getByLabelText('I understand, start using AI snaps'));
     const photo = new File(['x'], 'food.jpg', { type: 'image/jpeg' });
-    fireEvent.change(screen.getByLabelText('从相册选择'), { target: { files: [photo] } });
+    fireEvent.change(screen.getByLabelText('Choose from album'), { target: { files: [photo] } });
 
-    await screen.findByText('冰美禄');
+    await screen.findByText('Iced Milo');
     // Drink: halve the amount. Nasi lemak stays at the database serving.
     fireEvent.change(screen.getAllByRole('spinbutton')[1]!, { target: { value: '150' } });
     // 693.45 (SG FoodID) + 90 (AI estimate, 180 kcal per 300 g, halved)
-    fireEvent.click(screen.getByRole('button', { name: /加入午餐（约 783 kcal）/ }));
+    fireEvent.click(screen.getByRole('button', { name: /Add to Lunch \(about 783 kcal\)/ }));
 
     const meals = getState().meals;
     expect(meals).toHaveLength(2);
     expect(meals[0]).toMatchObject({ foodId: 'sg-F05100089', grams: 335, date: '2026-10-13' });
     expect(meals[0]?.nutrients.kcal).toBeCloseTo(693.45, 10);
-    expect(meals[1]).toMatchObject({ name: '冰美禄', grams: 150 });
+    expect(meals[1]).toMatchObject({ name: 'Iced Milo', grams: 150 });
     expect(meals[1]?.nutrients.kcal).toBeCloseTo(90, 10);
     expect(localStorage.getItem('fittrack:aiPhotoConsent')).toBe('1');
   });

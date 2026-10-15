@@ -58,16 +58,16 @@ const RATE_OPTIONS: Record<Goal, number[]> = {
 
 const SYNC_TEXT: Record<SyncStatus, string> = {
   off: '',
-  syncing: '同步中…',
-  synced: '✓ 记录已同步到你的账号',
-  offline: '目前离线：记录先保存在这部设备，恢复网络后会自动同步。',
-  error: '同步失败，稍后会自动重试。',
+  syncing: 'Syncing…',
+  synced: '✓ Your logs are synced to your account',
+  offline: "You're offline: logs are saved on this device and sync when you reconnect.",
+  error: 'Sync failed. It will retry automatically.',
 };
 
 const REASON_LABELS: Record<TargetVersion['reason'], string> = {
-  initial: '初始',
-  profile_change: '资料更新',
-  adaptive: '动态调整',
+  initial: 'Initial',
+  profile_change: 'Profile update',
+  adaptive: 'Adjusted',
 };
 
 const AVATARS = ['🥗', '🍎', '🥑', '🍳', '🍜', '🍛', '🥦', '🍓', '💪', '🏃', '🧘', '😊'];
@@ -89,29 +89,29 @@ function TargetCompare({
   onKeep: () => void;
 }) {
   const rows: { k: string; a: number; b: number; u: string }[] = [
-    { k: '每日热量', a: before.caloriesKcal, b: after.caloriesKcal, u: 'kcal' },
-    { k: '蛋白质', a: before.proteinG, b: after.proteinG, u: 'g' },
-    { k: '碳水化合物', a: before.carbsG, b: after.carbsG, u: 'g' },
-    { k: '脂肪', a: before.fatG, b: after.fatG, u: 'g' },
+    { k: 'Daily calories', a: before.caloriesKcal, b: after.caloriesKcal, u: 'kcal' },
+    { k: 'Protein', a: before.proteinG, b: after.proteinG, u: 'g' },
+    { k: 'Carbs', a: before.carbsG, b: after.carbsG, u: 'g' },
+    { k: 'Fat', a: before.fatG, b: after.fatG, u: 'g' },
   ];
   return (
     <div
       role="region"
-      aria-label="新旧目标比较"
+      aria-label="Old and new targets"
       className="space-y-3 rounded-2xl border-2 border-emerald-200 bg-emerald-50/60 p-4 dark:border-emerald/40 dark:bg-emerald/10"
     >
-      <p className="font-bold">确认更新每日目标？</p>
+      <p className="font-bold">Update your daily target?</p>
       <table className="w-full text-sm">
         <thead>
           <tr className="text-xs text-slate-500 dark:text-slate-400">
             <th scope="col" className="text-left font-semibold">
-              项目
+              Item
             </th>
             <th scope="col" className="text-right font-semibold">
-              原本
+              Now
             </th>
             <th scope="col" className="text-right font-semibold">
-              更新后
+              New
             </th>
           </tr>
         </thead>
@@ -138,13 +138,13 @@ function TargetCompare({
         </tbody>
       </table>
       <p className="text-xs text-slate-600 dark:text-slate-300">
-        新目标从今天开始生效。以前的饮食记录和目标历史都会保留，不会被改动。
+        The new target starts today. Past food logs and target history are kept unchanged.
       </p>
       <div className="grid grid-cols-2 gap-2">
         <Button variant="secondary" onClick={onKeep}>
-          保留原计划
+          Keep current plan
         </Button>
-        <Button onClick={onConfirm}>确认更新</Button>
+        <Button onClick={onConfirm}>Confirm update</Button>
       </div>
     </div>
   );
@@ -202,7 +202,7 @@ function BackToMe() {
   return (
     <Link to="/me" className={backButtonClass}>
       <BackArrow />
-      我的
+      Me
     </Link>
   );
 }
@@ -280,7 +280,7 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
       update((x) =>
         updateProfileDetails(x, { ...candidate, goalStartDate: profile.goalStartDate }),
       );
-      toast({ text: '已保存' });
+      toast({ text: 'Saved' });
       navigate('/me');
       return;
     }
@@ -303,7 +303,7 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
         ),
       ),
     );
-    toast({ text: `已更新，新的每日目标是 ${fmtInt(preview.plan.caloriesKcal)} kcal` });
+    toast({ text: `Updated. Your new daily target is ${fmtInt(preview.plan.caloriesKcal)} kcal` });
     navigate('/me');
   };
 
@@ -312,7 +312,7 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
     setHeightText(String(profile.heightCm));
     setTargetText(profile.targetWeightKg !== undefined ? String(profile.targetWeightKg) : '');
     setConfirming(false);
-    toast({ text: '已保留原计划，没有任何改动' });
+    toast({ text: 'Kept your current plan. Nothing changed.' });
     navigate('/me');
   };
 
@@ -336,7 +336,7 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
           disabled={!changed || !preview?.ok}
           onClick={() => (targetChanges && target ? setConfirming(true) : save())}
         >
-          {changed && targetChanges && target ? '预览新的每日目标' : label}
+          {changed && targetChanges && target ? 'Preview new daily target' : label}
         </Button>
       )}
     </>
@@ -347,7 +347,9 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
     return (
       <div className="space-y-4">
         <BackToMe />
-        <PageTitle sub="昵称和头像只用来显示；身体资料用来计算你的每日目标。">个人资料</PageTitle>
+        <PageTitle sub="Nickname and avatar are just for display; body details set your daily target.">
+          Profile
+        </PageTitle>
 
         <Card className="space-y-5">
           <div className="flex items-center gap-4">
@@ -358,12 +360,12 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
               {avatarNow}
             </span>
             <div className="min-w-0 flex-1">
-              <Field label="昵称（选填）">
+              <Field label="Nickname (optional)">
                 {(p) => (
                   <input
                     {...p}
                     maxLength={20}
-                    placeholder="例如：小明"
+                    placeholder="e.g. Alex"
                     value={draft.nickname ?? ''}
                     onChange={(e) => setDraft({ ...draft, nickname: e.target.value })}
                     className={inputClass}
@@ -373,13 +375,13 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
             </div>
           </div>
           <fieldset>
-            <legend className="text-sm font-medium">头像</legend>
+            <legend className="text-sm font-medium">Avatar</legend>
             <div className="mt-2 grid grid-cols-6 gap-2">
               {AVATARS.map((a) => (
                 <button
                   key={a}
                   type="button"
-                  aria-label={`头像 ${a}`}
+                  aria-label={`Avatar ${a}`}
                   aria-pressed={draft.avatar === a}
                   onClick={() => setDraft({ ...draft, avatar: a })}
                   className={`flex aspect-square items-center justify-center rounded-2xl text-2xl transition ${draft.avatar === a ? 'bg-emerald-100 ring-2 ring-emerald-strong dark:bg-emerald/20 dark:ring-emerald' : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-700'}`}
@@ -392,10 +394,10 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
         </Card>
 
         <Card className="space-y-5">
-          <CardTitle>身体资料</CardTitle>
+          <CardTitle>Body details</CardTitle>
           <Segmented
-            label="计算公式"
-            hint="Mifflin–St Jeor 公式分男性与女性版本；中性为两者平均"
+            label="Formula"
+            hint="The Mifflin–St Jeor formula has male and female versions; neutral is the average"
             value={draft.formulaSex}
             options={(Object.keys(SEX_LABELS) as FormulaSex[]).map((x) => ({
               value: x,
@@ -405,7 +407,7 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
           />
           <div className="grid gap-4 sm:grid-cols-2">
             <Field
-              label="出生日期"
+              label="Date of birth"
               error={invalid === 'birthDate' ? fieldMessage('birthDate') : null}
             >
               {(p) => (
@@ -420,7 +422,7 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
               )}
             </Field>
             <Field
-              label="身高（cm）"
+              label="Height (cm)"
               error={invalid === 'heightCm' ? fieldMessage('heightCm') : null}
             >
               {(p) => (
@@ -438,13 +440,13 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
           </div>
           {draft.goal !== 'maintain' && (
             <Field
-              label="目标体重（kg，选填）"
-              hint="只用来显示进度，不影响每日热量"
+              label="Target weight (kg, optional)"
+              hint="Only used to show progress; doesn't change daily calories"
               error={
                 invalid === 'targetWeightKg'
                   ? draft.goal === 'fat_loss'
-                    ? '目标体重需低于现在的体重。'
-                    : '目标体重需高于现在的体重。'
+                    ? 'Target weight must be below your current weight.'
+                    : 'Target weight must be above your current weight.'
                   : null
               }
             >
@@ -463,16 +465,17 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
           )}
           <div className="flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-3 text-sm dark:bg-slate-700">
             <span>
-              目前体重 <strong>{profile.hideNumbers ? '已隐藏' : `${fmt1(weight)} kg`}</strong>
+              Current weight{' '}
+              <strong>{profile.hideNumbers ? 'hidden' : `${fmt1(weight)} kg`}</strong>
             </span>
             <Link
               to="/progress#weights"
               className="font-semibold text-emerald-strong dark:text-emerald"
             >
-              去记录体重 ›
+              Log weight ›
             </Link>
           </div>
-          {saveBar('保存个人资料')}
+          {saveBar('Save profile')}
         </Card>
       </div>
     );
@@ -482,11 +485,13 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
     return (
       <div className="space-y-4">
         <BackToMe />
-        <PageTitle sub="改完后会先显示新旧目标比较，由你确认才会更新。">目标与生活方式</PageTitle>
+        <PageTitle sub="You'll see old and new targets side by side before anything changes.">
+          Goal & lifestyle
+        </PageTitle>
         <Card className="space-y-5">
-          <CardTitle>目标</CardTitle>
+          <CardTitle>Goal</CardTitle>
           <Segmented
-            label="目标"
+            label="Goal"
             value={draft.goal}
             options={(Object.keys(GOAL_LABELS) as Goal[]).map((g) => ({
               value: g,
@@ -498,7 +503,7 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
           />
           {draft.goal !== 'maintain' && (
             <Segmented
-              label="每周体重变化（占体重的百分比）"
+              label="Weekly weight change (% of body weight)"
               value={String(draft.ratePctPerWeek)}
               options={RATE_OPTIONS[draft.goal].map((r) => ({ value: String(r), label: `${r}%` }))}
               onChange={(v) => set('ratePctPerWeek', Number(v))}
@@ -507,9 +512,9 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
         </Card>
 
         <Card className="space-y-5">
-          <CardTitle>生活与健康</CardTitle>
+          <CardTitle>Lifestyle & health</CardTitle>
           <Segmented
-            label="日常活动水平"
+            label="Daily activity level"
             value={draft.activityLevel}
             options={(Object.keys(ACTIVITY_LABELS) as ActivityLevel[]).map((a) => ({
               value: a,
@@ -519,28 +524,28 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
             onChange={(v) => set('activityLevel', v)}
           />
           <fieldset className="space-y-1">
-            <legend className="text-sm font-medium">健康状况</legend>
+            <legend className="text-sm font-medium">Health</legend>
             <Check
               checked={draft.screening.pregnantOrLactating}
               onChange={(v) => set('screening', { ...draft.screening, pregnantOrLactating: v })}
             >
-              正在怀孕或哺乳
+              Pregnant or breastfeeding
             </Check>
             <Check
               checked={draft.screening.eatingDisorderHistory}
               onChange={(v) => set('screening', { ...draft.screening, eatingDisorderHistory: v })}
             >
-              曾被诊断或正在接受饮食失调治疗
+              Diagnosed with, or being treated for, an eating disorder
             </Check>
             <Check
               checked={draft.screening.kidneyDisease}
               onChange={(v) => set('screening', { ...draft.screening, kidneyDisease: v })}
             >
-              有肾脏疾病
+              Kidney disease
             </Check>
           </fieldset>
           <fieldset className="space-y-1">
-            <legend className="text-sm font-medium">饮食偏好</legend>
+            <legend className="text-sm font-medium">Diet preferences</legend>
             {(Object.keys(DIET_LABELS) as DietTag[]).map((t) => (
               <Check
                 key={t}
@@ -557,7 +562,7 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
             ))}
           </fieldset>
 
-          {saveBar('保存')}
+          {saveBar('Save')}
         </Card>
       </div>
     );
@@ -586,7 +591,7 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
     a.download = `eathealthee-${today}.json`;
     a.click();
     URL.revokeObjectURL(url);
-    toast({ text: '已开始下载备份文件' });
+    toast({ text: 'Backup download started' });
   };
 
   const run = async (job: () => Promise<string | null>, onDone: () => void) => {
@@ -609,7 +614,7 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
 
   return (
     <div className="space-y-5">
-      <PageTitle sub="管理你的健康计划与应用设置。">我的</PageTitle>
+      <PageTitle sub="Manage your health plan and app settings.">Me</PageTitle>
 
       <section className="rounded-3xl bg-gradient-to-br from-[#5cae6f] via-[#43955f] to-[#2f6e5b] p-5 text-white shadow-md">
         <div className="flex items-center gap-4">
@@ -621,22 +626,22 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
           </span>
           <div className="min-w-0 flex-1">
             <p className="truncate text-xl font-black">
-              {profile.nickname ?? (signedIn ? '未设定昵称' : '访客')}
+              {profile.nickname ?? (signedIn ? 'No nickname yet' : 'Guest')}
             </p>
-            <p className="truncate text-sm text-emerald-50">{signedIn ? email : '未登录'}</p>
+            <p className="truncate text-sm text-emerald-50">{signedIn ? email : 'Not logged in'}</p>
           </div>
           <Link
             to="/me/profile"
             className="shrink-0 rounded-full border border-white/50 px-3 py-1.5 text-xs font-bold hover:bg-white/15"
           >
-            编辑资料
+            Edit profile
           </Link>
         </div>
         <div className="mt-4 flex flex-wrap gap-2 text-xs font-semibold">
           <span className="rounded-full bg-white/20 px-3 py-1">🎯 {GOAL_LABELS[profile.goal]}</span>
           {target && !hide && (
             <span className="rounded-full bg-white/20 px-3 py-1">
-              🔥 每日 {fmtInt(target.caloriesKcal)} kcal
+              🔥 {fmtInt(target.caloriesKcal)} kcal a day
             </span>
           )}
         </div>
@@ -649,132 +654,143 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
               to="/signup"
               className="inline-flex min-h-11 flex-1 items-center justify-center rounded-2xl bg-white px-4 text-sm font-semibold text-emerald-900"
             >
-              注册账号
+              Sign up
             </Link>
             <Link
               to="/login"
               className="inline-flex min-h-11 flex-1 items-center justify-center rounded-2xl border border-white/50 px-4 text-sm font-semibold"
             >
-              登录
+              Log in
             </Link>
           </div>
         )}
       </section>
 
-      <Group title="我的健康计划">
+      <Group title="My health plan">
         <ul>
           <Row
             to="/me/plan"
             icon="🎯"
-            title="目标与生活方式"
-            sub={`${GOAL_LABELS[profile.goal]}${profile.goal !== 'maintain' ? ` · 每周 ${profile.ratePctPerWeek}%` : ''} · ${ACTIVITY_LABELS[profile.activityLevel].name}`}
+            title="Goal & lifestyle"
+            sub={`${GOAL_LABELS[profile.goal]}${profile.goal !== 'maintain' ? ` · ${profile.ratePctPerWeek}% a week` : ''} · ${ACTIVITY_LABELS[profile.activityLevel].name}`}
           />
           <Row
             to="/me/profile"
             icon="🙂"
-            title="身体资料"
-            sub={`身高 ${profile.heightCm} cm · 出生 ${profile.birthDate}${profile.targetWeightKg !== undefined && !hide ? ` · 目标 ${fmt1(profile.targetWeightKg)} kg` : ''}`}
+            title="Body details"
+            sub={`Height ${profile.heightCm} cm · born ${profile.birthDate}${profile.targetWeightKg !== undefined && !hide ? ` · target ${fmt1(profile.targetWeightKg)} kg` : ''}`}
           />
           <Row
             to="/me/targets"
             icon="🍽️"
-            title="每日营养目标"
+            title="Daily nutrition targets"
             sub={
               target && !hide
-                ? `${fmtInt(target.caloriesKcal)} kcal · 蛋白质 ${target.proteinG} g · 计算方式与历史`
-                : '计算方式与目标历史'
+                ? `${fmtInt(target.caloriesKcal)} kcal · protein ${target.proteinG} g · how it's worked out`
+                : "How it's worked out, and history"
             }
           />
           <Row
             to="/progress#weights"
             icon="⚖️"
-            title="体重记录"
-            sub={hide ? '新增、修改或删除体重' : weight ? `最新 ${fmt1(weight)} kg` : '还没有记录'}
+            title="Weight log"
+            sub={
+              hide
+                ? 'Add, edit or delete weigh-ins'
+                : weight
+                  ? `Latest ${fmt1(weight)} kg`
+                  : 'No weigh-ins yet'
+            }
           />
         </ul>
       </Group>
 
-      <Group title="外观与显示">
+      <Group title="Appearance">
         <div className="space-y-4 p-2">
           <Segmented<Theme>
-            label="主题"
+            label="Theme"
             value={theme}
             options={[
-              { value: 'light', label: '☀️ 浅色' },
-              { value: 'dark', label: '🌙 深色' },
-              { value: 'system', label: '跟随手机' },
+              { value: 'light', label: '☀️ Light' },
+              { value: 'dark', label: '🌙 Dark' },
+              { value: 'system', label: 'Match phone' },
             ]}
             onChange={setTheme}
           />
           <div>
             <Check checked={hide} onChange={(v) => update((x) => setHideNumbers(x, v))}>
-              隐藏热量和体重数字
+              Hide calorie and weight numbers
             </Check>
             <p className="mt-1 pl-1 text-xs leading-relaxed text-slate-500 dark:text-slate-400">
-              开启后，今天、饮食、我的成长等页面不显示热量和体重数字，只显示习惯与记录情况，适合不想被数字影响心情，或在别人面前打开应用时使用。这只是画面上的隐私：资料仍会照常保存、同步，导出的备份也包含数字。
+              When on, Today, Diary and Progress show habits and logging instead of calorie and
+              weight numbers. Useful if numbers affect your mood, or when others can see your
+              screen. This is screen privacy only: your data is still saved and synced, and exports
+              include the numbers.
             </p>
           </div>
           <p className="rounded-2xl bg-slate-50 px-3 py-2.5 text-xs text-slate-600 dark:bg-slate-700/60 dark:text-slate-300">
-            📏 单位：公制（公斤 kg、厘米 cm、千卡 kcal）。目前只支持公制。
+            📏 Units: metric (kg, cm, kcal). Only metric is supported for now.
           </p>
         </div>
       </Group>
 
-      <Group title="提醒与通知">
+      <Group title="Reminders & notifications">
         <div className="space-y-2 p-2 text-sm leading-relaxed">
           <p>
-            🔕 EatHealthee 目前<strong>没有</strong>推送通知或提醒功能，也不会在背景发送任何通知。
+            🔕 EatHealthee does <strong>not</strong> have push notifications or reminders yet, and
+            never sends anything in the background.
           </p>
           <p className="text-xs text-slate-500 dark:text-slate-400">
-            想养成记录习惯，可以用手机自带的闹钟或“提醒事项”，在早餐、午餐、晚餐时间提醒自己打开应用记录。
+            To build the habit, set your phone's alarm or reminders app for breakfast, lunch and
+            dinner.
           </p>
         </div>
       </Group>
 
-      <Group title="隐私与数据">
+      <Group title="Privacy & data">
         <div className="space-y-4 p-2 text-sm">
           <p className="text-slate-600 dark:text-slate-300">
             {signedIn
-              ? '🔒 资料保存在你的账号（Supabase，服务器在新加坡），每个账号只能读写自己的资料；这部设备也有一份副本供离线使用。'
+              ? '🔒 Your data is stored in your account (Supabase, servers in Singapore), and each account can only access its own data. This device keeps a copy for offline use.'
               : isPersistent()
-                ? '📱 资料只保存在这部设备的浏览器中。清除浏览器资料或换手机会令资料消失，建议注册或定期导出备份。'
-                : '⚠️ 这个浏览器目前无法保存资料（可能是私密浏览模式）。'}
+                ? "📱 Your data is only stored in this device's browser. Clearing browser data or changing phones will lose it, so sign up or export a backup regularly."
+                : "⚠️ This browser can't save data right now (maybe private browsing)."}
           </p>
 
           <div className="rounded-2xl bg-slate-50 p-3 dark:bg-slate-700/60">
-            <p className="font-semibold">导出我的资料</p>
+            <p className="font-semibold">Export my data</p>
             <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-              下载一个 JSON
-              文件，包含个人资料、计划、目标历史、饮食与体重记录。文件只会保存在你的设备上，内含健康资料，请妥善保管。
+              Downloads a JSON file with your profile, plan, target history, food and weight logs.
+              It is saved only on your device and contains health data, so keep it safe.
             </p>
             <Button variant="secondary" className="mt-2" onClick={exportData}>
-              ⬇️ 导出备份（JSON）
+              ⬇️ Export backup (JSON)
             </Button>
           </div>
 
           <div className="space-y-2 rounded-2xl border border-slate-200 p-3 dark:border-slate-600">
-            <p className="font-semibold">删除资料</p>
+            <p className="font-semibold">Delete data</p>
             <ul className="space-y-1.5 text-xs text-slate-600 dark:text-slate-300">
               <li>
-                <strong>删除单笔记录：</strong>在“饮食”页或“我的成长 → 体重记录”按
-                ✕，删除后可以撤销。
+                <strong>Delete one entry:</strong> tap ✕ in the Diary or in Progress → Weight log.
+                You can undo it.
               </li>
               <li>
-                <strong>删除所有健康记录：</strong>清除全部饮食、体重和习惯记录，保留
-                {signedIn ? '账号、' : ''}个人资料和计划。
+                <strong>Delete all health records:</strong> clears all food, weight and habit logs,
+                keeping your {signedIn ? 'account, ' : ''}profile and plan.
               </li>
               {signedIn && (
                 <li>
-                  <strong>删除账号：</strong>在下方“账号与安全”，连同登录 Email
-                  和所有资料一起永久删除。
+                  <strong>Delete account:</strong> under "Account & security" below; permanently
+                  deletes your login email and all data.
                 </li>
               )}
             </ul>
             {danger === 'records' ? (
-              <Notice tone="warn" title="确定删除所有健康记录？">
-                所有饮食、体重、喝水和习惯记录都会
-                {signedIn ? '从云端和这部设备' : '从这部设备'}
-                永久删除，无法撤销。个人资料、计划和目标历史会保留。建议先导出备份。
+              <Notice tone="warn" title="Delete all health records?">
+                All food, weight, water and habit logs will be permanently deleted from{' '}
+                {signedIn ? 'the cloud and this device' : 'this device'}. This can't be undone. Your
+                profile, plan and target history are kept. Export a backup first.
                 {error && (
                   <p role="alert" className="mt-2 font-semibold text-red-700 dark:text-red-400">
                     {error}
@@ -787,14 +803,14 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
                     onClick={() =>
                       void run(deleteHealthRecords, () => {
                         closeDanger();
-                        toast({ text: '已删除所有健康记录' });
+                        toast({ text: 'All health records deleted' });
                       })
                     }
                   >
-                    {busy ? '正在删除…' : '确定删除'}
+                    {busy ? 'Deleting…' : 'Delete'}
                   </Button>
                   <Button variant="secondary" disabled={busy} onClick={closeDanger}>
-                    取消
+                    Cancel
                   </Button>
                 </div>
               </Notice>
@@ -807,13 +823,14 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
                   setDanger('records');
                 }}
               >
-                删除所有健康记录
+                Delete all health records
               </Button>
             )}
             {!signedIn &&
               (danger === 'device' ? (
-                <Notice tone="warn" title="确定删除这部设备上的全部资料？">
-                  个人资料、计划和所有记录都会被永久删除，无法撤销，之后会回到欢迎页重新设置。
+                <Notice tone="warn" title="Delete all data on this device?">
+                  Your profile, plan and all logs will be permanently deleted. This can't be undone,
+                  and you'll start again from the welcome page.
                   <div className="mt-3 flex gap-2">
                     <Button
                       variant="danger"
@@ -822,10 +839,10 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
                         navigate('/welcome', { replace: true });
                       }}
                     >
-                      确定删除
+                      Delete
                     </Button>
                     <Button variant="secondary" onClick={closeDanger}>
-                      取消
+                      Cancel
                     </Button>
                   </div>
                 </Notice>
@@ -838,7 +855,7 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
                     setDanger('device');
                   }}
                 >
-                  删除这部设备上的全部资料
+                  Delete all data on this device
                 </Button>
               ))}
           </div>
@@ -846,7 +863,7 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
       </Group>
 
       {signedIn && (
-        <Group title="账号与安全">
+        <Group title="Account & security">
           <ul>
             <li className="flex min-h-14 items-center gap-3 px-2">
               <span
@@ -856,20 +873,20 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
                 ✉️
               </span>
               <span className="min-w-0 flex-1">
-                <span className="block text-sm font-semibold">登录 Email</span>
+                <span className="block text-sm font-semibold">Login email</span>
                 <span className="block truncate text-xs text-slate-500 dark:text-slate-400">
                   {email}
                 </span>
               </span>
             </li>
-            <Row to="/update-password" icon="🔑" title="更改密码" />
+            <Row to="/update-password" icon="🔑" title="Change password" />
           </ul>
           <div className="mt-2 border-t border-slate-100 px-2 pt-3 dark:border-slate-700">
             {danger === 'account' ? (
-              <Notice tone="warn" title="永久删除账号？">
-                你的登录
-                Email、密码、云端所有饮食和体重记录、计划与设置都会被永久删除，无法恢复。建议先在上方导出备份。
-                <Field label="请输入「删除」两个字确认">
+              <Notice tone="warn" title="Permanently delete your account?">
+                Your login email, password, all food and weight logs in the cloud, plan and settings
+                will be permanently deleted and can't be recovered. Export a backup above first.
+                <Field label="Type DELETE to confirm">
                   {(p) => (
                     <input
                       {...p}
@@ -888,15 +905,15 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
                 <div className="mt-3 flex gap-2">
                   <Button
                     variant="danger"
-                    disabled={busy || deleteWord.trim() !== '删除'}
+                    disabled={busy || deleteWord.trim() !== 'DELETE'}
                     onClick={() =>
                       void run(deleteAccount, () => navigate('/welcome', { replace: true }))
                     }
                   >
-                    {busy ? '正在删除…' : '永久删除账号'}
+                    {busy ? 'Deleting…' : 'Delete account forever'}
                   </Button>
                   <Button variant="secondary" disabled={busy} onClick={closeDanger}>
-                    取消
+                    Cancel
                   </Button>
                 </div>
               </Notice>
@@ -909,23 +926,23 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
                   setDanger('account');
                 }}
               >
-                删除账号
+                Delete account
               </button>
             )}
           </div>
         </Group>
       )}
 
-      <Group title="帮助与信息">
+      <Group title="Help & info">
         <ul>
-          <Row to="/how-we-calculate" icon="🧮" title="计算方法" />
-          <Row to="/help/faq" icon="💬" title="常见问题" />
-          <Row to="/legal/disclaimer" icon="🩺" title="健康免责声明" />
-          <Row to="/legal/privacy" icon="🔒" title="隐私政策" />
-          <Row to="/legal/credits" icon="📚" title="数据来源" />
+          <Row to="/how-we-calculate" icon="🧮" title="How we calculate" />
+          <Row to="/help/faq" icon="💬" title="FAQ" />
+          <Row to="/legal/disclaimer" icon="🩺" title="Health disclaimer" />
+          <Row to="/legal/privacy" icon="🔒" title="Privacy policy" />
+          <Row to="/legal/credits" icon="📚" title="Data sources" />
         </ul>
         <p className="mt-2 border-t border-slate-100 px-2 pt-3 text-xs text-slate-500 dark:border-slate-700 dark:text-slate-400">
-          应用版本 {__APP_VERSION__}（{__BUILD_DATE__}）
+          App version {__APP_VERSION__} ({__BUILD_DATE__})
         </p>
       </Group>
 
@@ -941,10 +958,10 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
               navigate('/welcome', { replace: true });
             }}
           >
-            {busy ? '正在退出…' : '退出登录'}
+            {busy ? 'Logging out…' : 'Log out'}
           </Button>
           <p className="mt-2 text-center text-xs text-slate-500 dark:text-slate-400">
-            退出前会先把记录同步到账号，之后在任何设备登录都能取回。
+            Your logs are synced before logging out, so you can get them back on any device.
           </p>
         </div>
       )}
@@ -972,8 +989,8 @@ function TargetsPage({
     return (
       <div className="space-y-4">
         <BackToMe />
-        <PageTitle>每日营养目标</PageTitle>
-        <Notice>还没有每日目标，请先完成个人资料设置。</Notice>
+        <PageTitle>Daily nutrition targets</PageTitle>
+        <Notice>No daily target yet. Please finish setting up your profile first.</Notice>
       </div>
     );
   }
@@ -998,29 +1015,30 @@ function TargetsPage({
   return (
     <div className="space-y-4">
       <BackToMe />
-      <PageTitle sub="你的每日目标是怎么算出来的。">每日营养目标</PageTitle>
+      <PageTitle sub="How your daily target is worked out.">Daily nutrition targets</PageTitle>
 
       {hide && (
         <Notice>
-          你已选择隐藏数字。这一页会显示数字，因为它是计算说明；如不想看，可直接返回。
+          You've chosen to hide numbers. This page still shows them because it explains the
+          calculation; go back if you'd rather not see them.
         </Notice>
       )}
 
       <Card className="space-y-3">
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
           {[
-            { k: '每日热量', v: `${fmtInt(target.caloriesKcal)}`, u: 'kcal' },
+            { k: 'Daily calories', v: `${fmtInt(target.caloriesKcal)}`, u: 'kcal' },
             {
-              k: '蛋白质',
+              k: 'Protein',
               v: `${target.proteinG}`,
               u: `g · ${Math.round((kcalOf.p / total) * 100)}%`,
             },
             {
-              k: '碳水化合物',
+              k: 'Carbs',
               v: `${target.carbsG}`,
               u: `g · ${Math.round((kcalOf.c / total) * 100)}%`,
             },
-            { k: '脂肪', v: `${target.fatG}`, u: `g · ${Math.round((kcalOf.f / total) * 100)}%` },
+            { k: 'Fat', v: `${target.fatG}`, u: `g · ${Math.round((kcalOf.f / total) * 100)}%` },
           ].map((x) => (
             <div key={x.k} className="rounded-2xl bg-slate-50 px-3 py-2.5 dark:bg-slate-700/60">
               <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">{x.k}</p>
@@ -1030,20 +1048,20 @@ function TargetsPage({
           ))}
         </div>
         <p className="text-xs text-slate-500 dark:text-slate-400">
-          从 {target.effectiveFrom} 起生效（{REASON_LABELS[target.reason]}），按当时体重{' '}
-          {fmt1(target.weightKg)} kg 计算。
+          In effect from {target.effectiveFrom} ({REASON_LABELS[target.reason]}), based on a weight
+          of {fmt1(target.weightKg)} kg at the time.
         </p>
       </Card>
 
       <Card className="space-y-4 text-sm leading-relaxed">
-        <CardTitle>计算步骤</CardTitle>
+        <CardTitle>Step by step</CardTitle>
         <div>
-          <p className="font-bold">① 基础代谢（BMR）：{fmtInt(target.bmrKcal)} kcal</p>
+          <p className="font-bold">① Basal metabolic rate (BMR): {fmtInt(target.bmrKcal)} kcal</p>
           <p className="text-slate-600 dark:text-slate-300">
-            身体在完全休息时一天消耗的热量，使用 Mifflin–St Jeor 公式：
+            What your body burns in a day at complete rest, using the Mifflin–St Jeor equation:
           </p>
           <p className="mt-1 rounded-xl bg-slate-50 px-3 py-2 font-mono text-xs dark:bg-slate-700/60">
-            10 × 体重 + 6.25 × 身高 − 5 × 年龄{' '}
+            10 × weight + 6.25 × height − 5 × age{' '}
             {profile.formulaSex === 'male'
               ? '+ 5'
               : profile.formulaSex === 'female'
@@ -1058,43 +1076,46 @@ function TargetsPage({
             )}
           </p>
           <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-            公式选项：{SEX_LABELS[profile.formulaSex]}
-            {profile.formulaSex === 'neutral' && '（男性与女性常数的平均）'}
-          </p>
-        </div>
-        <div>
-          <p className="font-bold">② 每日总消耗（TDEE）：{fmtInt(target.tdeeKcal)} kcal</p>
-          <p className="text-slate-600 dark:text-slate-300">
-            {target.reason === 'adaptive'
-              ? '这个数字已根据你的实际摄取和体重趋势调整过，比公式估算更贴近你。'
-              : `BMR × 活动系数 ${factor}（${ACTIVITY_LABELS[profile.activityLevel].name}）。`}
+            Formula: {SEX_LABELS[profile.formulaSex]}
+            {profile.formulaSex === 'neutral' && ' (average of the male and female constants)'}
           </p>
         </div>
         <div>
           <p className="font-bold">
-            ③ 按目标调整：
-            {adjust === 0
-              ? '不增不减'
-              : `${adjust > 0 ? '+' : '−'}${fmtInt(Math.abs(adjust))} kcal`}
+            ② Total daily energy expenditure (TDEE): {fmtInt(target.tdeeKcal)} kcal
           </p>
           <p className="text-slate-600 dark:text-slate-300">
-            {GOAL_LABELS[profile.goal]}
-            {profile.goal !== 'maintain' && `，每周约 ${profile.ratePctPerWeek}% 体重`}。
-            {profile.goal === 'fat_loss'
-              ? '热量赤字不超过 TDEE 的 25%。'
-              : profile.goal === 'maintain'
-                ? ''
-                : '热量盈余每天不超过 500 kcal。'}
+            {target.reason === 'adaptive'
+              ? 'Adjusted from your real intake and weight trend, so it fits you better than the formula alone.'
+              : `BMR × activity factor ${factor} (${ACTIVITY_LABELS[profile.activityLevel].name}).`}
           </p>
         </div>
         <div>
-          <p className="font-bold">④ 安全下限：{fmtInt(target.calorieFloorKcal)} kcal</p>
+          <p className="font-bold">
+            ③ Goal adjustment:{' '}
+            {adjust === 0 ? 'none' : `${adjust > 0 ? '+' : '−'}${fmtInt(Math.abs(adjust))} kcal`}
+          </p>
           <p className="text-slate-600 dark:text-slate-300">
-            每日目标不会低于你的 BMR，也不低于 1200（女性）/ 1500（男性、中性）kcal。
+            {GOAL_LABELS[profile.goal]}
+            {profile.goal !== 'maintain' &&
+              `, about ${profile.ratePctPerWeek}% of body weight a week`}
+            .{' '}
+            {profile.goal === 'fat_loss'
+              ? 'The deficit is at most 25% of TDEE.'
+              : profile.goal === 'maintain'
+                ? ''
+                : 'The surplus is at most 500 kcal a day.'}
+          </p>
+        </div>
+        <div>
+          <p className="font-bold">④ Safety floor: {fmtInt(target.calorieFloorKcal)} kcal</p>
+          <p className="text-slate-600 dark:text-slate-300">
+            Your daily target never goes below your BMR, or below 1,200 (female) / 1,500 (male,
+            neutral) kcal.
           </p>
         </div>
         {target.clamps.length > 0 && (
-          <Notice title="这次计算做了以下调整">
+          <Notice title="Adjustments made in this calculation">
             <ul className="list-disc space-y-1 pl-5">
               {target.clamps.map((c) => (
                 <li key={c}>
@@ -1105,21 +1126,23 @@ function TargetsPage({
           </Notice>
         )}
         <p className="text-xs text-slate-500 dark:text-slate-400">
-          公式只是起点，每个人的实际消耗会不同。记录足够后，“我的成长 →
-          目标调整建议”会根据你的实际资料提出微调。
+          The formula is only a starting point; everyone burns a little differently. Once you have
+          enough logs, Progress → Target suggestion fine-tunes it from your real data.
           <Link
             to="/how-we-calculate"
             className="ml-1 font-semibold text-emerald-strong dark:text-emerald"
           >
-            完整计算方法 ›
+            Full method ›
           </Link>
         </p>
       </Card>
 
       <Card className="space-y-3">
-        <CardTitle>用最新体重重新计算</CardTitle>
+        <CardTitle>Recalculate with your latest weight</CardTitle>
         {!fresh ? (
-          <p className="text-sm text-slate-600 dark:text-slate-300">先记录体重，才能重新计算。</p>
+          <p className="text-sm text-slate-600 dark:text-slate-300">
+            Log a weigh-in first to recalculate.
+          </p>
         ) : !fresh.ok ? (
           <Notice tone="warn" title={rejectMessage(fresh.reason).title}>
             {rejectMessage(fresh.reason).body}
@@ -1127,7 +1150,7 @@ function TargetsPage({
         ) : fresh.plan.caloriesKcal === target.caloriesKcal &&
           fresh.plan.macros.proteinG === target.proteinG ? (
           <p className="text-sm text-slate-600 dark:text-slate-300">
-            ✓ 用最新体重 {fmt1(weight)} kg 计算的结果和目前的目标相同，不需要更新。
+            ✓ Your latest weight of {fmt1(weight)} kg gives the same target. No update needed.
           </p>
         ) : recalc ? (
           <TargetCompare
@@ -1135,7 +1158,7 @@ function TargetsPage({
             after={{ caloriesKcal: fresh.plan.caloriesKcal, ...fresh.plan.macros }}
             onKeep={() => {
               setRecalc(false);
-              toast({ text: '已保留原计划，没有任何改动' });
+              toast({ text: 'Kept your current plan. Nothing changed.' });
             }}
             onConfirm={() => {
               const plan = fresh.plan;
@@ -1155,25 +1178,27 @@ function TargetsPage({
                 ),
               );
               setRecalc(false);
-              toast({ text: `已更新，新的每日目标是 ${fmtInt(plan.caloriesKcal)} kcal` });
+              toast({
+                text: `Updated. Your new daily target is ${fmtInt(plan.caloriesKcal)} kcal`,
+              });
               navigate('/me/targets', { replace: true });
             }}
           />
         ) : (
           <>
             <p className="text-sm text-slate-600 dark:text-slate-300">
-              目前目标按 {fmt1(target.weightKg)} kg 计算，你最新的体重是 {fmt1(weight)}{' '}
-              kg。可以先预览新旧目标，再决定是否更新。
+              Your target was set at {fmt1(target.weightKg)} kg and your latest weight is{' '}
+              {fmt1(weight)} kg. Preview the old and new targets before deciding.
             </p>
             <Button variant="secondary" className="w-full" onClick={() => setRecalc(true)}>
-              预览重新计算的结果
+              Preview recalculated target
             </Button>
           </>
         )}
       </Card>
 
       <Card>
-        <CardTitle>目标历史</CardTitle>
+        <CardTitle>Target history</CardTitle>
         <ul className="divide-y divide-slate-100 text-sm dark:divide-slate-700">
           {[...targets]
             .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
@@ -1182,13 +1207,13 @@ function TargetsPage({
                 <span>
                   <span className="block font-medium">{t.effectiveFrom}</span>
                   <span className="text-xs text-slate-500 dark:text-slate-400">
-                    {REASON_LABELS[t.reason]} · 体重 {fmt1(t.weightKg)} kg
+                    {REASON_LABELS[t.reason]} · weight {fmt1(t.weightKg)} kg
                   </span>
                 </span>
                 <span className="text-right">
                   <span className="block font-bold">{fmtInt(t.caloriesKcal)} kcal</span>
                   <span className="text-xs text-slate-500 dark:text-slate-400">
-                    蛋白质 {t.proteinG} g
+                    protein {t.proteinG} g
                   </span>
                 </span>
               </li>

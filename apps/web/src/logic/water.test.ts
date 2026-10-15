@@ -34,22 +34,22 @@ describe('calorie wording follows the goal', () => {
   it('treats the target as a ceiling for fat loss and an amount to reach for gaining', async () => {
     const { calorieGap } = await import('./nutrition');
     expect(calorieGap('fat_loss', 1500, 1900)).toEqual({
-      label: '还可以吃',
+      label: 'Left to eat',
       kcal: 400,
       state: 'room',
     });
     expect(calorieGap('maintain', 2100, 1900)).toEqual({
-      label: '超出目标',
+      label: 'Over target',
       kcal: 200,
       state: 'over',
     });
     expect(calorieGap('weight_gain', 1500, 2600)).toEqual({
-      label: '还需要吃',
+      label: 'Still to eat',
       kcal: 1100,
       state: 'need',
     });
     expect(calorieGap('muscle_gain', 2700, 2600)).toEqual({
-      label: '已达到目标',
+      label: 'Target reached, extra',
       kcal: 100,
       state: 'reached',
     });

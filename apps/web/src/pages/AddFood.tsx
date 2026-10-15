@@ -13,12 +13,12 @@ import {
 } from '../components/ui';
 import { addCustomFood, logFood } from '../data/actions';
 import { AI_ERROR_TEXT, analyzeFoodPhoto, type AiPhotoError } from '../data/aiPhoto';
-import { takePendingPhoto } from '../data/pendingPhoto';
+import { takePendingPhoto, type PendingPhoto } from '../data/pendingPhoto';
 import { useAuth } from '../data/auth';
 import { BUILT_IN_FOODS } from '../data/foods';
 import { newId, update, useAppState } from '../data/store';
 import type { Food, MealItem, MealType } from '../data/types';
-import { formatDateZh, localToday } from '../lib/dates';
+import { formatDay, localToday } from '../lib/dates';
 import { fmt1, fmtInt } from '../lib/format';
 import { aiItemNutrients, foodForAiItem, type AiFoodResult } from '../logic/aiFood';
 import {
@@ -30,11 +30,11 @@ import {
 } from '../logic/nutrition';
 
 const ERROR_TEXT: Record<CustomFoodError, string> = {
-  name: '请输入食物名称。',
-  kcal: '每 100 g 热量需介于 0 至 900 kcal。',
-  macro: '每 100 g 的蛋白质、碳水、脂肪需介于 0 至 100 g。',
-  macroSum: '每 100 g 的蛋白质、碳水、脂肪加起来不能超过 100 g。',
-  sodium: '钠需介于 0 至 40,000 mg。',
+  name: 'Enter a food name.',
+  kcal: 'Calories per 100 g must be 0 to 900 kcal.',
+  macro: 'Protein, carbs and fat per 100 g must each be 0 to 100 g.',
+  macroSum: 'Protein, carbs and fat per 100 g cannot add up to more than 100 g.',
+  sodium: 'Sodium must be 0 to 40,000 mg.',
 };
 
 /**
@@ -51,7 +51,7 @@ function recentFoods(meals: MealItem[], known: Food[], limit = 8): Food[] {
     out.push(
       known.find((f) => f.id === m.foodId) ?? {
         id: m.foodId,
-        nameZh: m.name,
+        name: m.name,
         nameEn: m.name,
         aliases: [],
         per100g: {
@@ -62,7 +62,7 @@ function recentFoods(meals: MealItem[], known: Food[], limit = 8): Food[] {
         },
         source: m.foodId.startsWith('ai-') ? 'ai' : 'user',
         sourceRef: m.sourceRef,
-        servings: [{ label: '上次的份量', grams: m.grams }],
+        servings: [{ label: 'Last time', grams: m.grams }],
       },
     );
     if (out.length >= limit) break;
@@ -112,23 +112,23 @@ export function AddFood() {
   const add = () => {
     if (!selected || !gramsOk) return;
     log(selected, g);
-    toast({ text: `已加入${where}：${selected.nameZh}` });
+    toast({ text: `Added to ${where}: ${selected.name}` });
     backToDiary();
   };
 
   return (
     <div className="space-y-4">
       <BackButton fallback="/diary" />
-      <PageTitle sub={`加入到${formatDateZh(date, localToday())}`}>加入食物</PageTitle>
+      <PageTitle sub={`For ${formatDay(date, localToday())}`}>Add food</PageTitle>
       <Segmented
-        label="餐次"
+        label="Meal"
         value={meal}
         options={MEAL_TYPES.map((m) => ({ value: m, label: MEAL_LABELS[m] }))}
         onChange={setMeal}
       />
       {meal === 'snack' && (
         <div>
-          <Field label="这是什么？（选填）" hint="例如：下午茶、宵夜、饮料">
+          <Field label="What is it? (optional)" hint="e.g. tea time, supper, drink">
             {(p) => (
               <input
                 {...p}
@@ -140,7 +140,7 @@ export function AddFood() {
             )}
           </Field>
           <div className="mt-2 flex flex-wrap gap-2">
-            {['下午茶', '宵夜', '饮料', '零食', '水果'].map((x) => (
+            {['Tea time', 'Supper', 'Drink', 'Snack', 'Fruit'].map((x) => (
               <Button
                 key={x}
                 variant={label === x ? 'primary' : 'secondary'}
@@ -157,15 +157,15 @@ export function AddFood() {
       {selected ? (
         <Card className="space-y-4">
           <div>
-            <p className="font-semibold">{selected.nameZh}</p>
+            <p className="font-semibold">{selected.name}</p>
             <p className="text-xs text-slate-600 dark:text-slate-300">
               {selected.source === 'usda'
-                ? `来源：${selected.sourceRef}（已验证）`
+                ? `Source: ${selected.sourceRef} (verified)`
                 : selected.source === 'sgfoodid'
-                  ? `来源：新加坡保健促进局 ${selected.sourceRef}`
+                  ? `Source: Singapore Health Promotion Board ${selected.sourceRef}`
                   : selected.source === 'ai'
-                    ? `来源：${selected.sourceRef}`
-                    : '来源：你自己输入的包装标签'}
+                    ? `Source: ${selected.sourceRef}`
+                    : 'Source: your own entry from a food label'}
             </p>
             {selected.description && (
               <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">
@@ -176,7 +176,7 @@ export function AddFood() {
           {selected.servings?.map((sv) => (
             <div key={sv.label}>
               <p className="mb-2 text-sm">
-                {sv.label}：约 {fmtInt(sv.grams)} g
+                {sv.label}: about {fmtInt(sv.grams)} g
               </p>
               <div className="flex flex-wrap gap-2">
                 {[0.5, 1, 1.5, 2].map((m) => (
@@ -185,13 +185,13 @@ export function AddFood() {
                     variant="secondary"
                     onClick={() => setGrams(String(Math.round(sv.grams * m * 10) / 10))}
                   >
-                    {m} 份
+                    {m} ×
                   </Button>
                 ))}
               </div>
             </div>
           ))}
-          <Field label="份量（g）" error={gramsOk ? null : '份量需介于 1 至 5000 g。'}>
+          <Field label="Amount (g)" error={gramsOk ? null : 'Amount must be 1 to 5000 g.'}>
             {(p) => (
               <input
                 {...p}
@@ -207,10 +207,10 @@ export function AddFood() {
           {gramsOk && <NutrientLine food={selected} grams={g} />}
           <div className="flex gap-3">
             <Button variant="secondary" onClick={() => setSelected(null)}>
-              返回
+              Back
             </Button>
             <Button className="flex-1" disabled={!gramsOk} onClick={add}>
-              加入{where}
+              Add to {where}
             </Button>
           </div>
         </Card>
@@ -233,20 +233,22 @@ export function AddFood() {
                 (t, it) => t + nutrientsFor(it.food.per100g, it.grams).kcal,
                 0,
               );
-              toast({ text: `已加入${where}：${items.length} 项，约 ${fmtInt(kcal)} kcal` });
+              toast({
+                text: `Added ${items.length} ${items.length === 1 ? 'item' : 'items'} to ${where}, about ${fmtInt(kcal)} kcal`,
+              });
               backToDiary();
             }}
           />
-          {recent.length > 0 && <FoodList title="最近吃过" foods={recent} onPick={pick} />}
+          {recent.length > 0 && <FoodList title="Recently eaten" foods={recent} onPick={pick} />}
           <Card className="flex items-center justify-between gap-3">
             <div>
-              <p className="font-medium">手动输入</p>
+              <p className="font-medium">Enter manually</p>
               <p className="text-xs text-slate-600 dark:text-slate-300">
-                包装食品可按营养标签输入，最准确。
+                For packaged food, enter the label values. Most accurate.
               </p>
             </div>
             <Button variant="secondary" className="shrink-0" onClick={() => setCreating(true)}>
-              ＋ 输入
+              + Enter
             </Button>
           </Card>
         </>
@@ -258,14 +260,14 @@ export function AddFood() {
 const SOURCE_LABEL: Record<Food['source'], string> = {
   usda: 'USDA',
   sgfoodid: 'SG FoodID',
-  user: '自订',
-  ai: 'AI 估算',
+  user: 'Custom',
+  ai: 'AI estimate',
 };
 
 function servingText(f: Food): string {
   const sv = f.servings?.[0];
-  if (!sv) return `每 100 g ${fmtInt(f.per100g.kcal)} kcal`;
-  return `${sv.label}约 ${fmtInt(nutrientsFor(f.per100g, sv.grams).kcal)} kcal`;
+  if (!sv) return `${fmtInt(f.per100g.kcal)} kcal per 100 g`;
+  return `${sv.label}: about ${fmtInt(nutrientsFor(f.per100g, sv.grams).kcal)} kcal`;
 }
 
 const CONSENT_KEY = 'fittrack:aiPhotoConsent';
@@ -312,7 +314,9 @@ function PhotoCard({
   );
 
   // A photo taken with the camera button waits here until consent is given.
-  const [waiting, setWaiting] = useState<File | null>(() => (signedIn ? takePendingPhoto() : null));
+  const [waiting, setWaiting] = useState<PendingPhoto | null>(() =>
+    signedIn ? takePendingPhoto() : null,
+  );
 
   const onFile = async (file: File | undefined, note?: string) => {
     if (!file) return;
@@ -330,7 +334,11 @@ function PhotoCard({
   };
 
   useEffect(() => {
-    if (waiting && consent) void onFile(waiting);
+    if (waiting && consent) {
+      // The note typed in the camera goes with the first analysis and stays editable.
+      setHint(waiting.note);
+      void onFile(waiting.file, waiting.note || undefined);
+    }
     // Runs once a waiting photo can be sent; onFile only depends on stable setters.
   }, [waiting, consent]);
 
@@ -378,36 +386,38 @@ function PhotoCard({
           📷
         </span>
         <div>
-          <h2 className="text-lg font-semibold">AI 拍照算热量</h2>
+          <h2 className="text-lg font-semibold">AI photo calories</h2>
           <p className="text-sm text-slate-700 dark:text-slate-300">
-            拍下整份食物，AI 会认出每样食物并估算份量和热量，你确认后就会记录。
+            Snap your whole meal. AI spots each food and estimates the portion and calories; you
+            check before it is logged.
           </p>
         </div>
       </div>
 
       {!signedIn ? (
         <div className="rounded-2xl bg-white p-4 text-sm dark:bg-slate-700">
-          <p>AI 拍照免费，但需要先登录账号（每个账号每天 8 次）。</p>
+          <p>AI snaps are free but need an account (8 per account per day).</p>
           <div className="mt-3 flex gap-2">
             <Link
               to="/login"
               className="inline-flex min-h-11 flex-1 items-center justify-center rounded-2xl bg-emerald-strong px-4 font-semibold text-white dark:bg-emerald dark:text-slate-950"
             >
-              登录
+              Log in
             </Link>
             <Link
               to="/signup"
               className="inline-flex min-h-11 flex-1 items-center justify-center rounded-2xl border border-emerald-200 bg-white px-4 font-semibold text-emerald-900 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
             >
-              注册账号
+              Sign up
             </Link>
           </div>
         </div>
       ) : !consent ? (
         <div className="space-y-3 rounded-2xl bg-white p-4 text-sm dark:bg-slate-700">
           <p>
-            照片会缩小后发送给 Google Gemini（或备用的 Cloudflare AI）分析。我们不保存照片；但
-            Google 的免费服务可能会用上传内容来改进它的产品。请不要拍到人脸或个人资料。
+            Photos are shrunk and sent to Google Gemini (or Cloudflare AI as a backup) for analysis.
+            We don't keep photos, but Google's free service may use uploads to improve its products.
+            Please keep faces and personal details out of the shot.
           </p>
           <Check
             checked={false}
@@ -421,19 +431,19 @@ function PhotoCard({
               setConsent(true);
             }}
           >
-            {waiting ? '我明白，开始分析刚才的照片' : '我明白，开始使用 AI 拍照'}
+            {waiting ? 'I understand, analyse my photo' : 'I understand, start using AI snaps'}
           </Check>
         </div>
       ) : (
         <div className="flex gap-2">
-          {fileButton('📸 拍照', true)}
-          {fileButton('从相册选择', false)}
+          {fileButton('📸 Take photo', true)}
+          {fileButton('Choose from album', false)}
         </div>
       )}
 
       {preview && state.status !== 'idle' && (
         <div className="relative overflow-hidden rounded-2xl">
-          <img src={preview} alt="你选择的食物照片" className="max-h-64 w-full object-cover" />
+          <img src={preview} alt="Your food photo" className="max-h-64 w-full object-cover" />
           {state.status === 'working' && (
             <>
               <span className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/50" />
@@ -443,7 +453,7 @@ function PhotoCard({
               />
               <span className="absolute top-3 left-1/2 flex -translate-x-1/2 items-center gap-1.5 rounded-full bg-emerald-600/90 px-3 py-1 text-xs font-bold whitespace-nowrap text-white shadow-lg backdrop-blur">
                 <span className="size-2 animate-ping rounded-full bg-white" />
-                AI 正在辨识食物与营养…
+                AI is identifying your food…
               </span>
             </>
           )}
@@ -451,7 +461,7 @@ function PhotoCard({
       )}
       {state.status === 'working' && (
         <p className="text-sm" role="status">
-          AI 正在仔细分析，大约需要 10–30 秒…
+          AI is taking a careful look. About 10–30 seconds…
         </p>
       )}
       {state.status === 'error' && (
@@ -463,17 +473,17 @@ function PhotoCard({
       {done && photo && (
         <details className="rounded-2xl bg-white/70 p-3 text-sm dark:bg-slate-700/60">
           <summary className="cursor-pointer font-semibold">
-            认错了或份量不对？补充说明后重新分析
+            Wrong food or amount? Add a note and re-analyse
           </summary>
           <p className="mt-2 text-xs text-slate-600 dark:text-slate-300">
-            例如：“这是 nasi kandar，饭只有半碗，没有淋咖喱” 或 “饮料是 kopi O
-            无糖”。照片看不到的东西写下来，AI 会更准。
+            e.g. "nasi kandar, only half the rice, no curry" or "kopi O, no sugar". Telling the AI
+            what the photo can't show makes it more accurate.
           </p>
           <textarea
             value={hint}
             maxLength={120}
             rows={2}
-            aria-label="补充说明"
+            aria-label="Note for the AI"
             onChange={(e) => setHint(e.target.value)}
             className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 dark:border-slate-600 dark:bg-slate-900"
           />
@@ -484,21 +494,21 @@ function PhotoCard({
             onClick={() => void onFile(photo, hint)}
           >
             {done.remaining > 0
-              ? `重新分析（会用掉 1 次，今天还剩 ${done.remaining} 次）`
-              : '今天的次数已用完'}
+              ? `Re-analyse (uses 1 snap, ${done.remaining} left today)`
+              : 'No snaps left today'}
           </Button>
         </details>
       )}
       {done && !done.result.isFood && (
         <p className="text-sm text-amber-800 dark:text-amber-300" role="alert">
-          这张照片看起来不是食物，请再拍一次。
+          This doesn't look like food. Please try another photo.
         </p>
       )}
       {done && done.result.isFood && (
         <div className="space-y-3">
           {done.result.confidence === 'low' && (
             <p className="text-sm text-amber-800 dark:text-amber-300">
-              AI 不太确定，请仔细检查名称和份量。
+              The AI isn't sure. Please check the names and amounts.
             </p>
           )}
           <ul className="space-y-2">
@@ -516,7 +526,7 @@ function PhotoCard({
                   <div className="flex items-start gap-3">
                     <input
                       type="checkbox"
-                      aria-label={`包括 ${item.name}`}
+                      aria-label={`Include ${item.name}`}
                       checked={row.include}
                       onChange={(e) => set({ include: e.target.checked })}
                       className="mt-1 size-5 shrink-0 accent-emerald-strong"
@@ -524,15 +534,17 @@ function PhotoCard({
                     <div className="min-w-0 flex-1">
                       <p className="font-medium">{item.name}</p>
                       <p className="text-xs text-slate-600 dark:text-slate-300">
-                        {item.matchId ? '热量来自营养数据库' : 'AI 估算的热量'}
+                        {item.matchId
+                          ? 'Calories from nutrition database'
+                          : 'AI-estimated calories'}
                         {n &&
-                          ` · 蛋白质 ${fmt1(n.proteinG)} g · 碳水 ${fmt1(n.carbsG)} g · 脂肪 ${fmt1(n.fatG)} g`}
+                          ` · protein ${fmt1(n.proteinG)} g · carbs ${fmt1(n.carbsG)} g · fat ${fmt1(n.fatG)} g`}
                       </p>
                     </div>
                     <span className="shrink-0 font-semibold">{n ? fmtInt(n.kcal) : '—'} kcal</span>
                   </div>
                   <label className="mt-2 flex items-center gap-2 pl-8 text-sm">
-                    <span className="shrink-0 text-slate-600 dark:text-slate-300">份量</span>
+                    <span className="shrink-0 text-slate-600 dark:text-slate-300">Amount</span>
                     <input
                       type="number"
                       inputMode="decimal"
@@ -547,7 +559,7 @@ function PhotoCard({
             })}
           </ul>
           <p className="text-xs text-slate-600 dark:text-slate-300">
-            AI 估算可能有误差，份量差别最大。今天还可以用 {done.remaining} 次。
+            AI estimates can be off, mostly on portion size. {done.remaining} snaps left today.
           </p>
           <Button
             className="w-full"
@@ -561,7 +573,7 @@ function PhotoCard({
               )
             }
           >
-            加入{where}（约 {fmtInt(total)} kcal）
+            Add to {where} (about {fmtInt(total)} kcal)
           </Button>
         </div>
       )}
@@ -574,19 +586,19 @@ function NutrientLine({ food, grams }: { food: Food; grams: number }) {
   return (
     <div className="grid grid-cols-4 gap-2 rounded-xl bg-mist p-3 text-center text-sm dark:bg-slate-700">
       <div>
-        <p className="text-xs text-slate-600 dark:text-slate-300">热量</p>
+        <p className="text-xs text-slate-600 dark:text-slate-300">Calories</p>
         <p className="font-semibold">{fmtInt(n.kcal)} kcal</p>
       </div>
       <div>
-        <p className="text-xs text-slate-600 dark:text-slate-300">蛋白质</p>
+        <p className="text-xs text-slate-600 dark:text-slate-300">Protein</p>
         <p className="font-semibold">{fmt1(n.proteinG)} g</p>
       </div>
       <div>
-        <p className="text-xs text-slate-600 dark:text-slate-300">碳水</p>
+        <p className="text-xs text-slate-600 dark:text-slate-300">Carbs</p>
         <p className="font-semibold">{fmt1(n.carbsG)} g</p>
       </div>
       <div>
-        <p className="text-xs text-slate-600 dark:text-slate-300">脂肪</p>
+        <p className="text-xs text-slate-600 dark:text-slate-300">Fat</p>
         <p className="font-semibold">{fmt1(n.fatG)} g</p>
       </div>
     </div>
@@ -606,7 +618,7 @@ function FoodList({
     <Card>
       <h2 className="mb-2 text-sm font-semibold">{title}</h2>
       {foods.length === 0 ? (
-        <p className="text-sm text-slate-600 dark:text-slate-300">没有符合的食物。</p>
+        <p className="text-sm text-slate-600 dark:text-slate-300">No matching foods.</p>
       ) : (
         <ul className="divide-y divide-slate-100 dark:divide-slate-700">
           {foods.map((f) => (
@@ -617,7 +629,7 @@ function FoodList({
                 className="flex min-h-12 w-full items-center justify-between gap-3 py-2 text-left"
               >
                 <span className="min-w-0">
-                  <span className="block truncate text-sm font-medium">{f.nameZh}</span>
+                  <span className="block truncate text-sm font-medium">{f.name}</span>
                   <span className="block text-xs text-slate-600 dark:text-slate-300">
                     {servingText(f)} · {SOURCE_LABEL[f.source]}
                   </span>
@@ -666,12 +678,12 @@ function CustomFoodForm({ onSave, onCancel }: { onSave: (f: Food) => void; onCan
   return (
     <Card className="space-y-4">
       <div>
-        <h2 className="font-semibold">新增自订食物</h2>
+        <h2 className="font-semibold">New custom food</h2>
         <p className="text-xs text-slate-600 dark:text-slate-300">
-          请按包装营养标签上“每 100 g”的数值输入。这个食物只有你看得到。
+          Enter the "per 100 g" values from the nutrition label. Only you can see this food.
         </p>
       </div>
-      <Field label="名称" error={show('name')}>
+      <Field label="Name" error={show('name')}>
         {(p) => (
           <input
             {...p}
@@ -682,11 +694,11 @@ function CustomFoodForm({ onSave, onCancel }: { onSave: (f: Food) => void; onCan
         )}
       </Field>
       <div className="grid grid-cols-2 gap-3">
-        {num('kcal', '热量（kcal）', show('kcal'))}
-        {num('protein', '蛋白质（g）')}
-        {num('carbs', '碳水化合物（g）')}
-        {num('fat', '脂肪（g）')}
-        {num('sodium', '钠（mg，选填）', show('sodium'))}
+        {num('kcal', 'Calories (kcal)', show('kcal'))}
+        {num('protein', 'Protein (g)')}
+        {num('carbs', 'Carbs (g)')}
+        {num('fat', 'Fat (g)')}
+        {num('sodium', 'Sodium (mg, optional)', show('sodium'))}
       </div>
       {tried && (errors.includes('macro') || errors.includes('macroSum')) && (
         <p className="text-sm text-red-700 dark:text-red-400">
@@ -694,11 +706,13 @@ function CustomFoodForm({ onSave, onCancel }: { onSave: (f: Food) => void; onCan
         </p>
       )}
       {tried && empty && (
-        <p className="text-sm text-red-700 dark:text-red-400">请填写热量、蛋白质、碳水和脂肪。</p>
+        <p className="text-sm text-red-700 dark:text-red-400">
+          Please fill in calories, protein, carbs and fat.
+        </p>
       )}
       <div className="flex gap-3">
         <Button variant="secondary" onClick={onCancel}>
-          取消
+          Cancel
         </Button>
         <Button
           className="flex-1"
@@ -707,16 +721,16 @@ function CustomFoodForm({ onSave, onCancel }: { onSave: (f: Food) => void; onCan
             if (empty || errors.length > 0) return;
             onSave({
               id: `user-${crypto.randomUUID()}`,
-              nameZh: v.name.trim(),
+              name: v.name.trim(),
               nameEn: v.name.trim(),
               aliases: [],
               per100g,
               source: 'user',
-              sourceRef: '用户输入（包装标签）',
+              sourceRef: 'User entry (food label)',
             });
           }}
         >
-          保存并选择
+          Save and choose
         </Button>
       </div>
     </Card>

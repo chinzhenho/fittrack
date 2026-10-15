@@ -17,7 +17,7 @@ export interface Nutrients {
 
 export interface Food {
   id: string;
-  nameZh: string;
+  name: string;
   nameEn: string;
   aliases: string[];
   per100g: Nutrients;
@@ -84,7 +84,7 @@ export interface MealItem {
   id: string;
   date: string;
   meal: MealType;
-  /** Optional name the user gave this entry, e.g. 下午茶 or 宵夜 (used with 其他). */
+  /** Optional name the user gave this entry, e.g. tea time or supper (used with Other). */
   label?: string;
   foodId: string;
   name: string;

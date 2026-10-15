@@ -59,7 +59,7 @@ export function logFood(
     meal: args.meal,
     ...(label && { label }),
     foodId: args.food.id,
-    name: args.food.nameZh,
+    name: args.food.name,
     grams: args.grams,
     nutrients: nutrientsFor(args.food.per100g, args.grams),
     sourceRef: args.food.sourceRef,

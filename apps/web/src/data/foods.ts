@@ -7,7 +7,7 @@ import { SG_FOODS } from './foodsSg';
 export const SEED_FOODS: Food[] = [
   {
     id: 'usda-168878',
-    nameZh: '白饭（熟，长粒米）',
+    name: 'White rice (cooked)',
     nameEn: 'Rice, white, long-grain, regular, enriched, cooked',
     aliases: ['白饭', '米饭', 'nasi putih', 'rice'],
     per100g: {
@@ -24,7 +24,7 @@ export const SEED_FOODS: Food[] = [
   },
   {
     id: 'usda-171477',
-    nameZh: '鸡胸肉（烤，去皮）',
+    name: 'Chicken breast (roasted, skinless)',
     nameEn: 'Chicken, broilers or fryers, breast, meat only, cooked, roasted',
     aliases: ['鸡胸肉', '鸡肉', 'ayam', 'dada ayam', 'chicken breast'],
     per100g: { kcal: 165, proteinG: 31, carbsG: 0, fatG: 3.57, fiberG: 0, sugarG: 0, sodiumMg: 74 },
@@ -33,7 +33,7 @@ export const SEED_FOODS: Food[] = [
   },
   {
     id: 'usda-173424',
-    nameZh: '水煮蛋（全蛋）',
+    name: 'Boiled egg',
     nameEn: 'Egg, whole, cooked, hard-boiled',
     aliases: ['鸡蛋', '鸡蛋', 'telur rebus', 'egg', 'boiled egg'],
     per100g: {
@@ -50,7 +50,7 @@ export const SEED_FOODS: Food[] = [
   },
   {
     id: 'usda-171287',
-    nameZh: '鸡蛋（生，全蛋）',
+    name: 'Egg (raw)',
     nameEn: 'Egg, whole, raw, fresh',
     aliases: ['鸡蛋', '生蛋', 'telur', 'egg'],
     per100g: {
@@ -67,7 +67,7 @@ export const SEED_FOODS: Food[] = [
   },
   {
     id: 'usda-172475',
-    nameZh: '板豆腐（硬豆腐）',
+    name: 'Firm tofu',
     nameEn: 'Tofu, raw, firm, prepared with calcium sulfate',
     aliases: ['豆腐', 'tauhu', 'tofu'],
     per100g: { kcal: 144, proteinG: 17.3, carbsG: 2.78, fatG: 8.72, fiberG: 2.3, sodiumMg: 14 },
@@ -76,7 +76,7 @@ export const SEED_FOODS: Food[] = [
   },
   {
     id: 'usda-175168',
-    nameZh: '三文鱼（养殖大西洋鲑，烤）',
+    name: 'Salmon (farmed, baked)',
     nameEn: 'Fish, salmon, Atlantic, farmed, cooked, dry heat',
     aliases: ['三文鱼', '鲑鱼', 'ikan salmon', 'salmon'],
     per100g: {

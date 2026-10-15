@@ -195,7 +195,8 @@ export async function deleteHealthRecords(): Promise<string | null> {
   const { error } = await supabase
     .from('user_state')
     .upsert({ user_id: userId, state: next, updated_at: next.updatedAt });
-  if (error) return '删除失败，请检查网络后再试。你的记录没有被删除。';
+  if (error)
+    return 'Delete failed. Check your connection and try again. Your records were not deleted.';
   writeMeta(next.updatedAt);
   replaceState(next);
   setInfo({ status: 'synced' });
@@ -207,13 +208,13 @@ export async function deleteHealthRecords(): Promise<string | null> {
  * supabase/migrations/20261014000000_delete_account.sql), then clears this browser.
  */
 export async function deleteAccount(): Promise<string | null> {
-  if (!userId) return '尚未登录。';
+  if (!userId) return 'Not logged in.';
   clearTimeout(timer);
   const { error } = await supabase.rpc('delete_my_account');
   if (error) {
     return error.code === 'PGRST202'
-      ? '服务器还没有启用删除账号功能。你的账号和资料都没有被删除。'
-      : '删除失败，请检查网络后再试。你的账号和资料都没有被删除。';
+      ? 'Account deletion is not enabled on the server yet. Your account and data were not deleted.'
+      : 'Delete failed. Check your connection and try again. Your account and data were not deleted.';
   }
   // The user no longer exists, so the server may refuse the sign-out call; the local
   // session is removed either way.

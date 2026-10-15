@@ -8,22 +8,27 @@ export function localToday(now = new Date()): string {
   return `${y}-${m}-${d}`;
 }
 
-const WEEKDAYS = ['日', '一', '二', '三', '四', '五', '六'];
+const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-export function formatDateZh(date: string, today = localToday()): string {
-  if (date === today) return '今天';
-  if (date === addDays(today, -1)) return '昨天';
-  const [y, m, d] = date.split('-').map(Number) as [number, number, number];
-  const weekday = WEEKDAYS[new Date(y, m - 1, d).getDay()];
-  return `${m} 月 ${d} 日（${weekday}）`;
+/** "Today", "Yesterday", or e.g. "Tue, 13 Oct". */
+export function formatDay(date: string, today = localToday()): string {
+  if (date === today) return 'Today';
+  if (date === addDays(today, -1)) return 'Yesterday';
+  return formatDateFull(date);
 }
 
 export function lastNDays(end: string, n: number): string[] {
   return Array.from({ length: n }, (_, i) => addDays(end, i - n + 1));
 }
 
-/** Full date, e.g. "10月13日 周二", without the 今天/昨天 shortcut. */
+/** Full date, e.g. "Tue, 13 Oct", without the Today/Yesterday shortcut. */
 export function formatDateFull(date: string): string {
   const [y, m, d] = date.split('-').map(Number) as [number, number, number];
-  return `${m}月${d}日 周${WEEKDAYS[new Date(y, m - 1, d).getDay()]}`;
+  return `${WEEKDAYS[new Date(y, m - 1, d).getDay()]}, ${d} ${MONTHS[m - 1]}`;
+}
+
+/** Day and month, e.g. "13 Oct". */
+export function shortDate(date: string): string {
+  return `${Number(date.slice(8))} ${MONTHS[Number(date.slice(5, 7)) - 1]}`;
 }

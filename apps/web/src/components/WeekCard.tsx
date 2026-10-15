@@ -6,16 +6,16 @@ import { targetOn } from '../logic/targets';
 import { Card, CardTitle } from './ui';
 
 const TIPS = [
-  '饮料换成无糖（kosong）或少糖（siew dai），是最容易减少热量的方法之一。',
-  '炒饭、炒面通常用油较多；想吃得轻一点，可以选汤面或白饭配菜。',
-  '每餐先有一份蛋白质（鸡蛋、豆腐、鱼、鸡肉），比较容易吃饱。',
-  '打包时咖喱汁、酱汁可以另外装，自己决定要加多少。',
-  '外食时多点一份青菜，份量多了，热量却增加不多。',
-  '晚上嘴馋时，先喝一杯水或无糖茶，等 10 分钟再决定要不要吃。',
-  '体重每天会因为水分和食物而上下起伏，看趋势比看单日更准。',
+  'Switching drinks to kosong (no sugar) or siew dai (less sugar) is one of the easiest ways to cut calories.',
+  'Fried rice and fried noodles usually use a lot of oil; for something lighter, pick soup noodles or rice with dishes.',
+  'Start each meal with a protein (egg, tofu, fish, chicken) to feel full sooner.',
+  'When taking away, ask for curry and sauce on the side so you decide how much to add.',
+  'Add a side of vegetables when eating out: more food, few extra calories.',
+  'Craving a late-night snack? Have water or unsweetened tea first, then decide in 10 minutes.',
+  'Weight goes up and down daily with water and food. The trend tells you more than any single day.',
 ];
 
-const WEEKDAY = ['一', '二', '三', '四', '五', '六', '日'];
+const WEEKDAY = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 
 /** This week (Monday to Sunday) at a glance: logged days, calories per day, and a tip. */
 export function WeekCard({ today, hide }: { today: string; hide: boolean }) {
@@ -43,21 +43,21 @@ export function WeekCard({ today, hide }: { today: string; hide: boolean }) {
   const tipIndex = Math.floor(new Date(`${today}T00:00:00`).getTime() / 86_400_000) % TIPS.length;
 
   const stats = [
-    { label: '有记录', value: `${logged.length} 天` },
+    { label: 'Days logged', value: `${logged.length}` },
     ...(hide
       ? []
       : [
-          { label: '每日平均', value: avg !== null ? `${fmtInt(avg)} kcal` : '—' },
+          { label: 'Daily average', value: avg !== null ? `${fmtInt(avg)} kcal` : '—' },
           {
-            label: '没超过目标',
-            value: past.length > 0 ? `${withinTarget} / ${past.length} 天` : '—',
+            label: 'Within target',
+            value: past.length > 0 ? `${withinTarget} / ${past.length} days` : '—',
           },
         ]),
   ];
 
   return (
     <Card>
-      <CardTitle>本周</CardTitle>
+      <CardTitle>This week</CardTitle>
       <ol className="grid grid-cols-7 gap-1 text-center">
         {info.map((d) => {
           const isToday = d.date === today;
@@ -74,7 +74,7 @@ export function WeekCard({ today, hide }: { today: string; hide: boolean }) {
               >
                 {d.complete ? '✓' : Number(d.date.slice(8))}
                 <span className="sr-only">
-                  {d.complete ? '已完整记录' : d.logged ? '有记录' : '没有记录'}
+                  {d.complete ? 'Fully logged' : d.logged ? 'Logged' : 'Not logged'}
                 </span>
               </span>
               {!hide && (

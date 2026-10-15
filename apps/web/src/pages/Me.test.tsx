@@ -51,7 +51,7 @@ const profile: Profile = {
 function renderMe(hideNumbers = false) {
   replaceState({
     ...emptyState,
-    profile: { ...profile, hideNumbers, nickname: '小明' },
+    profile: { ...profile, hideNumbers, nickname: 'Alex' },
     targets: [
       {
         id: 't1',
@@ -86,10 +86,12 @@ function renderMe(hideNumbers = false) {
 describe('Me page sections', () => {
   it('shows the profile header with nickname, email, goal and calorie target', () => {
     renderMe();
-    expect(screen.getByText('小明')).toBeTruthy();
+    expect(screen.getByText('Alex')).toBeTruthy();
     expect(screen.getAllByText('a@example.com').length).toBeGreaterThan(0);
-    expect(screen.getByText(/每日 1,960 kcal/)).toBeTruthy();
-    expect(screen.getByRole('link', { name: '编辑资料' }).getAttribute('href')).toBe('/me/profile');
+    expect(screen.getByText(/1,960 kcal a day/)).toBeTruthy();
+    expect(screen.getByRole('link', { name: 'Edit profile' }).getAttribute('href')).toBe(
+      '/me/profile',
+    );
   });
 
   it('scenario G: hiding numbers removes calories from the page', () => {
@@ -99,43 +101,49 @@ describe('Me page sections', () => {
 
   it('is honest that there are no notifications (no fake toggles)', () => {
     renderMe();
-    const section = screen.getByRole('region', { name: '提醒与通知' });
-    expect(section.textContent).toContain('没有');
+    const section = screen.getByRole('region', { name: 'Reminders & notifications' });
+    expect(section.textContent).toContain('not');
     expect(section.querySelector('input')).toBeNull();
   });
 
   it('scenario H: a failed account deletion shows the error and no success', async () => {
-    deleteAccount.mockResolvedValueOnce('删除失败，请检查网络后再试。你的账号和资料都没有被删除。');
+    deleteAccount.mockResolvedValueOnce(
+      'Delete failed. Check your connection and try again. Your account and data were not deleted.',
+    );
     renderMe();
-    fireEvent.click(screen.getByRole('button', { name: '删除账号' }));
-    const confirm = screen.getByRole('button', { name: '永久删除账号' }) as HTMLButtonElement;
+    fireEvent.click(screen.getByRole('button', { name: 'Delete account' }));
+    const confirm = screen.getByRole('button', {
+      name: 'Delete account forever',
+    }) as HTMLButtonElement;
     expect(confirm.disabled).toBe(true);
-    fireEvent.change(screen.getByLabelText('请输入「删除」两个字确认'), {
-      target: { value: '删除' },
+    fireEvent.change(screen.getByLabelText('Type DELETE to confirm'), {
+      target: { value: 'DELETE' },
     });
     fireEvent.click(confirm);
-    expect((await screen.findByRole('alert')).textContent).toContain('没有被删除');
+    expect((await screen.findByRole('alert')).textContent).toContain('not deleted');
     expect(screen.queryByText('welcome page')).toBeNull();
   });
 
   it('scenario F: deleting the account leaves for the welcome page', async () => {
     deleteAccount.mockResolvedValueOnce(null);
     renderMe();
-    fireEvent.click(screen.getByRole('button', { name: '删除账号' }));
-    fireEvent.change(screen.getByLabelText('请输入「删除」两个字确认'), {
-      target: { value: '删除' },
+    fireEvent.click(screen.getByRole('button', { name: 'Delete account' }));
+    fireEvent.change(screen.getByLabelText('Type DELETE to confirm'), {
+      target: { value: 'DELETE' },
     });
-    fireEvent.click(screen.getByRole('button', { name: '永久删除账号' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Delete account forever' }));
     expect(await screen.findByText('welcome page')).toBeTruthy();
   });
 
   it('scenario H: a failed record deletion keeps the dialog open with the error', async () => {
-    deleteHealthRecords.mockResolvedValueOnce('删除失败，请检查网络后再试。你的记录没有被删除。');
+    deleteHealthRecords.mockResolvedValueOnce(
+      'Delete failed. Check your connection and try again. Your records were not deleted.',
+    );
     renderMe();
-    fireEvent.click(screen.getByRole('button', { name: '删除所有健康记录' }));
-    fireEvent.click(screen.getByRole('button', { name: '确定删除' }));
-    expect((await screen.findByRole('alert')).textContent).toContain('没有被删除');
-    expect(screen.queryByText('已删除所有健康记录')).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Delete all health records' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Delete' }));
+    expect((await screen.findByRole('alert')).textContent).toContain('not deleted');
+    expect(screen.queryByText('All health records deleted')).toBeNull();
   });
 });
 
@@ -175,7 +183,7 @@ describe('Me page', () => {
         </ToastProvider>
       </MemoryRouter>,
     );
-    fireEvent.click(screen.getByRole('button', { name: '退出登录' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Log out' }));
     expect(await screen.findByText('welcome page')).toBeTruthy();
     expect(signOut).toHaveBeenCalledTimes(1);
   });

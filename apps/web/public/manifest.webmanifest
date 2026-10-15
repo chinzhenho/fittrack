@@ -1,8 +1,8 @@
 {
   "name": "EatHealthee",
   "short_name": "EatHealthee",
-  "description": "Snap · Track · Be Healthier：拍照算热量，按你的生活方式管理体重。",
-  "lang": "zh-Hans",
+  "description": "Snap · Track · Be Healthier: photo calorie counting and weight management that fits your life.",
+  "lang": "en",
   "start_url": "/today",
   "scope": "/",
   "display": "standalone",

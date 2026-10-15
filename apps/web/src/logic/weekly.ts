@@ -13,9 +13,9 @@ import { targetOn } from './targets';
 export type Period = 'this_week' | 'last_week' | 'last_7';
 
 export const PERIOD_LABELS: Record<Period, string> = {
-  this_week: '本周',
-  last_week: '上周',
-  last_7: '近 7 天',
+  this_week: 'This week',
+  last_week: 'Last week',
+  last_7: 'Last 7 days',
 };
 
 /** Monday of the week containing `date` (local calendar dates). */

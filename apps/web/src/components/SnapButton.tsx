@@ -51,8 +51,8 @@ export function SnapButton({
             setOpen(false);
             navigate(target(m));
           }}
-          onPhoto={(file, m) => {
-            setPendingPhoto(file);
+          onPhoto={(file, m, note) => {
+            setPendingPhoto(file, note);
             setOpen(false);
             navigate(target(m));
           }}

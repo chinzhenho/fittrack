@@ -4,14 +4,14 @@ import { mealForHour } from '../logic/nutrition';
 import { SnapButton } from './SnapButton';
 
 const NAV = [
-  { to: '/today', label: '今天', icon: 'M3 11l9-8 9 8v9a1 1 0 01-1 1h-5v-6H9v6H4a1 1 0 01-1-1z' },
+  { to: '/today', label: 'Today', icon: 'M3 11l9-8 9 8v9a1 1 0 01-1 1h-5v-6H9v6H4a1 1 0 01-1-1z' },
   {
     to: '/diary',
-    label: '饮食',
+    label: 'Diary',
     icon: 'M7 3v8a3 3 0 006 0V3M10 3v18M17 3c-1.5 2-2 4-2 7h4c0-3-.5-5-2-7zm0 7v11',
   },
-  { to: '/progress', label: '进度', icon: 'M4 19h16M6 15l4-4 3 3 5-6' },
-  { to: '/me', label: '我', icon: 'M12 12a4 4 0 100-8 4 4 0 000 8zm-7 9a7 7 0 0114 0' },
+  { to: '/progress', label: 'Progress', icon: 'M4 19h16M6 15l4-4 3 3 5-6' },
+  { to: '/me', label: 'Me', icon: 'M12 12a4 4 0 100-8 4 4 0 000 8zm-7 9a7 7 0 0114 0' },
 ];
 
 const CAMERA =
@@ -54,7 +54,7 @@ export function AppShell() {
   return (
     <div className="min-h-dvh lg:flex">
       <nav
-        aria-label="主选单"
+        aria-label="Main menu"
         className="sticky top-0 hidden h-dvh w-60 shrink-0 border-r border-slate-200 bg-white px-3 py-6 lg:block dark:border-slate-700 dark:bg-slate-800"
       >
         <div className="mb-8 flex items-center gap-2 px-3">
@@ -84,18 +84,19 @@ export function AppShell() {
         </ul>
         <SnapButton
           meal={mealForHour(new Date().getHours())}
-          label="记录食物"
+          label="Log food"
           className="mt-6 flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-emerald-strong px-4 font-semibold text-white shadow-lg shadow-emerald-600/25 transition hover:bg-emerald-800 dark:bg-emerald dark:text-slate-950"
         >
           <Icon d={CAMERA} />
-          记录食物
+          Log food
         </SnapButton>
       </nav>
 
       <div className="flex-1 pb-28 lg:pb-10">
         {!isPersistent() && (
           <p className="bg-amber-100 px-4 py-2 text-center text-sm text-amber-950">
-            这个浏览器无法保存资料（可能是私密浏览模式），关闭页面后记录会消失。
+            This browser can't save data (maybe private browsing). Your logs will be lost when you
+            close the page.
           </p>
         )}
         <main className="mx-auto max-w-3xl px-4 py-6">
@@ -104,7 +105,7 @@ export function AppShell() {
       </div>
 
       <nav
-        aria-label="主选单"
+        aria-label="Main menu"
         className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 pb-[env(safe-area-inset-bottom)] shadow-[0_-4px_16px_rgba(15,23,42,0.06)] backdrop-blur lg:hidden dark:border-slate-700 dark:bg-slate-800/95"
       >
         <ul className="grid grid-cols-5 items-end">
@@ -116,13 +117,13 @@ export function AppShell() {
           <li className="flex flex-col items-center pb-1.5">
             <SnapButton
               meal={mealForHour(new Date().getHours())}
-              label="记录食物"
+              label="Log food"
               className="-mt-7 flex size-15 items-center justify-center rounded-full border-4 border-white bg-emerald-strong text-white shadow-lg shadow-emerald-600/40 transition active:scale-90 dark:border-slate-800 dark:bg-emerald dark:text-slate-950"
             >
               <Icon d={CAMERA} />
             </SnapButton>
             <span className="mt-0.5 text-[11px] font-bold text-emerald-strong dark:text-emerald">
-              记录食物
+              Log food
             </span>
           </li>
           {NAV.slice(2).map((n) => (

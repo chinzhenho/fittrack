@@ -9,18 +9,18 @@ export function PlanSummary({ plan, goal }: { plan: Plan; goal: Goal }) {
   const delta = Math.round(plan.appliedDeltaKcal);
   const rows = [
     {
-      name: '蛋白质',
+      name: 'Protein',
       g: macros.proteinG,
       kcal: macros.proteinG * KCAL_PER_G.protein,
       color: 'bg-emerald',
     },
     {
-      name: '碳水化合物',
+      name: 'Carbs',
       g: macros.carbsG,
       kcal: macros.carbsG * KCAL_PER_G.carbs,
       color: 'bg-sky-500',
     },
-    { name: '脂肪', g: macros.fatG, kcal: macros.fatG * KCAL_PER_G.fat, color: 'bg-amber-500' },
+    { name: 'Fat', g: macros.fatG, kcal: macros.fatG * KCAL_PER_G.fat, color: 'bg-amber-500' },
   ];
   const notes = [
     ...plan.clamps.map((c) => clampMessage(c, plan.calorieFloorKcal)),
@@ -30,17 +30,19 @@ export function PlanSummary({ plan, goal }: { plan: Plan; goal: Goal }) {
   return (
     <div className="space-y-4">
       <div className="rounded-2xl bg-navy p-5 text-white dark:bg-slate-700 dark:ring-1 dark:ring-emerald/40">
-        <p className="text-sm text-slate-300">{GOAL_LABELS[goal]} · 每日热量目标（估算）</p>
+        <p className="text-sm text-slate-300">
+          {GOAL_LABELS[goal]} · daily calorie target (estimate)
+        </p>
         <p className="mt-1 text-5xl font-semibold tracking-tight">
           {fmtInt(caloriesKcal)}
           <span className="ml-2 text-xl font-normal text-slate-300">kcal</span>
         </p>
         <p className="mt-2 text-sm text-slate-300">
           {delta === 0
-            ? '约等于你的估算维持热量'
+            ? 'About your estimated maintenance calories'
             : delta < 0
-              ? `比估算维持热量少约 ${fmtInt(-delta)} kcal`
-              : `比估算维持热量多约 ${fmtInt(delta)} kcal`}
+              ? `About ${fmtInt(-delta)} kcal below estimated maintenance`
+              : `About ${fmtInt(delta)} kcal above estimated maintenance`}
         </p>
       </div>
       <ul className="space-y-3">
@@ -61,10 +63,10 @@ export function PlanSummary({ plan, goal }: { plan: Plan; goal: Goal }) {
         ))}
       </ul>
       <p className="text-xs text-slate-600 dark:text-slate-300">
-        蛋白质按 {macros.proteinGPerKg} g/kg × {fmt1(macros.referenceWeightKg)} kg 参考体重计算。BMR
-        约 {fmtInt(plan.bmrKcal)} kcal，TDEE 约 {fmtInt(plan.tdeeKcal)} kcal。
+        Protein is {macros.proteinGPerKg} g/kg × {fmt1(macros.referenceWeightKg)} kg reference
+        weight. BMR about {fmtInt(plan.bmrKcal)} kcal, TDEE about {fmtInt(plan.tdeeKcal)} kcal.
         <Link to="/how-we-calculate" className="underline">
-          计算方法
+          How we calculate
         </Link>
       </p>
       {notes.length > 0 && (

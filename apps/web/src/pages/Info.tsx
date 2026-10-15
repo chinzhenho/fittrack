@@ -17,7 +17,9 @@ function InfoPage({
     <div className="mx-auto max-w-2xl space-y-4 px-4 py-6">
       <BackButton />
       <h1 className="text-2xl font-semibold">{title}</h1>
-      {updated && <p className="text-xs text-slate-600 dark:text-slate-300">最后更新：{updated}</p>}
+      {updated && (
+        <p className="text-xs text-slate-600 dark:text-slate-300">Last updated: {updated}</p>
+      )}
       <Card className="space-y-4 text-sm leading-relaxed [&_h2]:text-base [&_h2]:font-semibold [&_ul]:list-disc [&_ul]:space-y-1 [&_ul]:pl-5">
         {children}
       </Card>
@@ -27,74 +29,93 @@ function InfoPage({
 
 export function HowWeCalculate() {
   return (
-    <InfoPage title="计算方法与资料来源" updated="2026-10-13">
+    <InfoPage title="How we calculate" updated="2026-10-15">
       <p>
-        所有数字都由公开、可检查的公式计算（公式版本 {FORMULA_VERSION}
-        ）。它们是估算，不是你身体的精确测量。
+        Every number comes from published formulas you can check (formula version {FORMULA_VERSION}
+        ). They are estimates, not exact measurements of your body.
       </p>
-      <h2>基础代谢率（BMR）</h2>
+      <h2>Basal metabolic rate (BMR)</h2>
       <p>
-        使用 Mifflin–St Jeor 公式（1990）：10 × 体重 kg + 6.25 × 身高 cm − 5 × 年龄 + s。男性公式 s
-        = +5，女性公式 s = −161；中性选项取两者平均
-        −78（产品选项，误差可能较大）。此公式对多数成人的误差约在 ±10% 内。
+        We use the Mifflin–St Jeor equation (1990): 10 × weight kg + 6.25 × height cm − 5 × age + s.
+        The male formula uses s = +5 and the female formula s = −161; the neutral option uses their
+        average, −78 (a product choice that may be less precise). For most adults the equation is
+        within about ±10%.
       </p>
-      <h2>每日总消耗（TDEE）</h2>
+      <h2>Total daily energy expenditure (TDEE)</h2>
       <p>
-        BMR × 活动系数：久坐 1.2、轻度 1.375、中度 1.55、高度 1.725、极高
-        1.9。系数已包含运动，所以运动消耗不会再加回每日预算，以免重复计算。
+        BMR × activity factor: sedentary 1.2, light 1.375, moderate 1.55, very active 1.725, extra
+        active 1.9. The factor already includes exercise, so exercise calories are not added back to
+        your budget, which would count them twice.
       </p>
-      <h2>每日热量目标</h2>
-      <ul>
-        <li>按你选的每周体重变化百分比计算，并以每公斤约 7700 kcal 作为初始估算。</li>
-        <li>减脂的热量赤字最多为 TDEE 的 25%；增重的盈余每天最多 500 kcal。</li>
-        <li>
-          安全下限：不低于估算 BMR，也不低于 1200 kcal（女性公式）或 1500
-          kcal（男性与中性）。下限高于 TDEE 时以维持热量为目标。
-        </li>
-        <li>
-          BMI 低于
-          18.5（马来西亚卫生部亚洲分界）时不提供减脂目标；怀孕、哺乳或有饮食失调病史时不提供热量赤字。
-        </li>
-      </ul>
-      <h2>三大营养素</h2>
+      <h2>Daily calorie target</h2>
       <ul>
         <li>
-          蛋白质按每公斤体重计算（减脂与增肌默认 1.6 g/kg，健康增重 1.4，维持 1.2），BMI ≥ 27.5 时用
-          BMI 25 对应的体重；最多占总热量 35%。有肾病时固定 0.8 g/kg。
+          Based on the weekly weight change you choose, using about 7,700 kcal per kg as a starting
+          estimate.
         </li>
-        <li>脂肪占总热量 25%（范围 20–35%）；碳水化合物为剩余热量，尽量不低于 130 g。</li>
-        <li>热量换算：蛋白质与碳水 4 kcal/g、脂肪 9 kcal/g。</li>
+        <li>
+          A fat-loss deficit is at most 25% of TDEE; a weight-gain surplus is at most 500 kcal a
+          day.
+        </li>
+        <li>
+          Safety floor: never below your estimated BMR, and never below 1,200 kcal (female formula)
+          or 1,500 kcal (male and neutral). If the floor is above your TDEE, the target is
+          maintenance.
+        </li>
+        <li>
+          No fat-loss target when BMI is below 18.5 (Malaysian Ministry of Health Asian cut-off),
+          and no calorie deficit during pregnancy, breastfeeding or with a history of eating
+          disorders.
+        </li>
       </ul>
-      <h2>趋势体重与动态调整</h2>
+      <h2>Macronutrients</h2>
+      <ul>
+        <li>
+          Protein per kg of body weight (1.6 g/kg by default for fat loss and muscle gain, 1.4 for
+          weight gain, 1.2 for maintenance). At BMI 27.5 or above, the weight for BMI 25 is used. At
+          most 35% of calories. Fixed at 0.8 g/kg with kidney disease.
+        </li>
+        <li>
+          Fat is 25% of calories (range 20–35%); carbs make up the rest, kept at 130 g or more where
+          possible.
+        </li>
+        <li>Energy: protein and carbs 4 kcal/g, fat 9 kcal/g.</li>
+      </ul>
+      <h2>Trend weight and target suggestions</h2>
       <p>
-        趋势体重是每日体重的指数加权移动平均（α = 0.1）。有足够资料时（3
-        周内至少八成日子完整记录饮食、至少 10
-        次体重），系统用平均摄取和趋势变化推算实际消耗，建议每次最多 ±150 kcal
-        的调整，由你决定是否接受。
+        Trend weight is an exponentially weighted moving average of your daily weigh-ins (α = 0.1).
+        With enough data (at least 80% of days fully logged and at least 10 weigh-ins in 3 weeks),
+        we estimate what you really burn from your average intake and trend change, and suggest a
+        change of at most ±150 kcal at a time. You decide whether to accept it.
       </p>
-      <h2>喝水建议</h2>
+      <h2>Water guide</h2>
       <p>
-        按体重估算：一般活动量每公斤约 35–40 ml，冷气房久坐约 30–35 ml，常运动或容易出汗约 40–45
-        ml（可在今天页面的“调整系数”选择）。这是常用的实用估算，不是要严格做到的数字；天气热时要多喝。有肾脏或心脏问题请按医生建议。
+        Based on body weight: about 35–40 ml per kg for normal activity, 30–35 ml for mostly sitting
+        in air-conditioning, and 40–45 ml if you are active or sweat a lot (choose with "Adjust" on
+        the Today page). It is a practical guide, not a strict number; drink more in hot weather.
+        With kidney or heart conditions, follow your doctor&apos;s advice.
       </p>
-      <h2>食物资料</h2>
+      <h2>Food data</h2>
       <p>
-        内建的本地菜式（nasi lemak、roti canai、鸡饭等）来自新加坡保健促进局 SG FoodID
-        数据库；基本食材来自美国农业部 USDA FoodData Central（SR
-        Legacy，公有领域）。每项都标示来源编号。自订食物由你按包装标签输入，只有你看得到。
+        Built-in local dishes (nasi lemak, roti canai, chicken rice and more) come from the
+        Singapore Health Promotion Board&apos;s SG FoodID database; basic ingredients come from USDA
+        FoodData Central (SR Legacy, public domain). Each item shows its source ID. Custom foods are
+        entered by you from food labels and only you can see them.
       </p>
-      <h2>AI 拍照算热量</h2>
+      <h2>AI photo calories</h2>
       <p>
-        照片由 AI 视觉模型分析（Google Gemini 免费版；忙碌时依次改用备用模型，最后是 Cloudflare
-        Workers AI）。AI
-        会列出每样食物并估算克数。如果某样食物是上面数据库里的菜式，热量按数据库的化验数值计算，只有份量是
-        AI 估的；其他食物的热量也是 AI
-        估算。系统会剔除不合理的数字（例如营养素重量超过食物本身），并用蛋白质、碳水、脂肪（4/4/9
-        kcal/g）检查热量。照片估算份量的误差可能有两三成，所以每次都请你确认和调整。
+        Photos are analysed by AI vision models (Google Gemini free tier; when busy, backup models
+        are tried in turn, ending with Cloudflare Workers AI). The AI lists each food and estimates
+        its weight in grams; an optional note you type (for example &quot;half rice&quot;) is sent
+        with the photo. If a food matches a dish in the database above, its calories use the
+        database&apos;s lab values and only the amount comes from the AI; other foods use the
+        AI&apos;s estimate. Impossible numbers are removed (for example more nutrients than the food
+        weighs), and calories are checked against protein, carbs and fat (4/4/9 kcal/g). Portion
+        estimates from photos can be 20–30% off, so please check and adjust each time.
       </p>
       <p>
         <Link to="/legal/credits" className="underline">
-          资料来源
+          Data sources
         </Link>
       </p>
     </InfoPage>
@@ -103,72 +124,95 @@ export function HowWeCalculate() {
 
 export function Disclaimer() {
   return (
-    <InfoPage title="健康免责声明" updated="2026-10-11">
-      <p>EatHealthee 是健康与生活习惯管理工具，不是医疗器材，不提供医疗诊断、治疗或处方。</p>
+    <InfoPage title="Health disclaimer" updated="2026-10-15">
+      <p>
+        EatHealthee is a health and lifestyle tool. It is not a medical device and does not provide
+        medical diagnosis, treatment or prescriptions.
+      </p>
       <ul>
         <li>
-          所有热量、营养素和喝水建议都是根据公开公式和你提供的资料所作的估算，可能与你的实际情况不同。
+          All calorie, nutrient and water guidance is an estimate based on published formulas and
+          the details you provide, and may differ from your actual needs.
         </li>
         <li>
-          如果你有任何疾病、正在怀孕或哺乳、正在服用会影响体重或血糖的药物，或曾有饮食失调，请在改变饮食或运动前先咨询医生或注册营养师。
+          If you have any medical condition, are pregnant or breastfeeding, take medicine that
+          affects weight or blood sugar, or have had an eating disorder, talk to a doctor or
+          registered dietitian before changing your diet or exercise.
         </li>
-        <li>本服务只供 18 岁或以上人士使用。</li>
+        <li>This service is only for people aged 18 or over.</li>
       </ul>
-      <p>此文件为草稿，正式公开上线前会由法律专业人士审阅。</p>
+      <p>
+        This document is a draft and will be reviewed by a legal professional before public launch.
+      </p>
     </InfoPage>
   );
 }
 
 export function Privacy() {
   return (
-    <InfoPage title="隐私政策" updated="2026-10-14">
-      <p>这份政策说明 EatHealthee 目前版本如何处理你的资料。</p>
-      <h2>我们收集什么</h2>
+    <InfoPage title="Privacy policy" updated="2026-10-15">
+      <p>This policy explains how the current version of EatHealthee handles your data.</p>
+      <h2>What we collect</h2>
       <p>
-        你在设置和使用时输入的资料：出生日期、身高、体重、腰围、目标、活动水平、健康筛查答案、饮食偏好、饮食记录和体重记录。根据马来西亚《2010
-        年个人资料保护法》（PDPA），健康相关资料属于敏感个人资料，我们只在你明确同意后使用。
+        What you enter during setup and use: date of birth, height, weight, waist, goal, activity
+        level, health screening answers, diet preferences, food logs and weight logs. Under
+        Malaysia&apos;s Personal Data Protection Act 2010 (PDPA), health data is sensitive personal
+        data, and we only use it with your explicit consent.
       </p>
-      <h2>资料存放在哪里</h2>
+      <h2>Where your data is stored</h2>
       <p>
-        <strong>没有登录时：</strong>
-        所有资料只保存在你这部设备的浏览器中，不会传送到任何服务器。清除浏览器资料、使用私密浏览模式或更换设备，资料都会消失。
-      </p>
-      <p>
-        <strong>登录后：</strong>资料经加密连线（HTTPS）保存到你的账号，由我们使用的数据库服务商
-        Supabase
-        代为保存，服务器位于新加坡。数据库设有权限规则，每个账号只能读写自己的资料。设备上也会保留一份副本，让你离线时也能使用。注册时你会被要求明确同意这项保存。
+        <strong>Without an account:</strong> everything stays in this device&apos;s browser and is
+        never sent to a server. Clearing browser data, private browsing or changing devices will
+        lose it.
       </p>
       <p>
-        <strong>AI 拍照：</strong>
-        只在你按下拍照并同意后，照片才会在手机上缩小（并去掉位置等资料）后，经我们的服务器转交
-        Google Gemini 或 Cloudflare Workers AI
-        分析。我们不保存照片，只保存你确认后的食物记录。Google 的免费服务条款容许 Google
-        使用上传内容改进其产品，请不要拍到人脸或个人资料。为了公平使用免费额度，我们会记录每个账号每天用了几次（不记录照片内容）。
+        <strong>With an account:</strong> your data is sent over an encrypted connection (HTTPS) to
+        your account, stored for us by our database provider Supabase on servers in Singapore.
+        Access rules mean each account can only read and write its own data. A copy is also kept on
+        your device so you can use the app offline. You are asked for explicit consent to this when
+        you sign up.
       </p>
-      <h2>用途</h2>
       <p>
-        只用于计算热量目标、营养建议、趋势和健康洞察，以及在你的设备之间同步。我们不出售资料，也不使用广告追踪。
+        <strong>AI photos:</strong> only after you take a photo and agree, the photo is shrunk on
+        your phone (removing location and other metadata) and passed through our server to Google
+        Gemini or Cloudflare Workers AI for analysis, together with any note you typed. We do not
+        keep photos, only the food entries you confirm. Google&apos;s free-tier terms allow Google
+        to use uploads to improve its products, so please keep faces and personal details out of the
+        shot. To share the free quota fairly, we record how many photos each account uses per day
+        (not the photos themselves).
       </p>
-      <h2>你的权利</h2>
+      <h2>How we use it</h2>
+      <p>
+        Only to calculate calorie targets, nutrition guidance, trends and insights, and to sync
+        between your devices. We do not sell data or use advertising trackers.
+      </p>
+      <h2>Your rights</h2>
       <ul>
-        <li>随时在“我的”页面查看和修改资料。</li>
-        <li>随时导出全部资料（JSON）。</li>
-        <li>随时删除所有健康记录（保留账号和计划）；登录时会同时从云端删除。</li>
+        <li>View and change your data at any time on the Me page.</li>
+        <li>Export all your data (JSON) at any time.</li>
         <li>
-          随时永久删除账号：登录 Email、密码、云端的全部资料和拍照次数记录都会一并删除，无法恢复。
+          Delete all health records at any time (your account and plan stay); when logged in, they
+          are deleted from the cloud too.
+        </li>
+        <li>
+          Permanently delete your account at any time: your login email, password, all cloud data
+          and photo-count records are deleted together and cannot be recovered.
         </li>
       </ul>
-      <h2>未来变更</h2>
-      <p>政策有重要变更时，我们会在网站内通知你。</p>
-      <p>此文件为草稿，正式公开上线前会由法律专业人士按 PDPA 审阅，并提供英文及马来文版本。</p>
+      <h2>Changes</h2>
+      <p>If this policy changes in an important way, we will tell you in the app.</p>
+      <p>
+        This document is a draft and will be reviewed by a legal professional under the PDPA before
+        public launch.
+      </p>
     </InfoPage>
   );
 }
 
 export function Credits() {
   return (
-    <InfoPage title="资料来源" updated="2026-10-13">
-      <h2>本地菜式营养资料</h2>
+    <InfoPage title="Data sources" updated="2026-10-15">
+      <h2>Local dish nutrition</h2>
       <p>
         Contains information from the Singapore Food Insights Database (SG FoodID), Health Promotion
         Board, accessed on {SG_FOODID_ACCESSED}, which is made available under the terms of the SG
@@ -180,69 +224,70 @@ export function Credits() {
         endorsed by or affiliated with the Health Promotion Board.
       </p>
       <p>
-        本网站的本地菜式营养数值取自新加坡保健促进局 SG FoodID
-        数据库，数字未经修改；中文名称与份量按钮为我们加上。新加坡与马来西亚的做法和份量可能不同。
+        Nutrition values for local dishes are taken unchanged from SG FoodID; the display names and
+        serving buttons were added by us. Recipes and portions in Singapore and Malaysia may differ.
       </p>
-      <h2>基本食材营养资料</h2>
-      <p>U.S. Department of Agriculture, FoodData Central（SR Legacy），公有领域（CC0）。</p>
+      <h2>Basic ingredient nutrition</h2>
+      <p>U.S. Department of Agriculture, FoodData Central (SR Legacy), public domain (CC0).</p>
     </InfoPage>
   );
 }
 
 const FAQ: { q: string; a: ReactNode }[] = [
   {
-    q: '每日热量目标是怎么算的？',
+    q: 'How is my daily calorie target worked out?',
     a: (
       <>
-        用 Mifflin–St Jeor
-        公式算出基础代谢，乘上活动系数得到每日消耗，再按你的目标和速度加减，并且不会低于安全下限。详细步骤见
+        The Mifflin–St Jeor equation gives your basal metabolism, an activity factor turns that into
+        daily burn, and your goal and pace add or subtract from it, never going below a safety
+        floor. See{' '}
         <Link
           to="/how-we-calculate"
           className="font-semibold text-emerald-strong dark:text-emerald"
         >
-          计算方法
-        </Link>
-        ，你自己的数字可以在“我的 → 每日营养目标”查看。
+          How we calculate
+        </Link>{' '}
+        for the steps; your own numbers are in Me → Daily nutrition targets.
       </>
     ),
   },
   {
-    q: '为什么体重每天都上下起伏？',
-    a: '水分、盐分、饮食分量、排便和生理周期都会让体重一天内变动 1–2 kg。所以“我的成长”用平滑后的趋势线来看长期变化。',
+    q: 'Why does my weight go up and down every day?',
+    a: 'Water, salt, portion size, digestion and hormonal cycles can move your weight 1–2 kg in a day. That is why Progress uses a smoothed trend line to show long-term change.',
   },
   {
-    q: '“已完整记录”是什么？一定要标记吗？',
-    a: '当你把一天吃的东西都记下来后，在饮食页标记“已完整记录”。只有这些日子会用来判断热量是否达标和计算目标调整建议，避免只记了一部分的日子影响结果。不标记也可以正常使用。',
+    q: 'What does "fully logged" mean? Do I have to mark it?',
+    a: 'When you have logged everything you ate in a day, mark it as fully logged in the Diary. Only those days are used to check calories against your target and to suggest target changes, so partly logged days do not skew the results. You can use the app without marking.',
   },
   {
-    q: 'AI 拍照估算准确吗？',
-    a: 'AI 会先认出食物，能对应到资料库（新加坡 SG FoodID、美国 USDA）时使用资料库的营养数字，否则使用 AI 的估算。分量和隐藏的油、糖很难从照片看出，保存前请检查并修改份量。每个账号每天可以分析 8 张照片。',
+    q: 'How accurate are AI photo estimates?',
+    a: 'The AI first identifies each food. When it matches our database (Singapore SG FoodID, USDA), the database values are used; otherwise the AI estimates. Portions and hidden oil or sugar are hard to see in a photo, so check and adjust amounts before saving. Typing a short note before you snap (for example "half rice") helps. Each account can analyse 8 photos a day.',
   },
   {
-    q: '目标调整建议什么时候会出现？',
-    a: '开始目标 14 天后，如果最近 3 周有足够的完整记录和体重记录，系统会根据实际摄取和体重趋势推算你的真实消耗，提出新的目标。只有你按“采用建议”才会改变。',
+    q: 'When do target suggestions appear?',
+    a: 'From 14 days after you start a goal, if the last 3 weeks have enough fully logged days and weigh-ins, we estimate what you really burn from your intake and weight trend and suggest a new target. It only changes if you tap "Use suggestion".',
   },
   {
-    q: '为什么没有提醒通知？',
-    a: '目前 EatHealthee 没有推送通知功能，也不会在背景发送提醒。可以用手机的闹钟或提醒事项在用餐时间提醒自己。',
+    q: 'Why are there no reminders?',
+    a: "EatHealthee does not have push notifications yet and never sends reminders in the background. You can use your phone's alarm or reminders app at mealtimes.",
   },
   {
-    q: '隐藏数字后，资料还在吗？',
-    a: '在。隐藏数字只是不在画面上显示热量和体重，资料仍会照常保存、同步和导出。',
+    q: 'Is my data still there when numbers are hidden?',
+    a: 'Yes. Hiding numbers only removes calories and weight from the screen. Your data is still saved, synced and exported as normal.',
   },
   {
-    q: '资料保存在哪里？换手机会不见吗？',
-    a: '登录后资料会同步到你的账号，换手机登录就能取回。没有登录时，资料只保存在这部设备的浏览器中。',
+    q: 'Where is my data stored? Will I lose it if I change phones?',
+    a: "With an account, your data syncs to it, so logging in on a new phone brings it back. Without an account, it stays only in this device's browser.",
   },
   {
-    q: '怎么删除我的资料或账号？',
-    a: '单笔饮食或体重记录可以在饮食页和“我的成长 → 体重记录”删除。要删除全部健康记录或整个账号，请到“我的 → 隐私与数据”或“账号与安全”。删除账号无法恢复，建议先导出备份。',
+    q: 'How do I delete my data or account?',
+    a: 'Delete single food or weight entries in the Diary and in Progress → Weight log. To delete all health records or your whole account, go to Me → Privacy & data or Account & security. Account deletion cannot be undone, so export a backup first.',
   },
 ];
 
 export function Faq() {
   return (
-    <InfoPage title="常见问题" updated="2026-10-14">
+    <InfoPage title="FAQ" updated="2026-10-15">
       {FAQ.map((f) => (
         <details
           key={f.q}

@@ -16,7 +16,7 @@ function renderAt(path: string) {
   );
 }
 
-const next = () => fireEvent.click(screen.getByRole('button', { name: '下一步' }));
+const next = () => fireEvent.click(screen.getByRole('button', { name: 'Next' }));
 const tap = (name: string | RegExp) => fireEvent.click(screen.getByRole('button', { name }));
 const change = (label: string, value: string) =>
   fireEvent.change(screen.getByLabelText(label), { target: { value } });
@@ -27,60 +27,60 @@ afterEach(cleanup);
 describe('app flow', () => {
   it('sends new visitors to the welcome page with sign-up, log-in and guest options', async () => {
     renderAt('/today');
-    expect(await screen.findByRole('heading', { name: '欢迎使用 EatHealthee' })).toBeTruthy();
-    expect(screen.getByRole('link', { name: /免费开始使用/ })).toBeTruthy();
-    expect(screen.getByRole('link', { name: '我已经有账号' })).toBeTruthy();
-    expect(screen.getByRole('link', { name: /先不登录，直接试用/ })).toBeTruthy();
+    expect(await screen.findByRole('heading', { name: 'Welcome to EatHealthee' })).toBeTruthy();
+    expect(screen.getByRole('link', { name: /Start for free/ })).toBeTruthy();
+    expect(screen.getByRole('link', { name: 'I already have an account' })).toBeTruthy();
+    expect(screen.getByRole('link', { name: /Try it without an account/ })).toBeTruthy();
   });
 
   it('validates the sign-up form before contacting the server', async () => {
     renderAt('/signup');
     const submit = (await screen.findByRole('button', {
-      name: /注册，开始记录/,
+      name: /Sign up and start/,
     })) as HTMLButtonElement;
     change('Email', 'not-an-email');
-    change('设置密码', 'short');
-    expect(screen.getByText('请输入有效的 Email。')).toBeTruthy();
-    expect(screen.getByText('密码至少要 8 个字元。')).toBeTruthy();
-    expect(screen.getByText('密码太短')).toBeTruthy();
+    change('Create a password', 'short');
+    expect(screen.getByText('Enter a valid email.')).toBeTruthy();
+    expect(screen.getByText('Use at least 8 characters.')).toBeTruthy();
+    expect(screen.getByText('Password: too short')).toBeTruthy();
     expect(submit.disabled).toBe(true);
     change('Email', 'a@example.com');
-    change('设置密码', 'longenough1');
-    change('再输入一次密码', 'different1');
-    expect(screen.getByText('两次输入的密码不一样。')).toBeTruthy();
-    change('再输入一次密码', 'longenough1');
+    change('Create a password', 'longenough1');
+    change('Enter it again', 'different1');
+    expect(screen.getByText("The passwords don't match.")).toBeTruthy();
+    change('Enter it again', 'longenough1');
     expect(submit.disabled).toBe(true); // consent not given yet
-    fireEvent.click(screen.getByLabelText(/我同意把我的身体/));
+    fireEvent.click(screen.getByLabelText(/I agree to store my body/));
     expect(submit.disabled).toBe(false);
   });
 
   it('requires consent before continuing', () => {
     renderAt('/onboarding');
-    const button = screen.getByRole('button', { name: '下一步' }) as HTMLButtonElement;
+    const button = screen.getByRole('button', { name: 'Next' }) as HTMLButtonElement;
     expect(button.disabled).toBe(true);
-    fireEvent.click(screen.getByLabelText(/我年满 18 岁，并已阅读和接受/));
-    fireEvent.click(screen.getByLabelText(/我同意 EatHealthee 使用/));
+    fireEvent.click(screen.getByLabelText(/I'm 18 or older/));
+    fireEvent.click(screen.getByLabelText(/I agree that EatHealthee may use/));
     expect(button.disabled).toBe(false);
   });
 
   it('completes onboarding with spec case A and logs a food', async () => {
     renderAt('/onboarding');
-    fireEvent.click(screen.getByLabelText(/我年满 18 岁，并已阅读和接受/));
-    fireEvent.click(screen.getByLabelText(/我同意 EatHealthee 使用/));
+    fireEvent.click(screen.getByLabelText(/I'm 18 or older/));
+    fireEvent.click(screen.getByLabelText(/I agree that EatHealthee may use/));
     next();
-    tap(/减脂/);
-    tap('男性公式');
-    change('出生日期', '1996-01-01');
-    change('身高（cm）', '175');
-    change('体重（kg）', '75');
+    tap(/Lose fat/);
+    tap('Male formula');
+    change('Date of birth', '1996-01-01');
+    change('Height (cm)', '175');
+    change('Weight (kg)', '75');
     next();
-    tap(/^轻度/);
-    tap('以上都没有');
-    tap(/每周 0.5% 体重/);
-    tap('跳过'); // target weight
-    tap('没有特别限制');
+    tap(/^Light/);
+    tap('None of these');
+    tap(/0.5% of body weight a week/);
+    tap('Skip'); // target weight
+    tap('No restrictions');
     expect(screen.getAllByText(/1,920/).length).toBeGreaterThan(0);
-    fireEvent.click(screen.getByRole('button', { name: '开始使用' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Get started' }));
 
     const s = getState();
     expect(s.profile?.goal).toBe('fat_loss');
@@ -92,51 +92,51 @@ describe('app flow', () => {
       reason: 'initial',
     });
     expect(s.weights[0]?.weightKg).toBe(75);
-    expect(screen.getByText('今日已摄取热量')).toBeTruthy();
+    expect(screen.getByText('Calories today')).toBeTruthy();
 
     cleanup();
     renderAt('/diary/add?meal=lunch');
     // Manual entry from a nutrition label (tofu, per 100 g), then 150 g logged.
-    fireEvent.click(screen.getByRole('button', { name: '＋ 输入' }));
-    change('名称', '板豆腐');
-    change('热量（kcal）', '144');
-    change('蛋白质（g）', '17.3');
-    change('碳水化合物（g）', '2.78');
-    change('脂肪（g）', '8.72');
-    fireEvent.click(screen.getByRole('button', { name: '保存并选择' }));
-    change('份量（g）', '150');
-    fireEvent.click(screen.getByRole('button', { name: '加入午餐' }));
+    fireEvent.click(screen.getByRole('button', { name: '+ Enter' }));
+    change('Name', 'Firm tofu');
+    change('Calories (kcal)', '144');
+    change('Protein (g)', '17.3');
+    change('Carbs (g)', '2.78');
+    change('Fat (g)', '8.72');
+    fireEvent.click(screen.getByRole('button', { name: 'Save and choose' }));
+    change('Amount (g)', '150');
+    fireEvent.click(screen.getByRole('button', { name: 'Add to Lunch' }));
     const meal = getState().meals[0];
-    expect(meal).toMatchObject({ meal: 'lunch', grams: 150, name: '板豆腐' });
+    expect(meal).toMatchObject({ meal: 'lunch', grams: 150, name: 'Firm tofu' });
     expect(meal?.nutrients.kcal).toBeCloseTo(216, 10);
 
-    // The food now appears under 最近吃过 and can be logged again in one tap.
+    // The food now appears under Recently eaten and can be logged again in one tap.
     cleanup();
     renderAt('/diary/add?meal=dinner');
-    fireEvent.click(screen.getByRole('button', { name: /板豆腐/ }));
-    fireEvent.click(screen.getByRole('button', { name: '加入晚餐' }));
-    expect(getState().meals.filter((m) => m.name === '板豆腐')).toHaveLength(2);
+    fireEvent.click(screen.getByRole('button', { name: /Firm tofu/ }));
+    fireEvent.click(screen.getByRole('button', { name: 'Add to Dinner' }));
+    expect(getState().meals.filter((m) => m.name === 'Firm tofu')).toHaveLength(2);
   });
 
   it('shows the safety refusal for an underweight fat-loss goal', () => {
     renderAt('/onboarding');
-    fireEvent.click(screen.getByLabelText(/我年满 18 岁，并已阅读和接受/));
-    fireEvent.click(screen.getByLabelText(/我同意 EatHealthee 使用/));
+    fireEvent.click(screen.getByLabelText(/I'm 18 or older/));
+    fireEvent.click(screen.getByLabelText(/I agree that EatHealthee may use/));
     next();
-    tap(/减脂/);
-    tap('女性公式');
-    change('出生日期', '2000-05-05');
-    change('身高（cm）', '169.6');
-    change('体重（kg）', '51.5');
+    tap(/Lose fat/);
+    tap('Female formula');
+    change('Date of birth', '2000-05-05');
+    change('Height (cm)', '169.6');
+    change('Weight (kg)', '51.5');
     next();
-    tap(/^久坐/);
-    tap('以上都没有');
-    tap(/每周 0.5% 体重/);
-    tap('跳过');
-    tap('没有特别限制');
-    expect(screen.getByText('目前不建议减脂')).toBeTruthy();
-    expect((screen.getByRole('button', { name: '开始使用' }) as HTMLButtonElement).disabled).toBe(
-      true,
-    );
+    tap(/^Sedentary/);
+    tap('None of these');
+    tap(/0.5% of body weight a week/);
+    tap('Skip');
+    tap('No restrictions');
+    expect(screen.getByText('Fat loss is not recommended right now')).toBeTruthy();
+    expect(
+      (screen.getByRole('button', { name: 'Get started' }) as HTMLButtonElement).disabled,
+    ).toBe(true);
   });
 });

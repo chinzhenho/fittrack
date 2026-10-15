@@ -7,9 +7,9 @@ import type { WaterEntry } from '../data/types';
 export type WaterActivity = 'low' | 'normal' | 'high';
 
 export const WATER_ACTIVITY: Record<WaterActivity, { label: string; mlPerKg: number }> = {
-  low: { label: '冷气房久坐、轻度活动', mlPerKg: 30 },
-  normal: { label: '一般活动量', mlPerKg: 35 },
-  high: { label: '常运动、户外或容易出汗', mlPerKg: 40 },
+  low: { label: 'Air-conditioned, mostly sitting', mlPerKg: 30 },
+  normal: { label: 'Normal activity', mlPerKg: 35 },
+  high: { label: 'Active, outdoors or sweat a lot', mlPerKg: 40 },
 };
 
 export const WATER_CUP_ML = 250;

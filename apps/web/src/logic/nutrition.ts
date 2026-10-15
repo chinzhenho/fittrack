@@ -4,10 +4,10 @@ import type { Goal } from '@fittrack/engine';
 export const MEAL_TYPES: MealType[] = ['breakfast', 'lunch', 'dinner', 'snack'];
 
 export const MEAL_LABELS: Record<MealType, string> = {
-  breakfast: '早餐',
-  lunch: '午餐',
-  dinner: '晚餐',
-  snack: '其他',
+  breakfast: 'Breakfast',
+  lunch: 'Lunch',
+  dinner: 'Dinner',
+  snack: 'Other',
 };
 
 /** Spec 5.5: N_item = N_100g x grams / 100. Values kept unrounded; round only for display. */
@@ -45,7 +45,7 @@ export function searchFoods(foods: Food[], query: string): Food[] {
   const q = query.trim().toLowerCase();
   if (!q) return foods;
   return foods.filter((f) =>
-    [f.nameZh, f.nameEn, ...f.aliases].some((n) => n.toLowerCase().includes(q)),
+    [f.name, f.nameEn, ...f.aliases].some((n) => n.toLowerCase().includes(q)),
   );
 }
 
@@ -104,10 +104,10 @@ export function calorieGap(
   const left = targetKcal - eatenKcal;
   if (isGainGoal(goal)) {
     return left > 0
-      ? { label: '还需要吃', kcal: left, state: 'need' }
-      : { label: '已达到目标', kcal: -left, state: 'reached' };
+      ? { label: 'Still to eat', kcal: left, state: 'need' }
+      : { label: 'Target reached, extra', kcal: -left, state: 'reached' };
   }
   return left >= 0
-    ? { label: '还可以吃', kcal: left, state: 'room' }
-    : { label: '超出目标', kcal: -left, state: 'over' };
+    ? { label: 'Left to eat', kcal: left, state: 'room' }
+    : { label: 'Over target', kcal: -left, state: 'over' };
 }

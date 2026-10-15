@@ -61,14 +61,14 @@ describe('Today weight card', () => {
         <Today />
       </MemoryRouter>,
     );
-    // 75 kg at 175 cm: BMI 24.5, which is 超重 under the Asian cut-off (23).
-    expect(screen.getByText('BMI 24.5 超重')).toBeTruthy();
-    expect(screen.getByText('距目标还差 7 kg')).toBeTruthy();
+    // 75 kg at 175 cm: BMI 24.5, which is overweight under the Asian cut-off (23).
+    expect(screen.getByText('BMI 24.5 Overweight')).toBeTruthy();
+    expect(screen.getByText('7 kg to go')).toBeTruthy();
 
-    fireEvent.click(screen.getByRole('button', { name: '＋ 记体重' }));
+    fireEvent.click(screen.getByRole('button', { name: '+ Log weight' }));
     fireEvent.click(screen.getByRole('button', { name: '−0.5' }));
     fireEvent.click(screen.getByRole('button', { name: '−0.5' }));
-    fireEvent.click(screen.getByRole('button', { name: '保存体重' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Save weight' }));
     const todayEntry = getState().weights.find((w) => w.date === localToday());
     expect(todayEntry?.weightKg).toBe(74);
   });

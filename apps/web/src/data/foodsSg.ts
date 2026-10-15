@@ -519,106 +519,138 @@ const RAW: Raw[] = [
 /** Traditional Chinese display names, serving words and search aliases, keyed by SG FoodID code. */
 const ZH: Record<string, { name: string; unit: string; aliases: string[] }> = {
   F05100089: {
-    name: 'Nasi lemak（炸鱼套餐）',
-    unit: '碟',
+    name: 'Nasi lemak (fried fish set)',
+    unit: 'plate',
     aliases: ['椰浆饭', '椰浆饭', 'nasi lemak ikan'],
   },
   F05100085: {
-    name: 'Nasi lemak（炸鸡排套餐）',
-    unit: '碟',
+    name: 'Nasi lemak (chicken cutlet set)',
+    unit: 'plate',
     aliases: ['椰浆饭', '椰浆饭', 'nasi lemak ayam'],
   },
   F05100087: {
-    name: 'Nasi lemak（炸鸡翅套餐）',
-    unit: '碟',
+    name: 'Nasi lemak (fried chicken wing set)',
+    unit: 'plate',
     aliases: ['椰浆饭', '椰浆饭', 'nasi lemak ayam goreng'],
   },
   F05100090: {
-    name: 'Nasi lemak（只有椰浆饭）',
-    unit: '碟',
+    name: 'Nasi lemak (rice only)',
+    unit: 'plate',
     aliases: ['椰浆饭', '椰浆饭', 'nasi lemak kosong'],
   },
   F05030010: {
-    name: 'Roti canai／Prata（原味）',
-    unit: '片',
+    name: 'Roti canai (plain)',
+    unit: 'piece',
     aliases: ['印度煎饼', '印度煎饼', 'roti kosong', 'roti prata'],
   },
   F05020090: {
-    name: 'Roti canai／Prata（加蛋）',
-    unit: '片',
+    name: 'Roti telur (with egg)',
+    unit: 'piece',
     aliases: ['印度煎饼', 'roti telur', 'prata telur'],
   },
   F05020082: {
-    name: 'Roti canai／Prata（2 片配咖喱）',
-    unit: '份',
+    name: 'Roti canai (2 pieces with curry)',
+    unit: 'serving',
     aliases: ['印度煎饼', 'roti canai kari'],
   },
   F05100133: {
-    name: '海南鸡饭（白斩鸡）',
-    unit: '碟',
+    name: 'Hainanese chicken rice (steamed)',
+    unit: 'plate',
     aliases: ['鸡饭', '鸡饭', 'chicken rice', 'nasi ayam'],
   },
   F05100112: {
-    name: '烧鸡饭',
-    unit: '碟',
+    name: 'Roast chicken rice',
+    unit: 'plate',
     aliases: ['鸡饭', '烧鸡饭', 'roast chicken rice', 'nasi ayam panggang'],
   },
   F05100131: {
-    name: '酱油鸡饭',
-    unit: '碟',
+    name: 'Soy sauce chicken rice',
+    unit: 'plate',
     aliases: ['鸡饭', '酱油鸡饭', 'soy sauce chicken rice'],
   },
   F05100154: {
-    name: '鸡饭（只有饭）',
-    unit: '碟',
+    name: 'Chicken rice (rice only)',
+    unit: 'plate',
     aliases: ['鸡油饭', '鸡油饭', 'chicken rice only'],
   },
-  F11020020: { name: '鸡肉沙爹', unit: '串', aliases: ['沙爹', '沙嗲', 'sate ayam', 'satay'] },
-  F06040006: { name: '牛肉沙爹', unit: '串', aliases: ['沙爹', '沙嗲', 'sate daging', 'satay'] },
-  F06060018: { name: '羊肉沙爹', unit: '串', aliases: ['沙爹', '沙嗲', 'sate kambing', 'satay'] },
-  F10040002: { name: '沙爹酱', unit: '汤匙', aliases: ['花生酱汁', 'kuah kacang', 'satay sauce'] },
+  F11020020: {
+    name: 'Chicken satay',
+    unit: 'stick',
+    aliases: ['沙爹', '沙嗲', 'sate ayam', 'satay'],
+  },
+  F06040006: {
+    name: 'Beef satay',
+    unit: 'stick',
+    aliases: ['沙爹', '沙嗲', 'sate daging', 'satay'],
+  },
+  F06060018: {
+    name: 'Mutton satay',
+    unit: 'stick',
+    aliases: ['沙爹', '沙嗲', 'sate kambing', 'satay'],
+  },
+  F10040002: {
+    name: 'Satay sauce',
+    unit: 'tbsp',
+    aliases: ['花生酱汁', 'kuah kacang', 'satay sauce'],
+  },
   F05100083: {
-    name: 'Nasi goreng（马来炒饭）',
-    unit: '碟',
+    name: 'Nasi goreng',
+    unit: 'plate',
     aliases: ['炒饭', '炒饭', 'fried rice'],
   },
-  F05100103: { name: '家常炒饭', unit: '碟', aliases: ['炒饭', '炒饭', 'fried rice'] },
-  F05100096: { name: 'Nasi pattaya（蛋包炒饭）', unit: '碟', aliases: ['蛋包饭', '炒饭'] },
+  F05100103: {
+    name: 'Fried rice (home style)',
+    unit: 'plate',
+    aliases: ['炒饭', '炒饭', 'fried rice'],
+  },
+  F05100096: {
+    name: 'Nasi pattaya (omelette fried rice)',
+    unit: 'plate',
+    aliases: ['蛋包饭', '炒饭'],
+  },
   F05060020: {
-    name: '炒粿条',
-    unit: '碟',
+    name: 'Char kway teow',
+    unit: 'plate',
     aliases: ['炒粿条', 'char koay teow', 'kuey teow goreng'],
   },
   F05060073: {
-    name: '咖喱叻沙',
-    unit: '碗',
+    name: 'Curry laksa',
+    unit: 'bowl',
     aliases: ['叻沙', 'laksa', 'curry laksa', 'curry mee'],
   },
   F05060093: {
-    name: '槟城叻沙（亚参叻沙）',
-    unit: '碗',
+    name: 'Penang assam laksa',
+    unit: 'bowl',
     aliases: ['叻沙', '槟城叻沙', 'assam laksa', 'penang laksa'],
   },
   F05060134: {
-    name: '云吞面（干捞）',
-    unit: '碗',
+    name: 'Wantan mee (dry)',
+    unit: 'bowl',
     aliases: ['云吞面', '云吞面', 'wantan mee', 'wonton noodles'],
   },
   F05060135: {
-    name: '云吞面（汤）',
-    unit: '碗',
+    name: 'Wantan mee (soup)',
+    unit: 'bowl',
     aliases: ['云吞汤面', '云吞面', 'wantan mee sup', 'wonton noodles'],
   },
   F05060080: {
-    name: 'Mee goreng（马来炒面）',
-    unit: '碟',
+    name: 'Mee goreng mamak',
+    unit: 'plate',
     aliases: ['炒面', '炒面', 'mee goreng mamak', 'fried noodles'],
   },
-  F06040005: { name: '仁当牛肉', unit: '份', aliases: ['仁当', 'rendang daging', 'beef rendang'] },
-  F11020019: { name: '仁当鸡', unit: '份', aliases: ['仁当', 'rendang ayam', 'chicken rendang'] },
+  F06040005: {
+    name: 'Beef rendang',
+    unit: 'serving',
+    aliases: ['仁当', 'rendang daging', 'beef rendang'],
+  },
+  F11020019: {
+    name: 'Chicken rendang',
+    unit: 'serving',
+    aliases: ['仁当', 'rendang ayam', 'chicken rendang'],
+  },
   F06060017: {
-    name: '仁当羊肉',
-    unit: '份',
+    name: 'Mutton rendang',
+    unit: 'serving',
     aliases: ['仁当', 'rendang kambing', 'mutton rendang'],
   },
 };
@@ -645,7 +677,7 @@ function toFood(r: Raw): Food {
     sodium,
   ] = r;
   const zh = ZH[crId];
-  if (!zh) throw new Error(`missing Chinese name for ${crId}`);
+  if (!zh) throw new Error(`missing display name for ${crId}`);
   const fiberG = opt(fibre);
   const sugarG = opt(sugar);
   const sodiumMg = opt(sodium);
@@ -654,7 +686,7 @@ function toFood(r: Raw): Food {
   const ediblePerServing = Math.round(weight * edible) / 100;
   return {
     id: `sg-${crId}`,
-    nameZh: zh.name,
+    name: zh.name,
     nameEn: name,
     aliases: [...zh.aliases, name],
     per100g: {
@@ -667,7 +699,7 @@ function toFood(r: Raw): Food {
       ...(sodiumMg !== undefined && { sodiumMg }),
     },
     source: 'sgfoodid',
-    sourceRef: `SG FoodID ${crId}（${source === 'Lab Analysis' ? '实验室分析' : '推算'}，${year}）`,
+    sourceRef: `SG FoodID ${crId} (${source === 'Lab Analysis' ? 'lab analysis' : 'calculated'}, ${year})`,
     description,
     servings: [{ label: `1 ${zh.unit}`, grams: ediblePerServing }],
     dishClass,

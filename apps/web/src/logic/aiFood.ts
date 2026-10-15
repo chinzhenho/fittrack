@@ -48,7 +48,7 @@ Work through these steps silently, then answer with the JSON only.
    amount. kcal must agree with 4 x protein + 4 x carbs + 9 x fat.
 
 For every item give:
-- name_zh: short name in Simplified Chinese (keep common Malay/English dish names, e.g. "Nasi lemak（炸鸡）")
+- name_zh: short English name (keep common Malay dish names, e.g. "Nasi lemak (fried chicken)")
 - grams: estimated edible weight in grams
 - match_id: the id from the list below ONLY if the item is clearly that same dish; otherwise ""
 - kcal, protein_g, carbs_g, fat_g: your estimate for that amount
@@ -153,12 +153,12 @@ export function foodForAiItem(item: AiFoodItem, model: string): Food {
   const n = item.nutrients;
   return {
     id: `ai-${item.name}`,
-    nameZh: item.name,
+    name: item.name,
     nameEn: item.name,
     aliases: [],
     per100g: { kcal: n.kcal * k, proteinG: n.proteinG * k, carbsG: n.carbsG * k, fatG: n.fatG * k },
     source: 'ai',
-    sourceRef: `AI 照片估算（${model}）`,
+    sourceRef: `AI photo estimate (${model})`,
   };
 }
 

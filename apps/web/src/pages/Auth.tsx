@@ -42,11 +42,11 @@ function AuthTabs({ active }: { active: 'login' | 'signup' }) {
   );
   return (
     <nav
-      aria-label="登录或注册"
+      aria-label="Log in or sign up"
       className="grid grid-cols-2 rounded-2xl bg-slate-100 p-1 dark:bg-slate-900"
     >
-      {tab('/login', '登录', active === 'login')}
-      {tab('/signup', '注册', active === 'signup')}
+      {tab('/login', 'Log in', active === 'login')}
+      {tab('/signup', 'Sign up', active === 'signup')}
     </nav>
   );
 }
@@ -84,14 +84,14 @@ function AuthLayout({
             className="size-48 animate-float rounded-[2.5rem] shadow-2xl ring-4 ring-white/25"
           />
           <p className="mt-8 text-3xl leading-snug font-bold">
-            拍一张照，
+            Snap a photo,
             <br />
-            就知道吃了多少。
+            know what you ate.
           </p>
           <ul className="mt-6 space-y-3 text-emerald-50">
-            <li>📷 AI 拍照算热量，认得本地菜</li>
-            <li>🎯 按你的身体计算安全的目标</li>
-            <li>📈 体重趋势和成就，让你坚持下去</li>
+            <li>📷 AI photo calories that know local food</li>
+            <li>🎯 Safe targets worked out for your body</li>
+            <li>📈 Weight trends and badges to keep you going</li>
           </ul>
         </div>
         <p className="text-sm text-emerald-100">Snap · Track · Be Healthier</p>
@@ -154,17 +154,29 @@ function ArrowRight() {
 const linkClass = 'font-semibold text-emerald-strong hover:underline dark:text-emerald';
 
 const FEATURES = [
-  { icon: '📷', title: '拍照算热量', text: '拍下整份食物，AI 认出每样菜并估算份量和热量。' },
+  {
+    icon: '📷',
+    title: 'Snap to count',
+    text: 'Photograph your meal; AI spots each dish and estimates the portion and calories.',
+  },
   {
     icon: '🍛',
-    title: 'AI 认得本地菜',
-    text: 'Nasi lemak、鸡饭、roti canai 等马来西亚菜，AI 都认得并计算热量。',
+    title: 'Knows local food',
+    text: 'Nasi lemak, chicken rice, roti canai and other Malaysian favourites are recognised and counted.',
   },
-  { icon: '🎯', title: '安全的目标', text: '按你的身体和生活方式计算，不用去 Gym 也能开始。' },
-  { icon: '📈', title: '看见进步', text: '体重趋势、连续记录和成就，让你更容易坚持。' },
+  {
+    icon: '🎯',
+    title: 'Safe targets',
+    text: "Worked out for your body and lifestyle. You don't need a gym to start.",
+  },
+  {
+    icon: '📈',
+    title: 'See progress',
+    text: 'Weight trends, streaks and badges make it easier to keep going.',
+  },
 ];
 
-const GOALS = ['减脂', '增重', '增肌', '维持体重'];
+const GOALS = ['lose fat', 'gain weight', 'build muscle', 'stay in shape'];
 
 /** Cycles through the goals in the headline every 2.2 s. */
 function RotatingGoal() {
@@ -200,19 +212,18 @@ export function Welcome() {
           </div>
           <img
             src="/brand/wordmark.png"
-            alt="EatHealthee：Snap · Track · Be Healthier"
+            alt="EatHealthee: Snap · Track · Be Healthier"
             className="mt-6 w-full max-w-xs animate-rise rounded-2xl mix-blend-multiply dark:rounded-2xl dark:bg-[#fbfaf3] dark:mix-blend-normal"
             style={{ animationDelay: '0.1s' }}
           />
-          <h1 className="sr-only">欢迎使用 EatHealthee</h1>
+          <h1 className="sr-only">Welcome to EatHealthee</h1>
           <p
             className="mt-4 max-w-sm animate-rise leading-relaxed text-slate-600 dark:text-slate-300"
             style={{ animationDelay: '0.2s' }}
           >
-            拍一张照，就知道吃了多少。
+            Snap a photo, know what you ate.
             <br />
-            按你的生活方式，安全地
-            <RotatingGoal />。
+            Safely <RotatingGoal />, your way.
           </p>
           <ul className="mt-7 grid w-full max-w-md grid-cols-2 gap-2.5 text-left">
             {FEATURES.map((f, i) => (
@@ -240,39 +251,39 @@ export function Welcome() {
           className="mx-auto mt-8 w-full max-w-md animate-rise space-y-3 lg:mt-0 lg:rounded-3xl lg:bg-white lg:p-8 lg:shadow-xl lg:ring-1 lg:ring-slate-900/5 dark:lg:bg-slate-800"
           style={{ animationDelay: '0.6s' }}
         >
-          <h2 className="hidden text-2xl font-black lg:block">开始使用</h2>
+          <h2 className="hidden text-2xl font-black lg:block">Get started</h2>
           <p className="hidden pb-2 text-sm text-slate-600 lg:block dark:text-slate-300">
-            完全免费，1 分钟完成设置。
+            Completely free. Set up in 1 minute.
           </p>
           <Link
             to="/signup"
             className="flex min-h-13 items-center justify-center gap-2 rounded-2xl bg-emerald-strong px-4 py-3.5 font-semibold text-white shadow-lg shadow-emerald-600/25 transition hover:bg-emerald-800 active:scale-[0.98] dark:bg-emerald dark:text-slate-950"
           >
-            免费开始使用
+            Start for free
             <ArrowRight />
           </Link>
           <Link
             to="/login"
             className="flex min-h-12 items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 font-medium text-slate-700 transition hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
           >
-            我已经有账号
+            I already have an account
           </Link>
           <Link
             to="/onboarding"
             className="flex min-h-11 items-center justify-center text-sm font-medium text-emerald-strong hover:underline dark:text-emerald"
           >
-            先不登录，直接试用 ›
+            Try it without an account ›
           </Link>
           <p className="pt-1 text-center text-xs leading-relaxed text-slate-500 dark:text-slate-400">
-            使用即表示你同意
+            By continuing you agree to the
             <Link to="/legal/disclaimer" className="mx-1 underline">
-              健康免责声明
+              health disclaimer
             </Link>
-            和
+            and
             <Link to="/legal/privacy" className="ml-1 underline">
-              隐私政策
+              privacy policy
             </Link>
-            。不登录时，资料只存在这部设备。
+            . Without an account, your data stays on this device.
           </p>
         </section>
       </div>
@@ -311,14 +322,14 @@ export function Login() {
 
   return (
     <AuthLayout
-      title="欢迎回来"
-      subtitle="登录后，记录会在你的所有设备同步。"
+      title="Welcome back"
+      subtitle="Log in to sync your logs across all your devices."
       tabs="login"
       footer={
         <>
-          还没有账号？
+          Don't have an account?
           <Link to="/signup" replace className={linkClass}>
-            免费注册
+            Sign up free
           </Link>
         </>
       }
@@ -328,10 +339,10 @@ export function Login() {
           {(p) => <EmailInput {...p} value={f.email} onChange={f.setEmail} />}
         </Field>
         <Field
-          label="密码"
+          label="Password"
           labelAction={
             <Link to="/reset-password" className={`text-sm ${linkClass}`}>
-              忘记密码？
+              Forgot password?
             </Link>
           }
         >
@@ -350,7 +361,7 @@ export function Login() {
           </p>
         )}
         <Button type="submit" className={submitClass} disabled={f.busy}>
-          {f.busy ? '登录中…' : '登录'}
+          {f.busy ? 'Logging in…' : 'Log in'}
           {!f.busy && <ArrowRight />}
         </Button>
       </form>
@@ -391,12 +402,13 @@ export function Signup() {
 
   if (sentTo) {
     return (
-      <AuthLayout title="请确认你的 Email" back={false}>
-        <Notice title="确认信已寄出">
-          我们寄了一封确认信到 <strong>{sentTo}</strong>。请打开信件并点击链接，就会自动登录。
+      <AuthLayout title="Confirm your email" back={false}>
+        <Notice title="Confirmation email sent">
+          We sent a confirmation email to <strong>{sentTo}</strong>. Open it and click the link, and
+          you'll be logged in.
         </Notice>
         <p className="text-sm text-slate-600 dark:text-slate-300">
-          没收到？看看垃圾邮件匣，或几分钟后再试一次。
+          Didn't get it? Check your spam folder, or try again in a few minutes.
         </p>
       </AuthLayout>
     );
@@ -404,23 +416,26 @@ export function Signup() {
 
   return (
     <AuthLayout
-      title="创建免费账号"
-      subtitle="换手机也能看到你的所有记录。"
+      title="Create a free account"
+      subtitle="See all your logs on any phone."
       tabs="signup"
       footer={
         <>
-          已有账号？
+          Have an account?
           <Link to="/login" replace className={linkClass}>
-            登录
+            Log in
           </Link>
         </>
       }
     >
       <form className="space-y-4" onSubmit={submit}>
-        <Field label="Email" error={f.email && !emailOk ? '请输入有效的 Email。' : null}>
+        <Field label="Email" error={f.email && !emailOk ? 'Enter a valid email.' : null}>
           {(p) => <EmailInput {...p} value={f.email} onChange={f.setEmail} />}
         </Field>
-        <Field label="设置密码" error={f.password && !passwordOk ? '密码至少要 8 个字元。' : null}>
+        <Field
+          label="Create a password"
+          error={f.password && !passwordOk ? 'Use at least 8 characters.' : null}
+        >
           {(p) => (
             <>
               <PasswordInput
@@ -433,7 +448,10 @@ export function Signup() {
             </>
           )}
         </Field>
-        <Field label="再输入一次密码" error={confirm && !matches ? '两次输入的密码不一样。' : null}>
+        <Field
+          label="Enter it again"
+          error={confirm && !matches ? "The passwords don't match." : null}
+        >
           {(p) => (
             <PasswordInput
               {...p}
@@ -444,9 +462,9 @@ export function Signup() {
           )}
         </Field>
         <Check checked={agree} onChange={setAgree}>
-          我同意把我的身体、饮食和体重记录保存到我的账号，并已阅读
+          I agree to store my body, food and weight records in my account, and have read the
           <Link to="/legal/privacy" target="_blank" className={`mx-1 ${linkClass}`}>
-            隐私政策
+            privacy policy
           </Link>
         </Check>
         {f.error && (
@@ -459,7 +477,7 @@ export function Signup() {
           className={submitClass}
           disabled={f.busy || !emailOk || !passwordOk || !matches || !agree}
         >
-          {f.busy ? '注册中…' : '注册，开始记录'}
+          {f.busy ? 'Signing up…' : 'Sign up and start'}
           {!f.busy && <ArrowRight />}
         </Button>
       </form>
@@ -487,14 +505,18 @@ export function ResetPassword() {
   };
 
   return (
-    <AuthLayout title="重置密码" subtitle="输入注册时的 Email，我们会寄重置链接给你。">
+    <AuthLayout
+      title="Reset password"
+      subtitle="Enter the email you signed up with and we'll send you a reset link."
+    >
       {sent ? (
         <Notice>
-          如果这个 Email 有注册，你会收到一封重置密码的信。请点击信中的链接设置新密码。
+          If this email is registered, you'll get a reset email. Click the link in it to set a new
+          password.
         </Notice>
       ) : (
         <form className="space-y-4" onSubmit={submit}>
-          <Field label="注册时用的 Email">
+          <Field label="Your account email">
             {(p) => <EmailInput {...p} value={email} onChange={setEmail} />}
           </Field>
           {error && (
@@ -507,13 +529,13 @@ export function ResetPassword() {
             className={submitClass}
             disabled={busy || !EMAIL_RE.test(email.trim())}
           >
-            寄出重置链接
+            Send reset link
           </Button>
         </form>
       )}
       <p className="text-center text-sm">
         <Link to="/login" className={linkClass}>
-          返回登录
+          Back to log in
         </Link>
       </p>
     </AuthLayout>
@@ -530,10 +552,12 @@ export function UpdatePassword() {
   if (auth.status === 'loading') return <Loading />;
   if (auth.status === 'signedOut') {
     return (
-      <AuthLayout title="链接已失效">
-        <p className="text-sm">这个重置链接已经用过或过期。请重新申请。</p>
+      <AuthLayout title="Link expired">
+        <p className="text-sm">
+          This reset link has been used or has expired. Please request a new one.
+        </p>
         <Link to="/reset-password" className={linkClass}>
-          重新寄出重置链接
+          Send a new reset link
         </Link>
       </AuthLayout>
     );
@@ -551,11 +575,11 @@ export function UpdatePassword() {
   };
 
   return (
-    <AuthLayout title={isRecovering() ? '设置新密码' : '更改密码'}>
+    <AuthLayout title={isRecovering() ? 'Set a new password' : 'Change password'}>
       <form className="space-y-4" onSubmit={submit}>
         <Field
-          label="新密码"
-          error={password && password.length < 8 ? '密码至少要 8 个字元。' : null}
+          label="New password"
+          error={password && password.length < 8 ? 'Use at least 8 characters.' : null}
         >
           {(p) => (
             <>
@@ -575,7 +599,7 @@ export function UpdatePassword() {
           </p>
         )}
         <Button type="submit" className={submitClass} disabled={busy || password.length < 8}>
-          保存新密码
+          Save new password
         </Button>
       </form>
     </AuthLayout>
@@ -585,7 +609,7 @@ export function UpdatePassword() {
 export function Loading() {
   return (
     <div className="flex min-h-dvh items-center justify-center" role="status">
-      <p className="text-sm text-slate-600 dark:text-slate-300">载入你的资料中…</p>
+      <p className="text-sm text-slate-600 dark:text-slate-300">Loading your data…</p>
     </div>
   );
 }

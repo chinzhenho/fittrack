@@ -11,18 +11,26 @@ export type HabitId = 'food' | 'weight' | 'protein' | 'meals';
 export type HabitStatus = 'done' | 'partial' | 'none' | 'na' | 'future';
 
 export const HABITS: { id: HabitId; label: string; hint: string }[] = [
-  { id: 'food', label: '记录饮食', hint: '当天记录了至少一样食物' },
-  { id: 'weight', label: '记录体重', hint: '当天量了体重' },
-  { id: 'protein', label: '关注蛋白质', hint: '蛋白质达到目标；有记录但未达到为部分完成' },
-  { id: 'meals', label: '记录主要餐次', hint: '早餐、午餐、晚餐都有记录；记了一两餐为部分完成' },
+  { id: 'food', label: 'Log food', hint: 'At least one food logged that day' },
+  { id: 'weight', label: 'Weigh in', hint: 'Weighed yourself that day' },
+  {
+    id: 'protein',
+    label: 'Protein',
+    hint: 'Met your protein target; logged but below target counts as partial',
+  },
+  {
+    id: 'meals',
+    label: 'Main meals',
+    hint: 'Breakfast, lunch and dinner all logged; one or two counts as partial',
+  },
 ];
 
 export const STATUS_LABELS: Record<HabitStatus, string> = {
-  done: '已完成',
-  partial: '部分完成',
-  none: '未记录',
-  na: '不适用',
-  future: '还没到',
+  done: 'Done',
+  partial: 'Partly done',
+  none: 'Not logged',
+  na: 'Not applicable',
+  future: 'Not yet',
 };
 
 export function habitStatus(s: AppState, habit: HabitId, date: string, today: string): HabitStatus {
@@ -57,23 +65,31 @@ export function habitWeek(s: AppState, weekStart: string, today: string) {
 export type ChallengeId = 'log5' | 'weigh3' | 'complete3' | 'protein4' | 'breakfast5';
 
 export const CHALLENGES: Record<ChallengeId, { title: string; why: string; max: number }> = {
-  log5: { title: '这周记录饮食 5 天', why: '记录的日子越多，越看得出自己的饮食规律。', max: 5 },
+  log5: {
+    title: 'Log food on 5 days this week',
+    why: 'The more days you log, the clearer your eating patterns become.',
+    max: 5,
+  },
   weigh3: {
-    title: '这周量 3 次体重',
-    why: '体重每天会因水分起伏，多量几次趋势才可靠。',
+    title: 'Weigh in 3 times this week',
+    why: 'Weight moves with water every day; a few weigh-ins make the trend reliable.',
     max: 3,
   },
   complete3: {
-    title: '这周完整记录 3 天',
-    why: '只有标记“已完整记录”的日子，才能用来判断热量和调整目标。',
+    title: 'Fully log 3 days this week',
+    why: 'Only days marked "fully logged" are used to judge calories and adjust your target.',
     max: 3,
   },
   protein4: {
-    title: '这周蛋白质达标 4 天',
-    why: '足够的蛋白质有助于保住肌肉，也比较有饱足感。',
+    title: 'Hit your protein target on 4 days',
+    why: 'Enough protein helps keep muscle and keeps you full for longer.',
     max: 4,
   },
-  breakfast5: { title: '这周记录早餐 5 天', why: '记下早餐，一天的热量才算得完整。', max: 5 },
+  breakfast5: {
+    title: 'Log breakfast on 5 days this week',
+    why: 'Logging breakfast makes your daily calories complete.',
+    max: 5,
+  },
 };
 
 export const CHALLENGE_IDS = Object.keys(CHALLENGES) as ChallengeId[];

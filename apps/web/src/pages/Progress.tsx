@@ -14,7 +14,7 @@ import {
 } from '../data/actions';
 import { newId, update, useAppState } from '../data/store';
 import type { AppState, Profile } from '../data/types';
-import { formatDateZh, localToday } from '../lib/dates';
+import { formatDay, localToday, shortDate } from '../lib/dates';
 import { fmt1, fmtInt } from '../lib/format';
 import { progressSummary } from '../logic/achievements';
 import {
@@ -48,17 +48,23 @@ import {
 } from '../logic/weekly';
 
 const REFUSAL_TEXT: Record<string, string> = {
-  window_too_short: '目标开始后的头 14 天，体重变化主要是水分，之后才会评估。',
-  not_enough_complete_logs: '最近 3 周需要至少八成的日子标记“已完整记录”。',
-  not_enough_weigh_ins: '最近 3 周需要至少 10 次体重记录。',
-  no_trend_at_window_start: '评估期开始前需要有体重记录。',
+  window_too_short:
+    'In the first 14 days of a goal, weight changes are mostly water, so we wait until after that.',
+  not_enough_complete_logs:
+    'At least 80% of days in the last 3 weeks need to be marked fully logged.',
+  not_enough_weigh_ins: 'At least 10 weigh-ins in the last 3 weeks.',
+  no_trend_at_window_start: 'A weigh-in from before the review period.',
 };
 
-const REASON_LABELS = { initial: '初始', profile_change: '资料更新', adaptive: '动态调整' };
+const REASON_LABELS = {
+  initial: 'Initial',
+  profile_change: 'Profile update',
+  adaptive: 'Adjusted',
+};
 
-const WEEKDAY_SHORT = ['一', '二', '三', '四', '五', '六', '日'];
+const WEEKDAY_SHORT = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 
-const md = (d: string) => `${Number(d.slice(5, 7))}/${Number(d.slice(8))}`;
+const md = (d: string) => shortDate(d);
 const signed = (n: number) => `${n > 0 ? '+' : n < 0 ? '−' : '±'}${fmt1(Math.abs(n))}`;
 
 /** Card with an anchor id and a heading row. */
@@ -165,14 +171,15 @@ export function Progress() {
 
   return (
     <div className="space-y-4">
-      <PageTitle sub="每一步都算数，慢慢找到适合自己的节奏。">我的成长</PageTitle>
+      <PageTitle sub="Every step counts. Find the pace that works for you.">My progress</PageTitle>
       {hide && (
         <p className="rounded-2xl bg-slate-100 px-4 py-3 text-sm text-slate-600 dark:bg-slate-800 dark:text-slate-300">
-          🙈 你已隐藏热量和体重数字，这里只显示习惯和记录情况。可以在
+          🙈 You've hidden calorie and weight numbers, so only habits and logging are shown. Turn
+          them back on in{' '}
           <Link to="/me" className="font-semibold text-emerald-strong dark:text-emerald">
-            「我的」
+            Me
           </Link>
-          重新打开。
+          .
         </p>
       )}
       <WeeklySection s={s} today={today} hide={hide} />
@@ -199,11 +206,11 @@ function WeeklySection({ s, today, hide }: { s: AppState; today: string; hide: b
     <Section
       id="summary"
       icon="📅"
-      title="本周总结"
-      sub={`${md(start)} – ${md(end)}${period === 'this_week' ? '（周一至今天）' : ''}`}
+      title="Weekly summary"
+      sub={`${md(start)} – ${md(end)}${period === 'this_week' ? ' (Mon to today)' : ''}`}
       action={
         <Chips
-          label="统计期间"
+          label="Period"
           value={period}
           onChange={setPeriod}
           options={(Object.keys(PERIOD_LABELS) as Period[]).map((p) => ({
@@ -218,41 +225,43 @@ function WeeklySection({ s, today, hide }: { s: AppState; today: string; hide: b
           <p className="text-2xl" aria-hidden="true">
             🍽️
           </p>
-          <p className="mt-1 font-semibold">这段期间还没有饮食记录</p>
-          <p className="mt-1">记录后，这里会显示平均热量、蛋白质和达标天数。</p>
+          <p className="mt-1 font-semibold">No food logged in this period</p>
+          <p className="mt-1">
+            Once you log, your average calories, protein and days on target show here.
+          </p>
           <Link
             to="/diary"
             className="mt-3 inline-flex min-h-11 items-center rounded-2xl bg-emerald-strong px-4 font-semibold text-white dark:bg-emerald dark:text-slate-950"
           >
-            去记录饮食
+            Log food
           </Link>
         </div>
       ) : (
         <>
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
             <Stat
-              label="有记录的天数"
+              label="Days logged"
               value={
                 <>
                   {w.loggedDays}
-                  <span className="text-sm font-semibold text-slate-500"> / {w.dayCount} 天</span>
+                  <span className="text-sm font-semibold text-slate-500"> / {w.dayCount}</span>
                 </>
               }
-              note={`完成度 ${pct}%`}
+              note={`${pct}% of days`}
             />
             <Stat
-              label="完整记录"
+              label="Fully logged"
               value={
                 <>
                   {w.completeDays}
-                  <span className="text-sm font-semibold text-slate-500"> 天</span>
+                  <span className="text-sm font-semibold text-slate-500"> days</span>
                 </>
               }
-              note="已标记“已完整记录”"
+              note="Marked as fully logged"
             />
             {!hide && (
               <Stat
-                label="平均热量"
+                label="Avg calories"
                 value={
                   <>
                     {fmtInt(w.avgKcal ?? 0)}
@@ -261,57 +270,57 @@ function WeeklySection({ s, today, hide }: { s: AppState; today: string; hide: b
                 }
                 note={
                   w.targetKcal !== null
-                    ? `${w.loggedDays} 个有记录日 · 目标 ${fmtInt(w.targetKcal)}`
-                    : `${w.loggedDays} 个有记录日`
+                    ? `Over ${w.loggedDays} logged days · target ${fmtInt(w.targetKcal)}`
+                    : `Over ${w.loggedDays} logged days`
                 }
               />
             )}
             {!hide && (
               <Stat
-                label="平均蛋白质"
+                label="Avg protein"
                 value={
                   <>
                     {fmtInt(w.avgProteinG ?? 0)}
                     <span className="text-sm font-semibold text-slate-500"> g</span>
                   </>
                 }
-                note={w.targetProteinG !== null ? `目标 ${w.targetProteinG} g` : undefined}
+                note={w.targetProteinG !== null ? `Target ${w.targetProteinG} g` : undefined}
               />
             )}
             <Stat
-              label="蛋白质达标"
+              label="Protein on target"
               value={
                 w.proteinJudgedDays > 0 ? (
                   <>
                     {w.proteinMetDays}
                     <span className="text-sm font-semibold text-slate-500">
                       {' '}
-                      / {w.proteinJudgedDays} 天
+                      / {w.proteinJudgedDays} days
                     </span>
                   </>
                 ) : (
                   '—'
                 )
               }
-              note={w.proteinJudgedDays > 0 ? '以完整记录日计算' : '需要完整记录的日子'}
+              note={w.proteinJudgedDays > 0 ? 'Fully logged days only' : 'Needs fully logged days'}
             />
             {!hide && (
               <Stat
-                label="热量在目标范围"
+                label="Calories on target"
                 value={
                   w.completeDays > 0 ? (
                     <>
                       {w.withinTargetDays}
                       <span className="text-sm font-semibold text-slate-500">
                         {' '}
-                        / {w.completeDays} 天
+                        / {w.completeDays} days
                       </span>
                     </>
                   ) : (
                     '—'
                   )
                 }
-                note="目标 ±10%，且不低于安全下限"
+                note="Within ±10% and above the safety floor"
               />
             )}
           </div>
@@ -320,35 +329,41 @@ function WeeklySection({ s, today, hide }: { s: AppState; today: string; hide: b
               ⚖️{' '}
               {w.weight ? (
                 <>
-                  体重 {md(w.weight.firstDate)} {fmt1(w.weight.first)} kg → {md(w.weight.lastDate)}{' '}
-                  {fmt1(w.weight.last)} kg（<strong>{signed(w.weight.change)} kg</strong>）
+                  Weight {md(w.weight.firstDate)} {fmt1(w.weight.first)} kg →{' '}
+                  {md(w.weight.lastDate)} {fmt1(w.weight.last)} kg (
+                  <strong>{signed(w.weight.change)} kg</strong>)
                   {goalWord !== 'keep' && Math.abs(w.weight.change) >= 0.1 && (
                     <span className="block text-xs text-emerald-900/70 dark:text-emerald-50/70">
-                      一周内的变化常受水分影响，长期趋势请看下面的“身体变化”。
+                      Changes within a week are often water. See "Body changes" below for the
+                      long-term trend.
                     </span>
                   )}
                 </>
               ) : w.weighIns === 1 ? (
-                '这段期间量了 1 次体重，再量一次就能看到变化。'
+                'One weigh-in in this period. Weigh in once more to see a change.'
               ) : (
-                '这段期间没有体重记录。'
+                'No weigh-ins in this period.'
               )}
             </p>
           )}
           {w.loggedDays < WEEKLY_LOG_GOAL && w.dayCount >= WEEKLY_LOG_GOAL && (
             <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
-              记录不到 {WEEKLY_LOG_GOAL} 天，平均值仅供参考。
+              Fewer than {WEEKLY_LOG_GOAL} days logged, so averages are only a rough guide.
             </p>
           )}
           <details className="mt-2 text-xs text-slate-500 dark:text-slate-400">
-            <summary className="cursor-pointer font-semibold">怎么计算？</summary>
+            <summary className="cursor-pointer font-semibold">How is this calculated?</summary>
             <ul className="mt-1.5 list-disc space-y-1 pl-4 leading-relaxed">
-              <li>平均值只用有记录的日子计算，没有记录的日子不会当作 0。</li>
+              <li>Averages only use days with logs; days without logs never count as 0.</li>
               <li>
-                蛋白质与热量范围只看标记“已完整记录”的日子，避免只记了一样点心的日子影响结果。
+                Protein and calorie range only use days marked fully logged, so a day with just one
+                snack logged does not skew results.
               </li>
-              <li>“在目标范围”是每日目标的 90%–110%，而且不低于安全下限，吃太少不会被算作达标。</li>
-              <li>一周从周一开始，按你手机的日期计算。</li>
+              <li>
+                "On target" means 90%–110% of your daily target and above the safety floor; eating
+                too little never counts.
+              </li>
+              <li>Weeks start on Monday, using your phone's date.</li>
             </ul>
           </details>
         </>
@@ -367,26 +382,27 @@ function BodySection({ s, profile, today }: { s: AppState; profile: Profile; tod
 
   const action = (
     <Chips
-      label="图表期间"
+      label="Chart range"
       value={range}
       onChange={setRange}
-      options={(['7', '30', '90'] as const).map((r) => ({ value: r, label: `${r} 天` }))}
+      options={(['7', '30', '90'] as const).map((r) => ({ value: r, label: `${r} days` }))}
     />
   );
 
   if (!latest) {
     return (
-      <Section id="body" icon="📈" title="身体变化">
+      <Section id="body" icon="📈" title="Body changes">
         <div className="rounded-2xl bg-slate-50 p-5 text-center dark:bg-slate-700/60">
           <p className="text-3xl" aria-hidden="true">
             ⚖️
           </p>
-          <p className="mt-2 font-semibold">记录第一次体重，开始看到身体的变化。</p>
+          <p className="mt-2 font-semibold">Log your first weight to start seeing changes.</p>
           <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
-            建议每天早上、上完厕所后、吃早餐前量，比较准确。
+            Weigh in the morning, after the toilet and before breakfast, for the most accurate
+            reading.
           </p>
           <Button className="mt-3" onClick={() => scrollToId('weights')}>
-            ＋ 记录体重
+            + Log weight
           </Button>
         </div>
       </Section>
@@ -396,30 +412,34 @@ function BodySection({ s, profile, today }: { s: AppState; profile: Profile; tod
   const change = start !== null ? latest.weightKg - start : null;
   let changeText = '';
   if (change !== null) {
-    if (Math.abs(change) < 0.05) changeText = '与起点相同';
+    if (Math.abs(change) < 0.05) changeText = 'Same as start';
     else if (goal === 'fat_loss')
-      changeText = change < 0 ? `已减 ${fmt1(-change)} kg` : `比起点 +${fmt1(change)} kg`;
-    else if (goal === 'maintain') changeText = `与起点相差 ${signed(change)} kg`;
-    else changeText = change > 0 ? `已增 ${fmt1(change)} kg` : `比起点 −${fmt1(-change)} kg`;
+      changeText = change < 0 ? `Lost ${fmt1(-change)} kg` : `+${fmt1(change)} kg since start`;
+    else if (goal === 'maintain') changeText = `${signed(change)} kg since start`;
+    else changeText = change > 0 ? `Gained ${fmt1(change)} kg` : `−${fmt1(-change)} kg since start`;
   }
   const toGoal = goalKg !== undefined && goal !== 'maintain' ? goalKg - latest.weightKg : null;
   const reached = toGoal !== null && (goal === 'fat_loss' ? toGoal >= 0 : toGoal <= 0);
 
   return (
-    <Section id="body" icon="📈" title="身体变化" action={action}>
+    <Section id="body" icon="📈" title="Body changes" action={action}>
       <div className="mb-3 grid grid-cols-3 gap-2 text-center">
         <div className="rounded-2xl bg-slate-50 px-2 py-2 dark:bg-slate-700/60">
-          <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">起点</p>
+          <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">Start</p>
           <p className="font-black">{start !== null ? `${fmt1(start)} kg` : '—'}</p>
         </div>
         <div className="rounded-2xl bg-emerald-50 px-2 py-2 dark:bg-emerald/15">
-          <p className="text-[11px] font-semibold text-emerald-800 dark:text-emerald-200">最新</p>
+          <p className="text-[11px] font-semibold text-emerald-800 dark:text-emerald-200">Latest</p>
           <p className="font-black">{fmt1(latest.weightKg)} kg</p>
         </div>
         <div className="rounded-2xl bg-slate-50 px-2 py-2 dark:bg-slate-700/60">
-          <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">目标</p>
+          <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">Goal</p>
           <p className="font-black">
-            {goal === 'maintain' ? '维持' : goalKg !== undefined ? `${fmt1(goalKg)} kg` : '未设定'}
+            {goal === 'maintain'
+              ? 'Maintain'
+              : goalKg !== undefined
+                ? `${fmt1(goalKg)} kg`
+                : 'Not set'}
           </p>
         </div>
       </div>
@@ -427,17 +447,17 @@ function BodySection({ s, profile, today }: { s: AppState; profile: Profile; tod
         {changeText && <strong>{changeText}</strong>}
         {toGoal !== null &&
           (reached ? (
-            <span> · 🎉 已到达目标体重</span>
+            <span> · 🎉 Goal weight reached</span>
           ) : (
-            <span> · 距离目标还差 {fmt1(Math.abs(toGoal))} kg</span>
+            <span> · {fmt1(Math.abs(toGoal))} kg to go</span>
           ))}
         <span className="block text-xs text-slate-500 dark:text-slate-400">
-          最新记录：{formatDateZh(latest.date, today)}
+          Latest weigh-in: {formatDay(latest.date, today)}
         </span>
       </p>
       {points.length < 2 ? (
         <p className="rounded-2xl bg-slate-50 p-4 text-center text-sm text-slate-600 dark:bg-slate-700/60 dark:text-slate-300">
-          再记录一次体重，就能画出变化趋势。
+          Log one more weigh-in to draw your trend.
         </p>
       ) : (
         <>
@@ -449,7 +469,9 @@ function BodySection({ s, profile, today }: { s: AppState; profile: Profile; tod
             goalKg={goal === 'maintain' ? undefined : goalKg}
           />
           <p className="mt-2 text-xs leading-relaxed text-slate-500 dark:text-slate-400">
-            灰点是每次的体重（点一下看数值），绿线是平滑后的趋势，虚线是起点和目标。体重每天会因水分、盐分起伏，看绿线就好。
+            Grey dots are weigh-ins (tap one to see it), the green line is the smoothed trend, and
+            the dashed lines are your start and goal. Weight moves daily with water and salt, so
+            watch the green line.
           </p>
         </>
       )}
@@ -479,12 +501,12 @@ function InsightsSection({ s, today }: { s: AppState; today: string }) {
     <Section
       id="insights"
       icon="🔍"
-      title="专属健康洞察"
-      sub={`根据你近 7 天（${md(addDays(today, -6))} – ${md(today)}）的记录`}
+      title="Your insights"
+      sub={`From your logs, ${md(addDays(today, -6))} – ${md(today)}`}
     >
       {list.length === 0 ? (
         <p className="rounded-2xl bg-slate-50 p-4 text-sm text-slate-600 dark:bg-slate-700/60 dark:text-slate-300">
-          暂时没有新的洞察。继续记录，我们会在发现规律时告诉你。
+          No new insights right now. Keep logging and we'll tell you when we spot a pattern.
         </p>
       ) : (
         <ul className="space-y-2.5">
@@ -526,10 +548,10 @@ function InsightsSection({ s, today }: { s: AppState; today: string }) {
                       className="min-h-9 rounded-2xl px-2 text-xs font-semibold text-slate-500 hover:bg-white/60 dark:text-slate-400 dark:hover:bg-white/10"
                       onClick={() => {
                         update((x) => dismissInsight(x, insightKey(i.id, today)));
-                        toast({ text: '本周不再显示这条洞察' });
+                        toast({ text: 'Hidden for this week' });
                       }}
                     >
-                      本周不再显示
+                      Hide this week
                     </button>
                   </div>
                 </div>
@@ -540,11 +562,12 @@ function InsightsSection({ s, today }: { s: AppState; today: string }) {
       )}
       {list.length > 3 && (
         <Button variant="ghost" className="mt-2 w-full" onClick={() => setShowAll((v) => !v)}>
-          {showAll ? '收起' : `查看全部 ${list.length} 条`}
+          {showAll ? 'Show less' : `See all ${list.length}`}
         </Button>
       )}
       <p className="mt-3 text-[11px] leading-relaxed text-slate-500 dark:text-slate-400">
-        洞察由固定规则根据你的记录产生，只供参考，不是医疗诊断。如有健康问题，请咨询医生或营养师。
+        Insights come from fixed rules applied to your logs. They are guidance, not a medical
+        diagnosis. For health concerns, talk to a doctor or dietitian.
       </p>
     </Section>
   );
@@ -580,16 +603,16 @@ function HabitsSection({ s, today }: { s: AppState; today: string }) {
     <Section
       id="habits"
       icon="🌱"
-      title="健康习惯"
-      sub={`本周 ${md(week)} – ${md(addDays(week, 6))}`}
+      title="Healthy habits"
+      sub={`This week, ${md(week)} – ${md(addDays(week, 6))}`}
     >
       <div className="overflow-x-auto">
         <table className="w-full min-w-[19rem] border-separate border-spacing-1 text-center text-sm">
-          <caption className="sr-only">本周每天的习惯完成情况</caption>
+          <caption className="sr-only">Your habits each day this week</caption>
           <thead>
             <tr>
               <th scope="col" className="text-left text-xs font-semibold text-slate-500">
-                <span className="sr-only">习惯</span>
+                <span className="sr-only">Habit</span>
               </th>
               {WEEKDAY_SHORT.map((d, i) => (
                 <th
@@ -644,29 +667,29 @@ function HabitsSection({ s, today }: { s: AppState; today: string }) {
         ))}
       </ul>
       <details className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-        <summary className="cursor-pointer font-semibold">完成标准</summary>
+        <summary className="cursor-pointer font-semibold">What counts</summary>
         <ul className="mt-1.5 list-disc space-y-1 pl-4">
           {rows.map((h) => (
             <li key={h.id}>
-              <strong>{h.label}</strong>：{h.hint}
+              <strong>{h.label}</strong>: {h.hint}
             </li>
           ))}
         </ul>
       </details>
 
       <div className="mt-4 rounded-2xl border border-slate-200 p-3 dark:border-slate-600">
-        <p className="text-xs font-bold text-slate-500 dark:text-slate-400">每周自选目标</p>
+        <p className="text-xs font-bold text-slate-500 dark:text-slate-400">Weekly challenge</p>
         {active && isChallengeId(active.challenge) ? (
           <ChallengeProgress s={s} id={active.challenge} week={week} />
         ) : (
           <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
-            这周还没有选择目标（可选）。
+            No challenge this week (optional).{' '}
             <button
               type="button"
               className="font-semibold text-emerald-strong underline-offset-2 hover:underline dark:text-emerald"
               onClick={() => scrollToId('next')}
             >
-              去选一个
+              Pick one
             </button>
           </p>
         )}
@@ -674,7 +697,7 @@ function HabitsSection({ s, today }: { s: AppState; today: string }) {
 
       <div className="mt-5 border-t border-slate-100 pt-4 dark:border-slate-700">
         <div className="mb-2 flex items-center justify-between">
-          <h3 className="font-bold">🏆 成就</h3>
+          <h3 className="font-bold">🏆 Badges</h3>
           <span className="text-sm text-slate-500 dark:text-slate-400">
             {unlocked} / {summary.badges.length}
           </span>
@@ -682,21 +705,21 @@ function HabitsSection({ s, today }: { s: AppState; today: string }) {
         <div className="mb-3 flex gap-2 text-center text-xs">
           <div className="flex-1 rounded-2xl bg-orange-50 py-2 dark:bg-orange-500/10">
             <p className="text-lg font-black">🔥 {summary.streak}</p>
-            <p className="text-slate-600 dark:text-slate-300">目前连续记录（天）</p>
+            <p className="text-slate-600 dark:text-slate-300">Current streak (days)</p>
           </div>
           <div className="flex-1 rounded-2xl bg-slate-50 py-2 dark:bg-slate-700/60">
             <p className="text-lg font-black">{summary.longest}</p>
-            <p className="text-slate-600 dark:text-slate-300">最长连续（天）</p>
+            <p className="text-slate-600 dark:text-slate-300">Longest streak (days)</p>
           </div>
           <div className="flex-1 rounded-2xl bg-slate-50 py-2 dark:bg-slate-700/60">
             <p className="text-lg font-black">{summary.daysLogged}</p>
-            <p className="text-slate-600 dark:text-slate-300">累计记录（天）</p>
+            <p className="text-slate-600 dark:text-slate-300">Days logged in total</p>
           </div>
         </div>
         {next && (
           <div className="mb-3 rounded-2xl bg-amber-50 px-3 py-2.5 text-sm dark:bg-amber-500/10">
             <p>
-              下一个：
+              Next:
               <strong>
                 {next.icon} {next.title}
               </strong>{' '}
@@ -713,7 +736,7 @@ function HabitsSection({ s, today }: { s: AppState; today: string }) {
           </div>
         )}
         <Button variant="ghost" className="w-full" onClick={() => setShowBadges((v) => !v)}>
-          {showBadges ? '收起成就' : '查看全部成就'}
+          {showBadges ? 'Hide badges' : 'See all badges'}
         </Button>
         {showBadges && (
           <ul className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3">
@@ -730,10 +753,10 @@ function HabitsSection({ s, today }: { s: AppState; today: string }) {
                 </p>
                 <p className="mt-1 text-sm font-semibold">
                   {b.title}
-                  <span className="sr-only">{b.unlocked ? '（已获得）' : '（未获得）'}</span>
+                  <span className="sr-only">{b.unlocked ? ' (earned)' : ' (not earned)'}</span>
                 </p>
                 <p className="text-xs text-slate-600 dark:text-slate-300">
-                  {b.unlocked ? '✓ 已获得' : b.need}
+                  {b.unlocked ? '✓ Earned' : b.need}
                 </p>
                 {!b.unlocked && b.progress.max > 1 && (
                   <>
@@ -759,7 +782,7 @@ function ChallengeProgress({ s, id, week }: { s: AppState; id: ChallengeId; week
       <p className="flex items-center justify-between gap-2 text-sm font-semibold">
         <span>{CHALLENGES[id].title}</span>
         <span className={p.done ? 'text-emerald-strong dark:text-emerald' : 'text-slate-500'}>
-          {p.done ? '✓ 完成' : `${p.value} / ${p.max}`}
+          {p.done ? '✓ Done' : `${p.value} / ${p.max}`}
         </span>
       </p>
       <Bar value={p.value} max={p.max} color="bg-emerald-500" />
@@ -779,18 +802,18 @@ function NextStepSection({ s, today }: { s: AppState; today: string }) {
     const id = active.challenge;
     const p = challengeProgress(s, id, week);
     return (
-      <Section id="next" icon="🎯" title="下一个小目标" sub="本周挑战进行中">
+      <Section id="next" icon="🎯" title="Next small goal" sub="This week's challenge">
         <div className="rounded-2xl bg-gradient-to-br from-emerald-50 to-teal-50 p-4 dark:from-emerald/15 dark:to-teal-500/10">
           <ChallengeProgress s={s} id={id} week={week} />
           <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
             {p.done
-              ? '🎉 这周的挑战完成了！下周一可以选新的挑战。'
-              : `${CHALLENGES[id].why} 还有 ${daysLeft + 1} 天（到周日）。`}
+              ? '🎉 Challenge complete! You can pick a new one next Monday.'
+              : `${CHALLENGES[id].why} ${daysLeft + 1} ${daysLeft === 0 ? 'day' : 'days'} left (until Sunday).`}
           </p>
         </div>
         <div className="mt-3 grid grid-cols-2 gap-2">
           <Button variant="secondary" onClick={() => scrollToId('habits')}>
-            查看进度
+            See progress
           </Button>
           {!p.done && (
             <Button
@@ -798,10 +821,10 @@ function NextStepSection({ s, today }: { s: AppState; today: string }) {
               onClick={() => {
                 update((x) => acceptChallenge(x, challengeRecord(id, week, true)));
                 setIndex(0);
-                toast({ text: '已放弃这周的挑战，可以重新选一个' });
+                toast({ text: 'Challenge dropped. You can pick another.' });
               }}
             >
-              换一个目标
+              Try another
             </Button>
           )}
         </div>
@@ -811,9 +834,9 @@ function NextStepSection({ s, today }: { s: AppState; today: string }) {
 
   if (options.length === 0) {
     return (
-      <Section id="next" icon="🎯" title="下一个小目标">
+      <Section id="next" icon="🎯" title="Next small goal">
         <p className="text-sm text-slate-600 dark:text-slate-300">
-          🎉 这周所有挑战的条件都已经达到了，下周一再来选新的挑战吧。
+          🎉 You've already met every challenge this week. Come back on Monday for a new one.
         </p>
       </Section>
     );
@@ -822,29 +845,34 @@ function NextStepSection({ s, today }: { s: AppState; today: string }) {
   const id = options[index % options.length]!;
   const p = challengeProgress(s, id, week);
   return (
-    <Section id="next" icon="🎯" title="下一个小目标" sub="根据你近 7 天最需要加强的习惯推荐">
+    <Section
+      id="next"
+      icon="🎯"
+      title="Next small goal"
+      sub="Picked from the habit that needs the most help"
+    >
       <div className="rounded-2xl bg-gradient-to-br from-emerald-50 to-teal-50 p-4 dark:from-emerald/15 dark:to-teal-500/10">
         <p className="text-lg font-black">{CHALLENGES[id].title}</p>
         <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">{CHALLENGES[id].why}</p>
         <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
-          这周目前 {p.value} / {p.max} · 挑战到周日结束，可随时更换
+          So far this week {p.value} / {p.max} · ends Sunday, change any time
         </p>
       </div>
       <div className="mt-3 grid grid-cols-2 gap-2">
         <Button
           onClick={() => {
             update((x) => acceptChallenge(x, challengeRecord(id, week)));
-            toast({ text: '挑战开始！进度会根据你的记录自动更新' });
+            toast({ text: 'Challenge started! Progress updates from your logs.' });
           }}
         >
-          开始挑战
+          Start challenge
         </Button>
         <Button
           variant="secondary"
           disabled={options.length < 2}
           onClick={() => setIndex((i) => i + 1)}
         >
-          换一个目标
+          Try another
         </Button>
       </div>
     </Section>
@@ -865,37 +893,38 @@ function AdjustSection({ s, profile, today }: { s: AppState; profile: Profile; t
   if (cooldown) {
     body = (
       <p className="text-sm">
-        上一次调整在 {formatDateZh(lastAdaptive.effectiveFrom, today)}
-        。新目标需要约两周才看得出效果，
-        {formatDateZh(addDays(lastAdaptive.effectiveFrom, 14), today)} 之后会再评估。
+        Your target was last adjusted on {formatDay(lastAdaptive.effectiveFrom, today)}. A new
+        target takes about two weeks to show its effect, so we'll review again after{' '}
+        {formatDay(addDays(lastAdaptive.effectiveFrom, 14), today)}.
       </p>
     );
   } else if (!adaptive?.ok) {
     body = (
       <div className="space-y-2 text-sm">
-        <p>需要更多记录，才能可靠地估算你的实际消耗。还需要：</p>
+        <p>We need more logs to reliably estimate what you burn. Still needed:</p>
         <ul className="list-disc space-y-1 pl-5 text-slate-700 dark:text-slate-200">
           {(adaptive && !adaptive.ok ? adaptive.reasons : []).map((r) => (
             <li key={r}>{REFUSAL_TEXT[r]}</li>
           ))}
         </ul>
         <p className="text-xs text-slate-500 dark:text-slate-400">
-          在那之前，会继续使用按公式计算的目标 {fmtInt(target.caloriesKcal)} kcal。
+          Until then, your formula-based target of {fmtInt(target.caloriesKcal)} kcal stays.
         </p>
       </div>
     );
   } else if (adaptive.proposedTargetKcal === target.caloriesKcal) {
     body = (
       <p className="text-sm">
-        ✓ 根据 {md(adaptive.windowStart)} – {md(adaptive.windowEnd)} 的记录，目前的目标{' '}
-        {fmtInt(target.caloriesKcal)} kcal 合适，不需要调整。
+        ✓ Based on your logs from {md(adaptive.windowStart)} – {md(adaptive.windowEnd)}, your
+        current target of {fmtInt(target.caloriesKcal)} kcal fits. No change needed.
       </p>
     );
   } else if (kept) {
     body = (
       <p className="text-sm">
-        你在 {formatDateZh(keptOn, today)} 选择保留目前的目标 {fmtInt(target.caloriesKcal)} kcal。
-        {formatDateZh(addDays(keptOn, 14), today)} 之后会再提供建议。
+        You chose to keep your target of {fmtInt(target.caloriesKcal)} kcal on{' '}
+        {formatDay(keptOn, today)}. We'll suggest again after{' '}
+        {formatDay(addDays(keptOn, 14), today)}.
       </p>
     );
   } else {
@@ -905,30 +934,33 @@ function AdjustSection({ s, profile, today }: { s: AppState; profile: Profile; t
       <div className="space-y-3 text-sm">
         <div className="flex items-center justify-center gap-3 rounded-2xl bg-slate-50 py-3 dark:bg-slate-700/60">
           <div className="text-center">
-            <p className="text-xs text-slate-500">目前</p>
+            <p className="text-xs text-slate-500">Now</p>
             <p className="text-lg font-black">{fmtInt(target.caloriesKcal)}</p>
           </div>
           <span aria-hidden="true" className="text-xl text-slate-400">
             →
           </span>
           <div className="text-center">
-            <p className="text-xs text-slate-500">建议</p>
+            <p className="text-xs text-slate-500">Suggested</p>
             <p className="text-lg font-black text-emerald-strong dark:text-emerald">
               {fmtInt(adaptive.proposedTargetKcal)}
             </p>
           </div>
-          <span className="text-xs text-slate-500">kcal / 天</span>
+          <span className="text-xs text-slate-500">kcal / day</span>
         </div>
         <p>
-          在 {md(adaptive.windowStart)} – {md(adaptive.windowEnd)}（{adaptive.windowDays}{' '}
-          天）里，你完整记录日的平均摄取是 {fmtInt(adaptive.meanIntakeKcal)} kcal，趋势体重变化{' '}
-          {signed(adaptive.trendChangeKg)} kg，推算你的实际消耗约{' '}
-          {fmtInt(adaptive.observedTdeeKcal)} kcal，所以建议把目标{up ? '调高' : '调低'}。
+          From {md(adaptive.windowStart)} – {md(adaptive.windowEnd)} ({adaptive.windowDays} days),
+          your fully logged days averaged {fmtInt(adaptive.meanIntakeKcal)} kcal and your trend
+          weight changed {signed(adaptive.trendChangeKg)} kg. That suggests you burn about{' '}
+          {fmtInt(adaptive.observedTdeeKcal)} kcal, so we suggest {up ? 'raising' : 'lowering'} your
+          target.
         </p>
         <p className="text-xs leading-relaxed text-slate-500 dark:text-slate-400">
-          这是估计值：漏记的食物、水分变化或生理周期都会影响结果。
-          {floored && `建议已按安全下限 ${fmtInt(target.calorieFloorKcal)} kcal 设定，不会更低。`}
-          只有你按“采用”才会改变目标，旧目标会保留在历史中。
+          This is an estimate: missed foods, water changes or hormonal cycles all affect it.{' '}
+          {floored &&
+            `It is set at your safety floor of ${fmtInt(target.calorieFloorKcal)} kcal and won't go lower. `}
+          Your target only changes if you tap "Use suggestion", and the old one stays in your
+          history.
         </p>
         <div className="grid grid-cols-2 gap-2">
           <Button
@@ -951,19 +983,21 @@ function AdjustSection({ s, profile, today }: { s: AppState; profile: Profile; t
                   clamps: m.clamps,
                 }),
               );
-              toast({ text: `已采用，新的每日目标是 ${fmtInt(adaptive.proposedTargetKcal)} kcal` });
+              toast({
+                text: `Done. Your new daily target is ${fmtInt(adaptive.proposedTargetKcal)} kcal`,
+              });
             }}
           >
-            采用建议
+            Use suggestion
           </Button>
           <Button
             variant="secondary"
             onClick={() => {
               update((x) => keepTarget(x, today));
-              toast({ text: '已保留目前的目标，两周后再评估' });
+              toast({ text: "Target kept. We'll review again in two weeks." });
             }}
           >
-            保留目前目标
+            Keep current target
           </Button>
         </div>
       </div>
@@ -974,8 +1008,8 @@ function AdjustSection({ s, profile, today }: { s: AppState; profile: Profile; t
     <Section
       id="adjust"
       icon="⚙️"
-      title="目标调整建议"
-      sub="根据实际记录微调每日热量，由你决定是否采用"
+      title="Target suggestion"
+      sub="Fine-tunes calories from your real logs; you decide"
     >
       {body}
     </Section>
@@ -1010,7 +1044,7 @@ function WeightHistorySection({ s, today }: { s: AppState; today: string }) {
   );
 
   return (
-    <Section id="weights" icon="⚖️" title="体重记录" sub="可补记过去的日子，也可以修改或删除">
+    <Section id="weights" icon="⚖️" title="Weight log" sub="Add past days, edit or delete">
       <form
         className="space-y-3 rounded-2xl bg-slate-50 p-3 dark:bg-slate-700/40"
         onSubmit={(e) => {
@@ -1029,12 +1063,12 @@ function WeightHistorySection({ s, today }: { s: AppState; today: string }) {
             ...(waist.trim() !== '' && { waistCm }),
           };
           update((x) => setWeightOn(old ? removeWeight(x, old.id) : x, entry));
-          toast({ text: editingId ? '已更新' : `已记录 ${formatDateZh(wDate, today)} 的体重` });
+          toast({ text: editingId ? 'Updated' : `Weight saved for ${formatDay(wDate, today)}` });
           resetForm();
         }}
       >
-        <p className="text-sm font-bold">{editingId ? '修改体重记录' : '＋ 新增体重记录'}</p>
-        <Field label="日期">
+        <p className="text-sm font-bold">{editingId ? 'Edit weigh-in' : '+ New weigh-in'}</p>
+        <Field label="Date">
           {(p) => (
             <input
               {...p}
@@ -1047,7 +1081,7 @@ function WeightHistorySection({ s, today }: { s: AppState; today: string }) {
           )}
         </Field>
         <div className="grid grid-cols-2 gap-3">
-          <Field label="体重（kg）">
+          <Field label="Weight (kg)">
             {(p) => (
               <input
                 {...p}
@@ -1061,7 +1095,7 @@ function WeightHistorySection({ s, today }: { s: AppState; today: string }) {
               />
             )}
           </Field>
-          <Field label="腰围（cm，选填）">
+          <Field label="Waist (cm, optional)">
             {(p) => (
               <input
                 {...p}
@@ -1076,28 +1110,28 @@ function WeightHistorySection({ s, today }: { s: AppState; today: string }) {
           </Field>
         </div>
         {w.trim() !== '' && (kg < 30 || kg > 300) && (
-          <p className="text-xs text-red-700 dark:text-red-400">体重需在 30–300 kg 之间。</p>
+          <p className="text-xs text-red-700 dark:text-red-400">Weight must be 30–300 kg.</p>
         )}
         {!editingId && w.trim() !== '' && s.weights.some((x) => x.date === wDate) && (
           <p className="text-xs text-amber-800 dark:text-amber-300">
-            这一天已经有记录，保存后会取代它。
+            This day already has a weigh-in; saving will replace it.
           </p>
         )}
         <div className="flex gap-2">
           {editingId && (
             <Button variant="secondary" onClick={resetForm}>
-              取消
+              Cancel
             </Button>
           )}
           <Button type="submit" className="flex-1" disabled={!valid}>
-            {editingId ? '保存修改' : '保存'}
+            {editingId ? 'Save changes' : 'Save'}
           </Button>
         </div>
       </form>
 
       {entries.length === 0 ? (
         <p className="mt-3 text-center text-sm text-slate-500 dark:text-slate-400">
-          还没有体重记录。
+          No weigh-ins yet.
         </p>
       ) : (
         <ul className="mt-2 divide-y divide-slate-100 dark:divide-slate-700">
@@ -1109,18 +1143,18 @@ function WeightHistorySection({ s, today }: { s: AppState; today: string }) {
                   {e.waistCm !== undefined && (
                     <span className="font-normal text-slate-600 dark:text-slate-300">
                       {' '}
-                      · 腰围 {fmt1(e.waistCm)} cm
+                      · waist {fmt1(e.waistCm)} cm
                     </span>
                   )}
                 </span>
                 <span className="block text-xs text-slate-500 dark:text-slate-400">
-                  {formatDateZh(e.date, today)}
+                  {formatDay(e.date, today)}
                 </span>
               </span>
               <Button
                 variant="ghost"
                 className="min-h-9 px-3"
-                aria-label={`修改 ${e.date} 的体重`}
+                aria-label={`Edit weight for ${e.date}`}
                 onClick={() => {
                   setEditingId(e.id);
                   setWDate(e.date);
@@ -1130,18 +1164,18 @@ function WeightHistorySection({ s, today }: { s: AppState; today: string }) {
                   inputRef.current?.focus({ preventScroll: true });
                 }}
               >
-                修改
+                Edit
               </Button>
               <button
                 type="button"
-                aria-label={`删除 ${e.date} 的体重记录`}
+                aria-label={`Delete weigh-in for ${e.date}`}
                 className="flex size-10 items-center justify-center rounded-2xl text-slate-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950"
                 onClick={() => {
                   update((x) => removeWeight(x, e.id));
                   if (editingId === e.id) resetForm();
                   toast({
-                    text: `已删除 ${formatDateZh(e.date, today)} 的体重`,
-                    actionLabel: '撤销',
+                    text: `Deleted weigh-in for ${formatDay(e.date, today)}`,
+                    actionLabel: 'Undo',
                     onAction: () => update((x) => setWeightOn(x, e)),
                   });
                 }}
@@ -1154,14 +1188,14 @@ function WeightHistorySection({ s, today }: { s: AppState; today: string }) {
       )}
       {entries.length > 7 && (
         <Button variant="ghost" className="w-full" onClick={() => setShowAll((v) => !v)}>
-          {showAll ? '收起' : `显示全部 ${entries.length} 笔`}
+          {showAll ? 'Show less' : `Show all ${entries.length}`}
         </Button>
       )}
 
       <details className="mt-3 rounded-2xl border border-slate-100 px-3 dark:border-slate-700">
         <summary className="flex min-h-11 cursor-pointer items-center justify-between text-sm font-semibold">
-          每日目标历史（{s.targets.length}）
-          <span className="text-xs font-normal text-slate-500">展开</span>
+          Daily target history ({s.targets.length})
+          <span className="text-xs font-normal text-slate-500">Show</span>
         </summary>
         <ul className="space-y-1.5 pb-3 text-sm">
           {[...s.targets]

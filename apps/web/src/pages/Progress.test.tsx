@@ -43,13 +43,13 @@ function renderProgress(p: Profile = profile, extra = {}) {
 
 afterEach(cleanup);
 
-describe('我的成长', () => {
+describe('My progress', () => {
   it('scenario A: a new user sees empty states, not made-up numbers', () => {
     renderProgress();
-    expect(screen.getByRole('heading', { name: '我的成长' })).toBeTruthy();
-    expect(screen.getByText('这段期间还没有饮食记录')).toBeTruthy();
-    expect(screen.getByText('记录第一次体重，开始看到身体的变化。')).toBeTruthy();
-    expect(screen.getByRole('button', { name: '＋ 记录体重' })).toBeTruthy();
+    expect(screen.getByRole('heading', { name: 'My progress' })).toBeTruthy();
+    expect(screen.getByText('No food logged in this period')).toBeTruthy();
+    expect(screen.getByText('Log your first weight to start seeing changes.')).toBeTruthy();
+    expect(screen.getByRole('button', { name: '+ Log weight' })).toBeTruthy();
     expect(screen.queryByText(/kcal/)).toBeNull();
   });
 
@@ -76,23 +76,23 @@ describe('我的成长', () => {
         },
       ],
     });
-    expect(screen.getByText('已增 1.5 kg')).toBeTruthy();
-    expect(screen.getByText(/距离目标还差 3.5 kg/)).toBeTruthy();
+    expect(screen.getByText('Gained 1.5 kg')).toBeTruthy();
+    expect(screen.getByText(/3.5 kg to go/)).toBeTruthy();
   });
 
   it('starts and changes a weekly challenge, saved in the synced state', () => {
     renderProgress();
-    fireEvent.click(screen.getByRole('button', { name: '开始挑战' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Start challenge' }));
     expect(getState().challenges).toHaveLength(1);
-    fireEvent.click(screen.getByRole('button', { name: '换一个目标' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Try another' }));
     expect(getState().challenges[0]?.skipped).toBe(true);
-    expect(screen.getByRole('button', { name: '开始挑战' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Start challenge' })).toBeTruthy();
   });
 
   it('scenario G: hidden numbers keep habits but drop weight and calories', () => {
     renderProgress({ ...profile, hideNumbers: true });
-    expect(screen.getByRole('heading', { name: '健康习惯' })).toBeTruthy();
-    expect(screen.queryByRole('heading', { name: '身体变化' })).toBeNull();
-    expect(screen.queryByRole('heading', { name: '体重记录' })).toBeNull();
+    expect(screen.getByRole('heading', { name: 'Healthy habits' })).toBeTruthy();
+    expect(screen.queryByRole('heading', { name: 'Body changes' })).toBeNull();
+    expect(screen.queryByRole('heading', { name: 'Weight log' })).toBeNull();
   });
 });

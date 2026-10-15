@@ -31,10 +31,10 @@ import {
 
 /** Malaysia CPG Management of Obesity (2023) Asian cut-offs, in neutral wording. */
 const BMI_TEXT: Record<BmiCategory, string> = {
-  underweight: '体重过轻',
-  normal: '正常范围',
-  overweight: '超重',
-  obese: '肥胖',
+  underweight: 'Underweight',
+  normal: 'Healthy',
+  overweight: 'Overweight',
+  obese: 'Obese',
 };
 
 const MEAL_BUTTON: Record<MealType, string> = {
@@ -78,7 +78,14 @@ export function Today() {
   };
 
   const hour = new Date().getHours();
-  const greeting = hour < 5 ? '夜深了' : hour < 12 ? '早安' : hour < 18 ? '午安' : '晚上好';
+  const greeting =
+    hour < 5
+      ? 'Up late'
+      : hour < 12
+        ? 'Good morning'
+        : hour < 18
+          ? 'Good afternoon'
+          : 'Good evening';
   const nextMeal = mealForHour(hour);
   const initial =
     profile.avatar ??
@@ -110,7 +117,7 @@ export function Today() {
         </span>
         <div>
           <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-            {new Date().toLocaleDateString('zh-CN', {
+            {new Date().toLocaleDateString('en-MY', {
               month: 'long',
               day: 'numeric',
               weekday: 'short',
@@ -118,16 +125,16 @@ export function Today() {
           </p>
           <h1 className="text-2xl leading-tight font-black tracking-tight">
             {greeting}
-            {profile.nickname ? `，${profile.nickname}` : ''}
+            {profile.nickname ? `, ${profile.nickname}` : ''}
           </h1>
         </div>
       </div>
 
       {needsRecompute(s, today) && (
-        <Notice title="体重趋势已变化 2 kg 以上">
-          可以按最新的趋势体重重新计算每日目标。
+        <Notice title="Your weight trend has moved 2 kg or more">
+          You can recalculate your daily target from your latest trend weight.
           <div className="mt-3">
-            <Button onClick={recompute}>重新计算目标</Button>
+            <Button onClick={recompute}>Recalculate target</Button>
           </div>
         </Notice>
       )}
@@ -148,7 +155,7 @@ export function Today() {
                 ⚖️
               </span>
               <div>
-                <p className="text-xs font-semibold text-emerald-50">今日体重 & BMI</p>
+                <p className="text-xs font-semibold text-emerald-50">Today's weight & BMI</p>
                 <div className="mt-0.5 flex flex-wrap items-center gap-1.5">
                   {bmiValue !== null && (
                     <span className="rounded-full bg-white px-2 py-0.5 text-[11px] font-extrabold text-emerald-800">
@@ -157,7 +164,7 @@ export function Today() {
                   )}
                   {change !== null && Math.abs(change) >= 0.05 && (
                     <span className="text-xs text-emerald-50">
-                      累计 {change > 0 ? '+' : ''}
+                      Total {change > 0 ? '+' : ''}
                       {fmt1(change)} kg
                     </span>
                   )}
@@ -169,13 +176,13 @@ export function Today() {
               onClick={() => setWeighing(true)}
               className="flex min-h-10 shrink-0 items-center gap-1 rounded-xl bg-white px-3 text-sm font-black text-emerald-800 shadow-sm transition hover:bg-emerald-50 active:scale-95"
             >
-              {weighedToday ? '✎ 改体重' : '＋ 记体重'}
+              {weighedToday ? '✎ Edit weight' : '+ Log weight'}
             </button>
           </div>
 
           <div className="relative mt-4 flex items-end justify-between gap-2">
             <div>
-              <p className="text-xs text-emerald-100">目前体重</p>
+              <p className="text-xs text-emerald-100">Current weight</p>
               <p className="flex items-baseline gap-1">
                 <span className="text-4xl leading-none font-black">
                   {current !== null ? fmt1(current) : '—'}
@@ -185,13 +192,13 @@ export function Today() {
             </div>
             {bmiValue !== null && (
               <div className="rounded-xl border border-white/10 bg-black/15 px-3 py-1.5 text-center">
-                <p className="text-[11px] text-emerald-100">BMI 指数</p>
+                <p className="text-[11px] text-emerald-100">BMI</p>
                 <p className="text-lg leading-tight font-black">{fmt1(bmiValue)}</p>
-                <p className="text-[10px] text-emerald-200">身高 {profile.heightCm} cm</p>
+                <p className="text-[10px] text-emerald-200">Height {profile.heightCm} cm</p>
               </div>
             )}
             <div className="text-right">
-              <p className="text-xs text-emerald-100">目标体重</p>
+              <p className="text-xs text-emerald-100">Target weight</p>
               {goalKg !== undefined ? (
                 <p className="flex items-baseline justify-end gap-1">
                   <span className="text-xl font-black">{fmt1(goalKg)}</span>
@@ -199,7 +206,7 @@ export function Today() {
                 </p>
               ) : (
                 <Link to="/me/profile" className="text-sm font-semibold underline">
-                  设置
+                  Set
                 </Link>
               )}
             </div>
@@ -208,9 +215,9 @@ export function Today() {
           {toGoal !== null && current !== null && goalKg !== undefined && (
             <div className="relative mt-3 space-y-1 border-t border-white/15 pt-3">
               <div className="flex justify-between text-xs text-emerald-100">
-                <span>{losing ? '减重进程' : '增重进程'}</span>
+                <span>{losing ? 'Weight loss progress' : 'Weight gain progress'}</span>
                 <span className="font-bold text-white">
-                  {reached ? '已达成目标！🎉' : `距目标还差 ${fmt1(Math.abs(current - goalKg))} kg`}
+                  {reached ? 'Goal reached! 🎉' : `${fmt1(Math.abs(current - goalKg))} kg to go`}
                 </span>
               </div>
               <div className="h-2 overflow-hidden rounded-full bg-black/20 p-0.5">
@@ -228,15 +235,15 @@ export function Today() {
       <Card className="space-y-3 p-4">
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0">
-            <p className="text-xs font-bold text-slate-500 dark:text-slate-400">今日已摄取热量</p>
+            <p className="text-xs font-bold text-slate-500 dark:text-slate-400">Calories today</p>
             {hide ? (
-              <p className="mt-0.5 text-lg font-black">已记录 {todayMeals.length} 项</p>
+              <p className="mt-0.5 text-lg font-black">{todayMeals.length} items logged</p>
             ) : (
               <>
                 <p className="mt-0.5 flex items-baseline gap-1">
                   <span className="text-3xl font-black">{fmtInt(eaten.kcal)}</span>
                   <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-                    / {fmtInt(target.caloriesKcal)} kcal 目标
+                    / {fmtInt(target.caloriesKcal)} kcal target
                   </span>
                 </p>
                 <p
@@ -249,7 +256,7 @@ export function Today() {
           </div>
           <SnapButton
             meal={nextMeal}
-            label={`记录${MEAL_LABELS[nextMeal]}`}
+            label={`Log ${MEAL_LABELS[nextMeal].toLowerCase()}`}
             className="flex shrink-0 items-center gap-2 rounded-2xl bg-gradient-to-r from-emerald-600 to-emerald-700 px-4 py-3 text-sm font-extrabold text-white shadow-lg shadow-emerald-600/25 transition active:scale-95"
           >
             <span
@@ -258,7 +265,7 @@ export function Today() {
             >
               📷
             </span>
-            记录食物
+            Log food
           </SnapButton>
         </div>
         {!hide && (
@@ -273,7 +280,7 @@ export function Today() {
             <SnapButton
               key={m}
               meal={m}
-              label={`记录${MEAL_LABELS[m]}`}
+              label={`Log ${MEAL_LABELS[m].toLowerCase()}`}
               className="group flex flex-col items-center rounded-xl border border-slate-200 bg-slate-50 p-2 text-center transition hover:border-emerald-200 hover:bg-emerald-50 active:scale-95 dark:border-slate-600 dark:bg-slate-700"
             >
               <span aria-hidden="true" className="text-xl transition group-hover:scale-110">
@@ -292,18 +299,18 @@ export function Today() {
         <div className="flex items-center justify-between">
           <h2 className="flex items-center gap-1.5 text-sm font-black tracking-wider text-slate-500 dark:text-slate-400">
             <span aria-hidden="true">📅</span>
-            今日饮食日志
+            Today's food log
           </h2>
           <Link
             to="/diary"
             className="text-xs font-semibold text-emerald-strong hover:underline dark:text-emerald"
           >
-            修改 / 查看全部 ›
+            Edit / see all ›
           </Link>
         </div>
         {todayMeals.length === 0 ? (
           <p className="rounded-2xl border-2 border-dashed border-slate-200 p-5 text-center text-sm text-slate-500 dark:border-slate-700 dark:text-slate-400">
-            今天还没有记录。点上面的“记录食物”开始吧。
+            Nothing logged yet today. Tap "Log food" above to start.
           </p>
         ) : (
           <ul className="space-y-2.5">
@@ -329,8 +336,8 @@ export function Today() {
                       </span>
                       {!hide && (
                         <span className="mt-0.5 block text-xs text-slate-500 dark:text-slate-400">
-                          {fmtInt(i.grams)} g · 碳水 {fmtInt(i.nutrients.carbsG)}g · 蛋白质{' '}
-                          {fmtInt(i.nutrients.proteinG)}g · 脂肪 {fmtInt(i.nutrients.fatG)}g
+                          {fmtInt(i.grams)} g · carbs {fmtInt(i.nutrients.carbsG)}g · protein{' '}
+                          {fmtInt(i.nutrients.proteinG)}g · fat {fmtInt(i.nutrients.fatG)}g
                         </span>
                       )}
                     </span>
@@ -400,7 +407,7 @@ function WeightSheet({
       <div
         role="dialog"
         aria-modal="true"
-        aria-label="记录今天的体重"
+        aria-label="Log today's weight"
         onClick={(e) => e.stopPropagation()}
         className="w-full max-w-sm animate-rise space-y-4 rounded-t-3xl bg-white p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] shadow-2xl sm:rounded-3xl dark:bg-slate-800"
       >
@@ -413,15 +420,15 @@ function WeightSheet({
               ⚖️
             </span>
             <div>
-              <h2 className="font-black">记录今天的体重</h2>
+              <h2 className="font-black">Log today's weight</h2>
               <p className="text-xs text-slate-500 dark:text-slate-400">
-                早上如厕后、吃东西前量最准
+                Most accurate in the morning, after the toilet and before eating
               </p>
             </div>
           </div>
           <button
             type="button"
-            aria-label="关闭"
+            aria-label="Close"
             onClick={onClose}
             className="flex size-9 items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 dark:bg-slate-700 dark:text-slate-300"
           >
@@ -431,7 +438,7 @@ function WeightSheet({
 
         <div className="space-y-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-center dark:border-slate-600 dark:bg-slate-900">
           <label htmlFor="weight-sheet-input" className="block text-xs font-bold text-slate-500">
-            今日体重（kg）
+            Today's weight (kg)
           </label>
           <div className="flex items-center justify-center gap-1.5">
             <button type="button" className={stepClass} onClick={() => step(-0.5)}>
@@ -457,23 +464,25 @@ function WeightSheet({
             </button>
           </div>
           <div className="flex items-center justify-between border-t border-slate-200 px-2 pt-2 text-sm dark:border-slate-700">
-            <span className="text-slate-500">换算 BMI（身高 {heightCm} cm）</span>
+            <span className="text-slate-500">BMI (height {heightCm} cm)</span>
             <span className="font-extrabold text-emerald-700 dark:text-emerald-300">
-              {b !== null ? `${fmt1(b)}（${BMI_TEXT[bmiCategory(b)]}）` : '—'}
+              {b !== null ? `${fmt1(b)} (${BMI_TEXT[bmiCategory(b)]})` : '—'}
             </span>
           </div>
         </div>
-        {!ok && <p className="text-sm text-red-700 dark:text-red-400">体重需介于 30 至 300 kg。</p>}
+        {!ok && (
+          <p className="text-sm text-red-700 dark:text-red-400">Weight must be 30 to 300 kg.</p>
+        )}
         <div className="grid grid-cols-2 gap-2">
           <Button variant="secondary" onClick={onClose}>
-            取消
+            Cancel
           </Button>
           <Button disabled={!ok} onClick={() => onSave(kg)}>
-            保存体重
+            Save weight
           </Button>
         </div>
         <p className="text-center text-xs text-slate-500 dark:text-slate-400">
-          身高可在“我 → 个人资料”修改
+          Change your height in Me → Profile
         </p>
       </div>
     </div>

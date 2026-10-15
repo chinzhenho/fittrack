@@ -263,24 +263,25 @@ export function Onboarding() {
   const anyHealth = d.pregnantOrLactating || d.eatingDisorderHistory || d.kidneyDisease;
 
   const TITLES: Record<StepId, string> = {
-    start: '欢迎！先花 1 分钟设置',
-    goal: '你目前最主要的目标是？',
-    sex: '用哪个计算公式？',
-    body: '你的身体资料',
-    activity: '你平时的活动量？',
-    health: '有没有以下情况？',
-    rate: '想多快达到目标？',
-    target: '有目标体重吗？',
-    diet: '有饮食限制吗？',
-    plan: '你的计划',
+    start: 'Welcome! A 1-minute setup',
+    goal: "What's your main goal right now?",
+    sex: 'Which formula should we use?',
+    body: 'About your body',
+    activity: 'How active are you?',
+    health: 'Do any of these apply?',
+    rate: 'How fast do you want to go?',
+    target: 'Do you have a target weight?',
+    diet: 'Any diet restrictions?',
+    plan: 'Your plan',
   };
   const HINTS: Partial<Record<StepId, string>> = {
-    sex: 'Mifflin–St Jeor 公式分男性与女性版本；中性为两者平均',
-    activity: '工作加运动一起算',
-    health: '只用于安全检查，让建议不会对你造成风险。可以选多项。',
-    rate: '较慢的速度比较容易坚持，也较能保留肌肉',
-    target: '选填。只用于显示进度，不影响每日热量',
-    diet: '可以选多项，也可以跳过',
+    sex: 'The Mifflin–St Jeor formula has male and female versions; neutral is the average',
+    activity: 'Count work and exercise together',
+    health:
+      'Only used for safety checks so our advice never puts you at risk. Choose any that apply.',
+    rate: 'A slower pace is easier to keep up and helps keep muscle',
+    target: "Optional. Only used to show progress; it doesn't change your daily calories",
+    diet: 'Choose any, or skip',
   };
 
   // Steps answered by tapping a card have no bottom button.
@@ -293,7 +294,7 @@ export function Onboarding() {
           {index > 0 ? (
             <button type="button" onClick={goBack} className={backButtonClass}>
               <BackArrow />
-              上一步
+              Back
             </button>
           ) : (
             <span className="flex min-h-11 items-center gap-2 px-2">
@@ -331,35 +332,36 @@ export function Onboarding() {
           {step === 'start' && (
             <Card className="space-y-5">
               <p className="leading-relaxed">
-                EatHealthee 依照你的生活方式，帮你安全地减脂、增重、增肌或维持体重。不用去 Gym
-                也可以开始。
+                EatHealthee helps you lose fat, gain weight, build muscle or maintain, safely and in
+                a way that fits your life. You don't need a gym to start.
               </p>
               <Notice>
                 {signedIn
-                  ? '你已登录：资料会经加密连线保存到你的账号（服务器在新加坡），换设备登录也看得到，只有你能存取。'
-                  : '你没有登录：资料只保存在这部设备的浏览器中。之后可以在“我”页面注册，把资料备份到账号。'}
+                  ? "You're logged in: your data is saved to your account over an encrypted connection (server in Singapore). You'll see it on any device, and only you can access it."
+                  : "You're not logged in: your data stays in this device's browser only. You can sign up later from the Me page to back it up to an account."}
               </Notice>
               <div className="space-y-1">
                 <Check checked={d.terms} onChange={(v) => set('terms', v)}>
-                  我年满 18 岁，并已阅读和接受
+                  I'm 18 or older and have read and accept the
                   <Link
                     to="/legal/disclaimer"
                     className="mx-1 text-emerald-strong underline dark:text-emerald"
                     target="_blank"
                   >
-                    健康免责声明
+                    health disclaimer
                   </Link>
-                  和
+                  and
                   <Link
                     to="/legal/privacy"
                     className="ml-1 text-emerald-strong underline dark:text-emerald"
                     target="_blank"
                   >
-                    隐私政策
+                    privacy policy
                   </Link>
                 </Check>
                 <Check checked={d.healthConsent} onChange={(v) => set('healthConsent', v)}>
-                  我同意 EatHealthee 使用我提供的身体与健康资料来计算建议
+                  I agree that EatHealthee may use the body and health details I give to work out
+                  its advice
                 </Check>
               </div>
             </Card>
@@ -394,7 +396,7 @@ export function Onboarding() {
 
           {step === 'body' && (
             <Card className="space-y-4">
-              <Field label="出生日期" error={bodyFieldError('birthDate')}>
+              <Field label="Date of birth" error={bodyFieldError('birthDate')}>
                 {(p) => (
                   <input
                     {...p}
@@ -407,7 +409,7 @@ export function Onboarding() {
                 )}
               </Field>
               <div className="grid grid-cols-2 gap-4">
-                <Field label="身高（cm）" error={bodyFieldError('heightCm')}>
+                <Field label="Height (cm)" error={bodyFieldError('heightCm')}>
                   {(p) => (
                     <input
                       {...p}
@@ -420,7 +422,7 @@ export function Onboarding() {
                     />
                   )}
                 </Field>
-                <Field label="体重（kg）" error={bodyFieldError('weightKg')}>
+                <Field label="Weight (kg)" error={bodyFieldError('weightKg')}>
                   {(p) => (
                     <input
                       {...p}
@@ -456,21 +458,22 @@ export function Onboarding() {
                   checked={d.pregnantOrLactating}
                   onChange={(v) => set('pregnantOrLactating', v)}
                 >
-                  正在怀孕或哺乳
+                  Pregnant or breastfeeding
                 </Check>
                 <Check
                   checked={d.eatingDisorderHistory}
                   onChange={(v) => set('eatingDisorderHistory', v)}
                 >
-                  曾被诊断或正在接受饮食失调治疗
+                  Diagnosed with, or being treated for, an eating disorder
                 </Check>
                 <Check checked={d.kidneyDisease} onChange={(v) => set('kidneyDisease', v)}>
-                  有肾脏疾病
+                  Kidney disease
                 </Check>
               </Card>
               {d.kidneyDisease && (
                 <Notice tone="warn">
-                  蛋白质目标会固定为每公斤 0.8 g，请按医生或营养师的建议调整。
+                  Your protein target will be fixed at 0.8 g per kg. Please follow your doctor's or
+                  dietitian's advice.
                 </Notice>
               )}
             </>
@@ -481,8 +484,8 @@ export function Onboarding() {
               value={shown(String(d.ratePctPerWeek))}
               options={RATE_OPTIONS[d.goal].map((r) => ({
                 value: String(r),
-                label: `每周 ${r}% 体重`,
-                ...(weight > 0 && { sub: `约 ${((r / 100) * weight).toFixed(2)} kg／周` }),
+                label: `${r}% of body weight a week`,
+                ...(weight > 0 && { sub: `about ${((r / 100) * weight).toFixed(2)} kg a week` }),
                 ...(r === RATE_PCT_PER_WEEK[d.goal].default && { icon: '⭐' }),
               }))}
               onPick={(v) => pick('ratePctPerWeek', Number(v))}
@@ -492,12 +495,12 @@ export function Onboarding() {
           {step === 'target' && (
             <Card>
               <Field
-                label="目标体重（kg）"
+                label="Target weight (kg)"
                 error={
                   evaluated.kind === 'invalid' && evaluated.field === 'targetWeightKg'
                     ? d.goal === 'fat_loss'
-                      ? '目标体重需低于现在的体重。'
-                      : '目标体重需高于现在的体重。'
+                      ? 'Target weight must be below your current weight.'
+                      : 'Target weight must be above your current weight.'
                     : null
                 }
               >
@@ -537,7 +540,7 @@ export function Onboarding() {
               {rejectMessage(evaluated.result.reason).body}
               <div className="mt-3">
                 <Button variant="secondary" onClick={() => setStep('goal')}>
-                  更改目标
+                  Change goal
                 </Button>
               </div>
             </Notice>
@@ -557,23 +560,23 @@ export function Onboarding() {
                 disabled={!(evaluated.kind === 'result' && evaluated.result.ok)}
                 onClick={finish}
               >
-                开始使用
+                Get started
               </Button>
             ) : step === 'health' && !anyHealth ? (
               <Button className="w-full" onClick={() => goNext()}>
-                以上都没有
+                None of these
               </Button>
             ) : step === 'diet' && d.dietTags.length === 0 ? (
               <Button className="w-full" onClick={() => goNext()}>
-                没有特别限制
+                No restrictions
               </Button>
             ) : step === 'target' && d.targetWeightKg.trim() === '' ? (
               <Button className="w-full" onClick={() => goNext()}>
-                跳过
+                Skip
               </Button>
             ) : (
               <Button className="w-full" disabled={!canNext} onClick={() => goNext()}>
-                下一步
+                Next
               </Button>
             )}
           </div>

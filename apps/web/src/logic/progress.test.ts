@@ -26,7 +26,7 @@ import { mondayOf, periodRange, weeklySummary } from './weekly';
 // 100 g = 100 kcal and 10 g protein, so grams map straight to numbers.
 const food: Food = {
   id: 'f',
-  nameZh: '测试食物',
+  name: 'Test food',
   nameEn: 'test',
   aliases: [],
   per100g: { kcal: 100, proteinG: 10, carbsG: 10, fatG: 2 },
@@ -231,7 +231,7 @@ describe('insights', () => {
   it('scenario A: only asks for more records, with no numbers made up', () => {
     const list = insightsFor(base(), TODAY);
     expect(list.map((i) => i.id)).toEqual(['few_logs']);
-    expect(list[0]?.data).toContain('0 天');
+    expect(list[0]?.data).toContain('on 0 days');
   });
 
   it('warns about eating below the safety floor before anything else', () => {

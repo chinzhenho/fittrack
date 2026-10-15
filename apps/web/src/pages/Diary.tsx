@@ -17,7 +17,7 @@ import {
 import { editMeal, removeMeal, restoreMeal, setDayComplete } from '../data/actions';
 import { update, useAppState } from '../data/store';
 import type { MealItem, MealType } from '../data/types';
-import { formatDateFull, formatDateZh, localToday } from '../lib/dates';
+import { formatDateFull, formatDay, localToday } from '../lib/dates';
 import { fmt1, fmtInt } from '../lib/format';
 import { calorieGap, MEAL_LABELS, MEAL_TYPES, mealsOn, sumNutrients } from '../logic/nutrition';
 import { targetOn } from '../logic/targets';
@@ -40,23 +40,23 @@ export function Diary() {
 
   return (
     <div className="space-y-4">
-      <PageTitle>饮食日记</PageTitle>
+      <PageTitle>Food diary</PageTitle>
       <div className="flex items-center justify-between rounded-3xl bg-white p-2 shadow-sm ring-1 ring-slate-900/5 dark:bg-slate-800 dark:ring-white/10">
-        <Button variant="ghost" aria-label="前一天" onClick={() => go(addDays(date, -1))}>
-          ‹<span className="hidden sm:inline"> 前一天</span>
+        <Button variant="ghost" aria-label="Previous day" onClick={() => go(addDays(date, -1))}>
+          ‹<span className="hidden sm:inline"> Previous</span>
         </Button>
         <button
           type="button"
           onClick={() => setPicking((v) => !v)}
           aria-expanded={picking}
-          aria-label={`选择日期，目前是 ${formatDateFull(date)}`}
+          aria-label={`Choose a date, now ${formatDateFull(date)}`}
           className="flex min-h-11 items-center gap-2 rounded-2xl px-3 hover:bg-slate-50 dark:hover:bg-slate-700"
         >
           <span aria-hidden="true">📅</span>
           <span className="text-left leading-tight">
             <span className="block font-semibold">
               {date === today || date === addDays(today, -1)
-                ? formatDateZh(date, today)
+                ? formatDay(date, today)
                 : formatDateFull(date)}
             </span>
             {(date === today || date === addDays(today, -1)) && (
@@ -74,11 +74,11 @@ export function Diary() {
         </button>
         <Button
           variant="ghost"
-          aria-label="后一天"
+          aria-label="Next day"
           disabled={date >= today}
           onClick={() => go(addDays(date, 1))}
         >
-          <span className="hidden sm:inline">后一天 </span>›
+          <span className="hidden sm:inline">Next </span>›
         </Button>
       </div>
 
@@ -103,7 +103,7 @@ export function Diary() {
                 setPicking(false);
               }}
             >
-              回到今天
+              Back to today
             </Button>
           )}
         </div>
@@ -113,7 +113,7 @@ export function Diary() {
         <Card>
           <div className="mb-3 flex items-end justify-between gap-3">
             <div>
-              <p className="text-sm text-slate-600 dark:text-slate-300">已吃</p>
+              <p className="text-sm text-slate-600 dark:text-slate-300">Eaten</p>
               <p className="text-3xl font-bold">
                 {fmtInt(total.kcal)}
                 <span className="ml-1 text-base font-medium text-slate-600 dark:text-slate-300">
@@ -138,9 +138,9 @@ export function Diary() {
           )}
           <div className="mt-4 grid grid-cols-3 gap-3 text-sm">
             {[
-              { n: '蛋白质', v: total.proteinG, t: target?.proteinG, c: 'bg-rose-500' },
-              { n: '碳水', v: total.carbsG, t: target?.carbsG, c: 'bg-sky-500' },
-              { n: '脂肪', v: total.fatG, t: target?.fatG, c: 'bg-amber-500' },
+              { n: 'Protein', v: total.proteinG, t: target?.proteinG, c: 'bg-rose-500' },
+              { n: 'Carbs', v: total.carbsG, t: target?.carbsG, c: 'bg-sky-500' },
+              { n: 'Fat', v: total.fatG, t: target?.fatG, c: 'bg-amber-500' },
             ].map((m) => (
               <div key={m.n}>
                 <p className="flex items-center gap-1.5 text-slate-600 dark:text-slate-300">
@@ -176,18 +176,18 @@ export function Diary() {
                 <h2 className="text-lg font-semibold">{MEAL_LABELS[meal]}</h2>
                 <p className="text-sm text-slate-600 dark:text-slate-300">
                   {list.length === 0
-                    ? '还没有记录'
+                    ? 'Nothing logged'
                     : hide
-                      ? `${list.length} 项`
-                      : `${list.length} 项 · ${fmtInt(sub.kcal)} kcal`}
+                      ? `${list.length} ${list.length === 1 ? 'item' : 'items'}`
+                      : `${list.length} ${list.length === 1 ? 'item' : 'items'} · ${fmtInt(sub.kcal)} kcal`}
                 </p>
               </div>
               <Link
                 to={`/diary/add?date=${date}&meal=${meal}`}
-                aria-label={`加入${MEAL_LABELS[meal]}`}
+                aria-label={`Add to ${MEAL_LABELS[meal].toLowerCase()}`}
                 className="inline-flex min-h-11 items-center rounded-2xl bg-emerald-50 px-4 text-sm font-semibold text-emerald-900 hover:bg-emerald-100 dark:bg-emerald/15 dark:text-emerald-100 dark:hover:bg-emerald/25"
               >
-                ＋ 加入
+                + Add
               </Link>
             </div>
             {list.length > 0 && (
@@ -203,10 +203,11 @@ export function Diary() {
 
       <Card>
         <Check checked={complete} onChange={(v) => update((x) => setDayComplete(x, date, v))}>
-          这一天的饮食已完整记录
+          I logged everything I ate this day
         </Check>
         <p className="text-xs text-slate-600 dark:text-slate-300">
-          只有标记为完整的日子，才会用来估算你的实际消耗和建议调整。
+          Only fully logged days are used to estimate what you really burn and to suggest target
+          changes.
         </p>
       </Card>
     </div>
@@ -226,8 +227,8 @@ function MealRow({ item: i, hide }: { item: MealItem; hide: boolean }) {
   const remove = () => {
     update((x) => removeMeal(x, i.id));
     toast({
-      text: `已删除 ${i.name}`,
-      actionLabel: '撤销',
+      text: `Deleted ${i.name}`,
+      actionLabel: 'Undo',
       onAction: () => update((x) => restoreMeal(x, i)),
     });
   };
@@ -238,7 +239,7 @@ function MealRow({ item: i, hide }: { item: MealItem; hide: boolean }) {
         <button
           type="button"
           onClick={() => setEditing(true)}
-          aria-label={`编辑 ${i.name}`}
+          aria-label={`Edit ${i.name}`}
           className="flex w-full items-center gap-3 rounded-2xl py-3 text-left hover:bg-slate-50 dark:hover:bg-slate-700"
         >
           <span className="min-w-0 flex-1">
@@ -253,7 +254,7 @@ function MealRow({ item: i, hide }: { item: MealItem; hide: boolean }) {
             <span className="block text-xs text-slate-600 dark:text-slate-300">
               {fmt1(i.grams)} g
               {!hide &&
-                ` · 蛋白质 ${fmt1(i.nutrients.proteinG)} g · 碳水 ${fmt1(i.nutrients.carbsG)} g · 脂肪 ${fmt1(i.nutrients.fatG)} g`}
+                ` · protein ${fmt1(i.nutrients.proteinG)} g · carbs ${fmt1(i.nutrients.carbsG)} g · fat ${fmt1(i.nutrients.fatG)} g`}
             </span>
           </span>
           {!hide && <span className="shrink-0 font-semibold">{fmtInt(i.nutrients.kcal)} kcal</span>}
@@ -269,7 +270,7 @@ function MealRow({ item: i, hide }: { item: MealItem; hide: boolean }) {
     <li className="space-y-3 rounded-2xl bg-slate-50 p-3 my-2 dark:bg-slate-700">
       <p className="font-medium">{i.name}</p>
       <div className="grid grid-cols-2 gap-3">
-        <Field label="份量（g）" error={ok ? null : '需介于 1 至 5000 g'}>
+        <Field label="Amount (g)" error={ok ? null : 'Must be 1 to 5000 g'}>
           {(p) => (
             <input
               {...p}
@@ -289,19 +290,19 @@ function MealRow({ item: i, hide }: { item: MealItem; hide: boolean }) {
         )}
       </div>
       <Segmented
-        label="餐次"
+        label="Meal"
         value={meal}
         options={MEAL_TYPES.map((m) => ({ value: m, label: MEAL_LABELS[m] }))}
         onChange={setMeal}
       />
       {meal === 'snack' && (
-        <Field label="名称（选填）">
+        <Field label="Name (optional)">
           {(p) => (
             <input
               {...p}
               maxLength={20}
               value={label}
-              placeholder="例如：下午茶、宵夜"
+              placeholder="e.g. tea time, supper"
               onChange={(e) => setLabel(e.target.value)}
               className={inputClass}
             />
@@ -310,10 +311,10 @@ function MealRow({ item: i, hide }: { item: MealItem; hide: boolean }) {
       )}
       <div className="flex gap-2">
         <Button variant="danger" onClick={remove}>
-          删除
+          Delete
         </Button>
         <Button variant="secondary" onClick={() => setEditing(false)}>
-          取消
+          Cancel
         </Button>
         <Button
           className="flex-1"
@@ -321,10 +322,10 @@ function MealRow({ item: i, hide }: { item: MealItem; hide: boolean }) {
           onClick={() => {
             update((x) => editMeal(x, i.id, { grams: g, meal, label }));
             setEditing(false);
-            toast({ text: '已更新' });
+            toast({ text: 'Updated' });
           }}
         >
-          保存
+          Save
         </Button>
       </div>
     </li>

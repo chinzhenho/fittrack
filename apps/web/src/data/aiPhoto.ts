@@ -8,11 +8,11 @@ import { supabase } from './supabase';
 export type AiPhotoError = 'login' | 'quota' | 'unavailable' | 'network' | 'bad_image';
 
 export const AI_ERROR_TEXT: Record<AiPhotoError, string> = {
-  login: '请先登录账号才能使用 AI 拍照（免费）。',
-  quota: '今天的 AI 拍照次数（8 次）用完了，明天会重置。可以先用“手动输入”。',
-  unavailable: 'AI 暂时忙碌，请稍后再试，或先用“手动输入”。',
-  network: '网络连接有问题，请检查后再试。',
-  bad_image: '无法读取这张图片，请换一张试试。',
+  login: 'Please log in to use AI food snaps (free).',
+  quota: "You've used today's 8 AI snaps. They reset tomorrow. You can add food manually for now.",
+  unavailable: 'The AI is busy. Try again soon, or add food manually.',
+  network: 'Connection problem. Please check and try again.',
+  bad_image: "Can't read this image. Please try another one.",
 };
 
 const MAX_SIDE = 1024;

@@ -232,7 +232,7 @@ export function BackArrow() {
 /** Back to the previous page, or `fallback` when the page was opened directly. */
 export function BackButton({
   fallback = '/today',
-  label = '返回',
+  label = 'Back',
 }: {
   fallback?: string;
   label?: string;
@@ -283,7 +283,7 @@ export function PasswordInput({
       <button
         type="button"
         onClick={() => setShow((v) => !v)}
-        aria-label={show ? '隐藏密码' : '显示密码'}
+        aria-label={show ? 'Hide password' : 'Show password'}
         aria-pressed={show}
         className="absolute top-1/2 right-1 flex size-11 -translate-y-1/2 items-center justify-center rounded-xl text-slate-500 hover:text-emerald-strong dark:text-slate-300"
         style={{ marginTop: '0.1875rem' }}
@@ -379,10 +379,10 @@ export function passwordStrength(pw: string): 0 | 1 | 2 | 3 {
 export function PasswordStrength({ value }: { value: string }) {
   const level = passwordStrength(value);
   const meta = [
-    { text: '至少 8 个字元', color: '' },
-    { text: '太短', color: 'bg-rose-500 text-rose-600' },
-    { text: '可以', color: 'bg-amber-500 text-amber-600' },
-    { text: '很强', color: 'bg-emerald-500 text-emerald-700' },
+    { text: 'At least 8 characters', color: '' },
+    { text: 'Too short', color: 'bg-rose-500 text-rose-600' },
+    { text: 'OK', color: 'bg-amber-500 text-amber-600' },
+    { text: 'Strong', color: 'bg-emerald-500 text-emerald-700' },
   ][level]!;
   const bar = meta.color.split(' ')[0] ?? '';
   return (
@@ -396,7 +396,7 @@ export function PasswordStrength({ value }: { value: string }) {
       <span
         className={`ml-1 w-20 shrink-0 text-right text-xs font-semibold ${level ? (meta.color.split(' ')[1] ?? '') : 'text-slate-500'}`}
       >
-        {level ? `密码${meta.text}` : meta.text}
+        {level ? `Password: ${meta.text.toLowerCase()}` : meta.text}
       </span>
     </div>
   );
