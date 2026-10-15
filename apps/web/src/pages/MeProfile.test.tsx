@@ -139,10 +139,8 @@ describe('edit profile', () => {
 
   it('scenario E: confirming a goal change adds a target and keeps history and food records', async () => {
     renderProfile(true, '/me/plan');
-    fireEvent.change(screen.getByRole('combobox', { name: 'Goal' }), {
-      target: { value: 'maintain' },
-    });
-    fireEvent.change(screen.getByLabelText('Daily activity'), { target: { value: 'moderate' } });
+    fireEvent.click(screen.getByRole('radio', { name: /Maintain/ }));
+    fireEvent.click(screen.getByRole('radio', { name: /^Moderate/ }));
     fireEvent.click(screen.getByRole('button', { name: 'Preview new daily target' }));
     fireEvent.click(screen.getByRole('button', { name: 'Confirm update' }));
     await screen.findByText('me page');

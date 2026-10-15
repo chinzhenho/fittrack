@@ -602,3 +602,207 @@ export function LinkRowContent({ label, value }: { label: ReactNode; value?: Rea
   );
 }
 export const linkRowClass = `${rowClass} hover:opacity-80`;
+
+// Card-style choices and number steppers for edit screens (friendlier than lists of
+// rows): each option is a tappable card with an icon and a short description.
+
+export interface Choice<T extends string> {
+  value: T;
+  label: string;
+  sub?: string;
+  icon?: ReactNode;
+}
+
+/** Single choice as a grid of cards (radio buttons underneath for accessibility). */
+export function ChoiceCards<T extends string>({
+  label,
+  hint,
+  value,
+  options,
+  onChange,
+  columns = 2,
+}: {
+  label: string;
+  hint?: ReactNode;
+  value: T;
+  options: Choice<T>[];
+  onChange: (value: T) => void;
+  columns?: 1 | 2 | 3 | 4;
+}) {
+  const name = useId();
+  const cols = { 1: 'grid-cols-1', 2: 'grid-cols-2', 3: 'grid-cols-3', 4: 'grid-cols-4' }[columns];
+  return (
+    <fieldset>
+      <legend className="text-[1.0625rem] font-semibold">{label}</legend>
+      {hint && <p className="text-xs text-slate-500 dark:text-slate-400">{hint}</p>}
+      <div className={`mt-2 grid gap-2 ${cols}`}>
+        {options.map((o) => (
+          <label
+            key={o.value}
+            className={`relative flex min-h-14 cursor-pointer rounded-[16px] bg-white p-3 ring-1 ring-slate-200 transition has-checked:bg-emerald-50 has-checked:ring-2 has-checked:ring-emerald-strong has-focus-visible:outline-2 has-focus-visible:outline-emerald dark:bg-slate-800 dark:ring-slate-600 dark:has-checked:bg-emerald/15 dark:has-checked:ring-emerald ${columns === 1 ? 'items-center gap-3' : 'flex-col justify-center gap-0.5'}`}
+          >
+            <input
+              type="radio"
+              name={name}
+              value={o.value}
+              checked={value === o.value}
+              onChange={() => onChange(o.value)}
+              className="peer sr-only"
+            />
+            {o.icon && (
+              <span aria-hidden="true" className="text-xl leading-none">
+                {o.icon}
+              </span>
+            )}
+            <span className="min-w-0 pr-5">
+              <span className="block text-[0.9375rem] leading-snug font-semibold">{o.label}</span>
+              {o.sub && (
+                <span className="block text-xs leading-snug text-slate-500 dark:text-slate-400">
+                  {o.sub}
+                </span>
+              )}
+            </span>
+            <span
+              aria-hidden="true"
+              className="absolute top-2.5 right-2.5 hidden size-5 items-center justify-center rounded-full bg-emerald-strong text-xs font-bold text-white peer-checked:flex dark:bg-emerald dark:text-black"
+            >
+              ✓
+            </span>
+          </label>
+        ))}
+      </div>
+    </fieldset>
+  );
+}
+
+/** Several on/off choices as cards with a tick. */
+export function CheckCards({
+  label,
+  hint,
+  options,
+  onToggle,
+  columns,
+}: {
+  label: string;
+  hint?: ReactNode;
+  columns?: 1 | 2;
+  options: { key: string; label: string; sub?: string; icon?: ReactNode; checked: boolean }[];
+  onToggle: (key: string, checked: boolean) => void;
+}) {
+  return (
+    <fieldset>
+      <legend className="text-[1.0625rem] font-semibold">{label}</legend>
+      {hint && <p className="text-xs text-slate-500 dark:text-slate-400">{hint}</p>}
+      <div
+        className={`mt-2 grid gap-2 ${(columns ?? (options.length === 1 ? 1 : 2)) === 1 ? 'grid-cols-1' : 'grid-cols-2'}`}
+      >
+        {options.map((o) => (
+          <label
+            key={o.key}
+            className="relative flex min-h-14 cursor-pointer items-center gap-2.5 rounded-[16px] bg-white p-3 ring-1 ring-slate-200 transition has-checked:bg-emerald-50 has-checked:ring-2 has-checked:ring-emerald-strong has-focus-visible:outline-2 has-focus-visible:outline-emerald dark:bg-slate-800 dark:ring-slate-600 dark:has-checked:bg-emerald/15 dark:has-checked:ring-emerald"
+          >
+            <input
+              type="checkbox"
+              checked={o.checked}
+              onChange={(e) => onToggle(o.key, e.target.checked)}
+              className="peer sr-only"
+            />
+            {o.icon && (
+              <span aria-hidden="true" className="text-xl leading-none">
+                {o.icon}
+              </span>
+            )}
+            <span className="min-w-0 pr-5">
+              <span className="block text-sm leading-snug font-semibold">{o.label}</span>
+              {o.sub && (
+                <span className="block text-xs leading-snug text-slate-500 dark:text-slate-400">
+                  {o.sub}
+                </span>
+              )}
+            </span>
+            <span
+              aria-hidden="true"
+              className="absolute top-2.5 right-2.5 flex size-5 items-center justify-center rounded-full ring-2 ring-slate-300 peer-checked:bg-emerald-strong peer-checked:ring-emerald-strong peer-checked:after:content-['✓'] after:text-xs after:font-bold after:text-white dark:ring-slate-500 dark:peer-checked:bg-emerald dark:peer-checked:ring-emerald"
+            />
+          </label>
+        ))}
+      </div>
+    </fieldset>
+  );
+}
+
+/** A big number with − / + buttons; the number can also be typed. */
+export function Stepper({
+  label,
+  hint,
+  unit,
+  value,
+  onChange,
+  step = 0.1,
+  fallback,
+  placeholder,
+  error,
+}: {
+  label: string;
+  hint?: ReactNode;
+  unit: string;
+  /** Text so the field can be empty or mid-typing. */
+  value: string;
+  onChange: (value: string) => void;
+  step?: number;
+  /** Starting point for − / + when the field is empty. */
+  fallback: number;
+  placeholder?: string;
+  error?: string | null | undefined;
+}) {
+  const id = useId();
+  const n = Number(value);
+  const bump = (d: number) => {
+    const base = value.trim() === '' || Number.isNaN(n) ? fallback : n;
+    const next = Math.round((base + d) / step) * step;
+    onChange(String(Math.round(next * 10) / 10));
+  };
+  const btn =
+    'flex size-11 shrink-0 items-center justify-center rounded-full bg-[#767680]/[0.12] text-xl font-semibold text-emerald-strong active:scale-95 dark:bg-[#767680]/[0.24] dark:text-emerald';
+  return (
+    <div>
+      <label htmlFor={id} className="text-[1.0625rem] font-semibold">
+        {label}
+      </label>
+      {hint && <p className="text-xs text-slate-500 dark:text-slate-400">{hint}</p>}
+      <div className="mt-2 flex items-center justify-between gap-3 rounded-[16px] bg-white p-2 ring-1 ring-slate-200 dark:bg-slate-800 dark:ring-slate-600">
+        <button
+          type="button"
+          aria-label={`Decrease ${label}`}
+          className={btn}
+          onClick={() => bump(-step)}
+        >
+          −
+        </button>
+        <span className="flex items-baseline gap-1">
+          <input
+            id={id}
+            type="number"
+            inputMode="decimal"
+            step={step}
+            value={value}
+            placeholder={placeholder}
+            onChange={(e) => onChange(e.target.value)}
+            aria-invalid={error ? true : undefined}
+            className="w-24 bg-transparent text-center text-[1.75rem] font-bold placeholder:text-base placeholder:font-normal placeholder:text-slate-400 focus:outline-none"
+          />
+          <span className="text-base font-semibold text-slate-500">{unit}</span>
+        </span>
+        <button
+          type="button"
+          aria-label={`Increase ${label}`}
+          className={btn}
+          onClick={() => bump(step)}
+        >
+          +
+        </button>
+      </div>
+      {error && <p className="mt-1 text-sm text-[#ff3b30]">{error}</p>}
+    </div>
+  );
+}

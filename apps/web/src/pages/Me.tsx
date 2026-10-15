@@ -21,15 +21,15 @@ import {
   CardTitle,
   Field,
   inputClass,
-  InputRow,
   LinkRowContent,
   linkRowClass,
   List,
   Notice,
   PageTitle,
-  SelectRow,
+  Stepper,
   Switch,
-  ToggleRow,
+  ChoiceCards,
+  CheckCards,
 } from '../components/ui';
 import { addTarget, saveProfile, setHideNumbers, updateProfileDetails } from '../data/actions';
 import { useAuth } from '../data/auth';
@@ -437,32 +437,38 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
           {signedIn && <p className="text-sm text-slate-500 dark:text-slate-400">{email}</p>}
         </div>
 
-        <List>
-          <InputRow
-            label="Nickname"
-            placeholder="Add a name"
-            maxLength={20}
-            value={draft.nickname ?? ''}
-            onChange={(e) => setDraft({ ...draft, nickname: e.target.value })}
-          />
-        </List>
-
-        <List title="Picture">
-          <div className="grid grid-cols-6 gap-2 py-3" role="group" aria-label="Avatar">
-            {AVATARS.map((a) => (
-              <button
-                key={a}
-                type="button"
-                aria-label={`Avatar ${a}`}
-                aria-pressed={draft.avatar === a}
-                onClick={() => setDraft({ ...draft, avatar: a })}
-                className={`flex aspect-square items-center justify-center rounded-full text-2xl transition ${draft.avatar === a ? 'bg-emerald-100 ring-2 ring-emerald-strong dark:bg-emerald/20 dark:ring-emerald' : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-700'}`}
-              >
-                {a}
-              </button>
-            ))}
+        <Card className="space-y-6">
+          <div>
+            <label htmlFor="nickname" className="text-[1.0625rem] font-semibold">
+              Nickname
+            </label>
+            <input
+              id="nickname"
+              maxLength={20}
+              placeholder="What should we call you?"
+              value={draft.nickname ?? ''}
+              onChange={(e) => setDraft({ ...draft, nickname: e.target.value })}
+              className="mt-2 block min-h-14 w-full rounded-[16px] bg-white px-4 text-[1.25rem] font-semibold ring-1 ring-slate-200 placeholder:text-base placeholder:font-normal placeholder:text-slate-400 focus:ring-2 focus:ring-emerald focus:outline-none dark:bg-slate-800 dark:ring-slate-600"
+            />
           </div>
-        </List>
+          <fieldset>
+            <legend className="text-[1.0625rem] font-semibold">Picture</legend>
+            <div className="mt-2 grid grid-cols-6 gap-2" role="group" aria-label="Avatar">
+              {AVATARS.map((a) => (
+                <button
+                  key={a}
+                  type="button"
+                  aria-label={`Avatar ${a}`}
+                  aria-pressed={draft.avatar === a}
+                  onClick={() => setDraft({ ...draft, avatar: a })}
+                  className={`flex aspect-square items-center justify-center rounded-full text-2xl transition ${draft.avatar === a ? 'bg-emerald-100 ring-2 ring-emerald-strong dark:bg-emerald/20 dark:ring-emerald' : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-700'}`}
+                >
+                  {a}
+                </button>
+              ))}
+            </div>
+          </fieldset>
+        </Card>
 
         {saveBar('Save profile')}
 
@@ -576,53 +582,54 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
       <div className="space-y-4">
         <BackToMe />
         <PageTitle sub="Used to work out your daily calorie target.">Body details</PageTitle>
-        <List footer="The Mifflin–St Jeor formula has male and female versions; neutral is the average of both.">
-          <SelectRow
+        <Card className="space-y-6">
+          <ChoiceCards
             label="Formula"
+            hint="The calorie formula has a male and a female version; neutral is the average."
+            columns={3}
             value={draft.formulaSex}
-            options={(Object.keys(SEX_LABELS) as FormulaSex[]).map((x) => ({
-              value: x,
-              label: SEX_LABELS[x],
-            }))}
-            onChange={(v) => set('formulaSex', v)}
+            options={[
+              { value: 'male', label: 'Male', icon: '♂️' },
+              { value: 'female', label: 'Female', icon: '♀️' },
+              { value: 'neutral', label: 'Neutral', icon: '⚧️', sub: 'average' },
+            ]}
+            onChange={(v) => set('formulaSex', v as FormulaSex)}
           />
-          <InputRow
-            label="Date of birth"
-            type="date"
-            max={today}
-            value={draft.birthDate}
-            onChange={(e) => set('birthDate', e.target.value)}
-            error={invalid === 'birthDate' ? fieldMessage('birthDate') : null}
-          />
-          <InputRow
+          <div>
+            <label htmlFor="birth-date" className="text-[1.0625rem] font-semibold">
+              Date of birth
+            </label>
+            <input
+              id="birth-date"
+              type="date"
+              max={today}
+              value={draft.birthDate}
+              onChange={(e) => set('birthDate', e.target.value)}
+              className="mt-2 block min-h-14 w-full rounded-[16px] bg-white px-4 text-[1.25rem] font-semibold ring-1 ring-slate-200 focus:ring-2 focus:ring-emerald focus:outline-none dark:bg-slate-800 dark:ring-slate-600"
+            />
+            {invalid === 'birthDate' && (
+              <p className="mt-1 text-sm text-[#ff3b30]">{fieldMessage('birthDate')}</p>
+            )}
+          </div>
+          <Stepper
             label="Height"
             unit="cm"
-            type="number"
-            inputMode="decimal"
-            step="0.1"
+            step={1}
+            fallback={profile.heightCm}
             value={heightText}
-            onChange={(e) => setHeightText(e.target.value)}
+            onChange={setHeightText}
             error={invalid === 'heightCm' ? fieldMessage('heightCm') : null}
           />
-        </List>
-
-        <List
-          footer={
-            draft.goal !== 'maintain'
-              ? "Target weight is optional and only used to show your progress; it doesn't change your daily calories."
-              : undefined
-          }
-        >
           {draft.goal !== 'maintain' && (
-            <InputRow
+            <Stepper
               label="Target weight"
+              hint="Optional. Only used to show your progress; it doesn't change your daily calories."
               unit="kg"
-              type="number"
-              inputMode="decimal"
-              step="0.1"
-              placeholder="Optional"
+              step={0.5}
+              fallback={weight || 60}
+              placeholder="Not set"
               value={targetText}
-              onChange={(e) => setTargetText(e.target.value)}
+              onChange={setTargetText}
               error={
                 invalid === 'targetWeightKg'
                   ? draft.goal === 'fat_loss'
@@ -632,13 +639,23 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
               }
             />
           )}
-          <Link to="/progress#weights" className={linkRowClass}>
-            <LinkRowContent
-              label="Current weight"
-              value={profile.hideNumbers ? 'Hidden' : `${fmt1(weight)} kg`}
-            />
+          <Link
+            to="/progress#weights"
+            className="flex items-center justify-between rounded-[16px] bg-emerald-50 px-4 py-3 dark:bg-emerald/15"
+          >
+            <span>
+              <span className="block text-xs text-slate-500 dark:text-slate-400">
+                Current weight
+              </span>
+              <span className="text-[1.25rem] font-bold">
+                {profile.hideNumbers ? 'Hidden' : `${fmt1(weight)} kg`}
+              </span>
+            </span>
+            <span className="text-sm font-semibold text-emerald-strong dark:text-emerald">
+              Log weight ›
+            </span>
           </Link>
-        </List>
+        </Card>
         {saveBar('Save')}
       </div>
     );
@@ -651,86 +668,114 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
         <PageTitle sub="You'll see old and new targets side by side before anything changes.">
           Goal & lifestyle
         </PageTitle>
-        <List
-          title="Goal"
-          footer={
-            draft.goal !== 'maintain'
-              ? 'A slower pace is easier to keep up and helps you keep muscle.'
-              : undefined
-          }
-        >
-          <SelectRow
-            label="Goal"
+        <Card className="space-y-6">
+          <ChoiceCards
+            label="Your goal"
             value={draft.goal}
-            options={(Object.keys(GOAL_LABELS) as Goal[]).map((g) => ({
-              value: g,
-              label: GOAL_LABELS[g],
-            }))}
+            options={[
+              {
+                value: 'fat_loss',
+                label: 'Lose fat',
+                sub: 'Eat a little less than you burn',
+                icon: '🔥',
+              },
+              { value: 'maintain', label: 'Maintain', sub: 'Keep your weight steady', icon: '⚖️' },
+              {
+                value: 'muscle_gain',
+                label: 'Build muscle',
+                sub: 'More protein, a small surplus',
+                icon: '💪',
+              },
+              {
+                value: 'weight_gain',
+                label: 'Gain weight',
+                sub: 'Eat a little more than you burn',
+                icon: '📈',
+              },
+            ]}
             onChange={(g) =>
               setDraft({ ...draft, goal: g, ratePctPerWeek: RATE_PCT_PER_WEEK[g].default })
             }
           />
           {draft.goal !== 'maintain' && (
-            <SelectRow
+            <ChoiceCards
               label="Pace"
+              hint="A slower pace is easier to keep up and helps you keep muscle."
               value={String(draft.ratePctPerWeek)}
               options={RATE_OPTIONS[draft.goal].map((r) => ({
                 value: String(r),
-                label: weight
-                  ? `${r}% a week (~${((r / 100) * weight).toFixed(2)} kg)`
-                  : `${r}% of body weight a week`,
+                label:
+                  r === RATE_PCT_PER_WEEK[draft.goal].default
+                    ? `${r}% · recommended`
+                    : `${r}% a week`,
+                sub: weight
+                  ? `about ${((r / 100) * weight).toFixed(2)} kg a week`
+                  : 'of body weight a week',
               }))}
               onChange={(v) => set('ratePctPerWeek', Number(v))}
             />
           )}
-        </List>
+        </Card>
 
-        <List title="Activity" footer={ACTIVITY_LABELS[draft.activityLevel].hint}>
-          <SelectRow
-            label="Daily activity"
+        <Card>
+          <ChoiceCards
+            label="How active are you?"
+            hint="Count your job and exercise together."
+            columns={1}
             value={draft.activityLevel}
             options={(Object.keys(ACTIVITY_LABELS) as ActivityLevel[]).map((a) => ({
               value: a,
               label: ACTIVITY_LABELS[a].name,
+              sub: ACTIVITY_LABELS[a].hint,
+              icon: { sedentary: '🪑', light: '🚶', moderate: '🚴', very: '🏃', extra: '🏋️' }[a],
             }))}
             onChange={(v) => set('activityLevel', v)}
           />
-        </List>
+        </Card>
 
-        <List
-          title="Health"
-          footer="Only used to keep our advice safe for you. Turn on any that apply."
-        >
-          <ToggleRow
-            label="Pregnant or breastfeeding"
-            checked={draft.screening.pregnantOrLactating}
-            onChange={(v) => set('screening', { ...draft.screening, pregnantOrLactating: v })}
+        <Card className="space-y-6">
+          <CheckCards
+            label="Health"
+            hint="Only used to keep our advice safe for you. Tick any that apply."
+            columns={1}
+            options={[
+              {
+                key: 'pregnantOrLactating',
+                label: 'Pregnant or breastfeeding',
+                icon: '🤰',
+                checked: draft.screening.pregnantOrLactating,
+              },
+              {
+                key: 'eatingDisorderHistory',
+                label: 'Eating disorder',
+                sub: 'diagnosed or in treatment',
+                icon: '💭',
+                checked: draft.screening.eatingDisorderHistory,
+              },
+              {
+                key: 'kidneyDisease',
+                label: 'Kidney disease',
+                icon: '🩺',
+                checked: draft.screening.kidneyDisease,
+              },
+            ]}
+            onToggle={(k, v) => set('screening', { ...draft.screening, [k]: v })}
           />
-          <ToggleRow
-            label="Eating disorder"
-            sub="Diagnosed with, or being treated for, one"
-            checked={draft.screening.eatingDisorderHistory}
-            onChange={(v) => set('screening', { ...draft.screening, eatingDisorderHistory: v })}
+          <CheckCards
+            label="Diet"
+            options={(Object.keys(DIET_LABELS) as DietTag[]).map((t) => ({
+              key: t,
+              label: DIET_LABELS[t],
+              checked: draft.dietTags.includes(t),
+            }))}
+            onToggle={(t, on) =>
+              set(
+                'dietTags',
+                on ? [...draft.dietTags, t as DietTag] : draft.dietTags.filter((x) => x !== t),
+              )
+            }
           />
-          <ToggleRow
-            label="Kidney disease"
-            checked={draft.screening.kidneyDisease}
-            onChange={(v) => set('screening', { ...draft.screening, kidneyDisease: v })}
-          />
-        </List>
-
-        <List title="Diet">
-          {(Object.keys(DIET_LABELS) as DietTag[]).map((t) => (
-            <ToggleRow
-              key={t}
-              label={DIET_LABELS[t]}
-              checked={draft.dietTags.includes(t)}
-              onChange={(on) =>
-                set('dietTags', on ? [...draft.dietTags, t] : draft.dietTags.filter((x) => x !== t))
-              }
-            />
-          ))}
-        </List>
+        </Card>
 
         {saveBar('Save')}
       </div>
@@ -850,26 +895,37 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
         </ul>
       </Group>
 
-      <List
-        title="Appearance"
-        footer="Hide calories and weight if the numbers stress you out, or someone can see your screen. You still log as usual; the app shows your habits (days logged, streaks) instead."
-      >
-        <SelectRow<Theme>
-          label="Theme"
-          value={theme}
-          options={[
-            { value: 'light', label: 'Light' },
-            { value: 'dark', label: 'Dark' },
-            { value: 'system', label: 'Match phone' },
-          ]}
-          onChange={setTheme}
-        />
-        <ToggleRow
-          label="Hide calories and weight"
-          checked={hide}
-          onChange={(v) => update((x) => setHideNumbers(x, v))}
-        />
-      </List>
+      <section aria-label="Appearance">
+        <h2 className="mb-1.5 px-4 text-[0.8125rem] text-slate-500 uppercase dark:text-slate-400">
+          Appearance
+        </h2>
+        <Card className="space-y-5">
+          <ChoiceCards<Theme>
+            label="Theme"
+            columns={3}
+            value={theme}
+            options={[
+              { value: 'light', label: 'Light', icon: '☀️' },
+              { value: 'dark', label: 'Dark', icon: '🌙' },
+              { value: 'system', label: 'Auto', icon: '📱', sub: 'match phone' },
+            ]}
+            onChange={setTheme}
+          />
+          <CheckCards
+            label="Privacy on screen"
+            hint="If the numbers stress you out, or someone can see your screen. You still log as usual; the app shows your habits instead."
+            options={[
+              {
+                key: 'hide',
+                label: 'Hide calories and weight',
+                icon: '🙈',
+                checked: hide,
+              },
+            ]}
+            onToggle={(_, v) => update((x) => setHideNumbers(x, v))}
+          />
+        </Card>
+      </section>
 
       <RemindersCard />
 

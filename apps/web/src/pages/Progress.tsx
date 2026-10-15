@@ -5,7 +5,7 @@ import { WeightChart } from '../components/Charts';
 import { useToast } from '../components/Toast';
 import { Achievements, Section } from '../components/ProgressParts';
 import { ThisWeek } from '../components/ThisWeek';
-import { Button, InputRow, List, PageTitle } from '../components/ui';
+import { Button, PageTitle, Stepper } from '../components/ui';
 import { addTarget, dismissInsight, keepTarget, removeWeight, setWeightOn } from '../data/actions';
 import { newId, update, useAppState } from '../data/store';
 import type { AppState, Profile } from '../data/types';
@@ -490,36 +490,45 @@ function WeightHistorySection({ s, today }: { s: AppState; today: string }) {
             resetForm();
           }}
         >
-          <List nested title={editingId ? 'Edit weigh-in' : 'Add a past weigh-in'}>
-            <InputRow
-              label="Date"
-              type="date"
-              max={today}
-              value={wDate}
-              onChange={(e) => setWDate(e.target.value)}
-            />
-            <InputRow
-              ref={inputRef}
+          <div className="space-y-4 rounded-[18px] bg-slate-50 p-3 dark:bg-slate-700/50">
+            <p className="font-semibold">{editingId ? 'Edit weigh-in' : 'Add a past weigh-in'}</p>
+            <div>
+              <label htmlFor="weigh-date" className="text-[1.0625rem] font-semibold">
+                Date
+              </label>
+              <input
+                id="weigh-date"
+                type="date"
+                max={today}
+                value={wDate}
+                onChange={(e) => setWDate(e.target.value)}
+                className="mt-2 block min-h-12 w-full rounded-[16px] bg-white px-4 text-[1.0625rem] font-semibold ring-1 ring-slate-200 focus:ring-2 focus:ring-emerald focus:outline-none dark:bg-slate-800 dark:ring-slate-600"
+              />
+            </div>
+            <Stepper
               label="Weight"
               unit="kg"
-              type="number"
-              inputMode="decimal"
-              step="0.1"
+              step={0.1}
+              fallback={
+                s.weights.length
+                  ? [...s.weights].sort((x, y) => y.date.localeCompare(x.date))[0]!.weightKg
+                  : 60
+              }
               placeholder="0.0"
               value={w}
-              onChange={(e) => setW(e.target.value)}
+              onChange={setW}
             />
-            <InputRow
+            <Stepper
               label="Waist"
+              hint="Optional"
               unit="cm"
-              type="number"
-              inputMode="decimal"
-              step="0.1"
-              placeholder="Optional"
+              step={0.5}
+              fallback={80}
+              placeholder="—"
               value={waist}
-              onChange={(e) => setWaist(e.target.value)}
+              onChange={setWaist}
             />
-          </List>
+          </div>
           {w.trim() !== '' && (kg < 30 || kg > 300) && (
             <p className="text-xs text-red-700 dark:text-red-400">Weight must be 30–300 kg.</p>
           )}

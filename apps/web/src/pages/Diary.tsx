@@ -5,16 +5,7 @@ import { FoodThumb, IconTile } from '../components/Icons';
 import { MEAL_STYLE } from '../components/mealStyle';
 import { MonthCalendar } from '../components/MonthCalendar';
 import { useToast } from '../components/Toast';
-import {
-  Bar,
-  Button,
-  Card,
-  InputRow,
-  List,
-  PageTitle,
-  SelectRow,
-  ToggleRow,
-} from '../components/ui';
+import { Bar, Button, Card, CheckCards, ChoiceCards, PageTitle, Stepper } from '../components/ui';
 import { editMeal, removeMeal, restoreMeal, setDayComplete } from '../data/actions';
 import { update, useAppState } from '../data/store';
 import type { MealItem, MealType } from '../data/types';
@@ -197,13 +188,21 @@ export function Diary() {
         );
       })}
 
-      <List footer="Turn this on when every meal is logged. Only complete days are used to check what you really burn and to suggest target changes.">
-        <ToggleRow
-          label="I logged everything I ate this day"
-          checked={complete}
-          onChange={(v) => update((x) => setDayComplete(x, date, v))}
+      <Card>
+        <CheckCards
+          label="Done for the day?"
+          hint="Tick this when every meal is logged. Only complete days are used to check what you really burn and to suggest target changes."
+          options={[
+            {
+              key: 'complete',
+              label: 'I logged everything I ate this day',
+              icon: '✅',
+              checked: complete,
+            },
+          ]}
+          onToggle={(_, v) => update((x) => setDayComplete(x, date, v))}
         />
-      </List>
+      </Card>
     </div>
   );
 }
@@ -263,37 +262,45 @@ function MealRow({ item: i, hide }: { item: MealItem; hide: boolean }) {
 
   return (
     <li className="my-2 space-y-3">
-      <List
-        nested
-        title={i.name}
-        footer={!hide && ok ? `About ${fmtInt((i.nutrients.kcal * g) / i.grams)} kcal` : undefined}
-      >
-        <InputRow
+      <div className="space-y-4 rounded-[18px] bg-slate-50 p-3 dark:bg-slate-700/50">
+        <p className="font-semibold">{i.name}</p>
+        <Stepper
           label="Amount"
+          hint={!hide && ok ? `About ${fmtInt((i.nutrients.kcal * g) / i.grams)} kcal` : undefined}
           unit="g"
-          type="number"
-          inputMode="decimal"
-          step="1"
+          step={10}
+          fallback={i.grams}
           value={grams}
-          onChange={(e) => setGrams(e.target.value)}
+          onChange={setGrams}
           error={ok ? null : 'Must be 1 to 5000 g'}
         />
-        <SelectRow
+        <ChoiceCards
           label="Meal"
+          columns={4}
           value={meal}
-          options={MEAL_TYPES.map((m) => ({ value: m, label: MEAL_LABELS[m] }))}
+          options={MEAL_TYPES.map((m) => ({
+            value: m,
+            label: MEAL_LABELS[m],
+            icon: { breakfast: '🌅', lunch: '☀️', dinner: '🌙', snack: '🍵' }[m],
+          }))}
           onChange={setMeal}
         />
         {meal === 'snack' && (
-          <InputRow
-            label="Name"
-            maxLength={20}
-            value={label}
-            placeholder="e.g. tea time"
-            onChange={(e) => setLabel(e.target.value)}
-          />
+          <div>
+            <label htmlFor={`name-${i.id}`} className="text-sm font-semibold">
+              Name <span className="font-normal text-slate-500">(optional)</span>
+            </label>
+            <input
+              id={`name-${i.id}`}
+              maxLength={20}
+              value={label}
+              placeholder="e.g. tea time"
+              onChange={(e) => setLabel(e.target.value)}
+              className="mt-1.5 block min-h-12 w-full rounded-[14px] bg-white px-4 ring-1 ring-slate-200 focus:ring-2 focus:ring-emerald focus:outline-none dark:bg-slate-800 dark:ring-slate-600"
+            />
+          </div>
         )}
-      </List>
+      </div>
       <div className="flex gap-2">
         <Button variant="danger" onClick={remove}>
           Delete

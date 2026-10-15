@@ -6,10 +6,11 @@ import {
   Button,
   Card,
   Check,
+  ChoiceCards,
   InputRow,
   List,
   PageTitle,
-  SelectRow,
+  Stepper,
 } from '../components/ui';
 import { addCustomFood, logFood } from '../data/actions';
 import { AI_ERROR_TEXT, analyzeFoodPhoto, type AiPhotoError } from '../data/aiPhoto';
@@ -124,23 +125,34 @@ export function AddFood() {
     <div className="space-y-4">
       <BackButton fallback="/diary" />
       <PageTitle sub={`For ${formatDay(date, localToday())}`}>Add food</PageTitle>
-      <List>
-        <SelectRow
+      <Card className="space-y-4">
+        <ChoiceCards
           label="Meal"
+          columns={4}
           value={meal}
-          options={MEAL_TYPES.map((m) => ({ value: m, label: MEAL_LABELS[m] }))}
+          options={MEAL_TYPES.map((m) => ({
+            value: m,
+            label: MEAL_LABELS[m],
+            icon: { breakfast: '🌅', lunch: '☀️', dinner: '🌙', snack: '🍵' }[m],
+          }))}
           onChange={setMeal}
         />
         {meal === 'snack' && (
-          <InputRow
-            label="Name"
-            maxLength={20}
-            placeholder="Optional"
-            value={label}
-            onChange={(e) => setLabel(e.target.value)}
-          />
+          <div>
+            <label htmlFor="snack-name" className="text-sm font-semibold">
+              What is it? <span className="font-normal text-slate-500">(optional)</span>
+            </label>
+            <input
+              id="snack-name"
+              maxLength={20}
+              placeholder="e.g. tea time"
+              value={label}
+              onChange={(e) => setLabel(e.target.value)}
+              className="mt-1.5 block min-h-12 w-full rounded-[14px] bg-white px-4 ring-1 ring-slate-200 focus:ring-2 focus:ring-emerald focus:outline-none dark:bg-slate-800 dark:ring-slate-600"
+            />
+          </div>
         )}
-      </List>
+      </Card>
       {meal === 'snack' && (
         <div>
           <div className="flex flex-wrap gap-2">
@@ -195,18 +207,15 @@ export function AddFood() {
               </div>
             </div>
           ))}
-          <List nested>
-            <InputRow
-              label="Amount"
-              unit="g"
-              type="number"
-              inputMode="decimal"
-              step="1"
-              value={grams}
-              onChange={(e) => setGrams(e.target.value)}
-              error={gramsOk ? null : 'Must be 1 to 5000 g'}
-            />
-          </List>
+          <Stepper
+            label="Amount"
+            unit="g"
+            step={10}
+            fallback={100}
+            value={grams}
+            onChange={setGrams}
+            error={gramsOk ? null : 'Must be 1 to 5000 g'}
+          />
           {gramsOk && <NutrientLine food={selected} grams={g} />}
           <div className="flex gap-3">
             <Button variant="secondary" onClick={() => setSelected(null)}>
