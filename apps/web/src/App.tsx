@@ -9,6 +9,7 @@ import { AddFood } from './pages/AddFood';
 import { Loading, Login, ResetPassword, Signup, UpdatePassword, Welcome } from './pages/Auth';
 import { Diary } from './pages/Diary';
 import { Credits, Disclaimer, Faq, HowWeCalculate, Privacy } from './pages/Info';
+import { Report } from './pages/Report';
 import { Me } from './pages/Me';
 import { Onboarding } from './pages/Onboarding';
 import { Progress } from './pages/Progress';
@@ -59,6 +60,14 @@ export function AppRoutes() {
       <Route path="/legal/privacy" element={<Privacy />} />
       <Route path="/legal/credits" element={<Credits />} />
       <Route path="/help/faq" element={<Faq />} />
+      <Route
+        path="/me/report"
+        element={
+          <RequireProfile>
+            <Report />
+          </RequireProfile>
+        }
+      />
       <Route
         element={
           <RequireProfile>

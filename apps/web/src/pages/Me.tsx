@@ -35,7 +35,7 @@ import {
   useSync,
   type SyncStatus,
 } from '../data/sync';
-import { getState, isPersistent, newId, replaceState, update, useAppState } from '../data/store';
+import { isPersistent, newId, replaceState, update, useAppState } from '../data/store';
 import { emptyState, type DietTag, type Profile, type TargetVersion } from '../data/types';
 import { localToday } from '../lib/dates';
 import { DEFAULT_REMINDERS, remindersIcs, type Reminder } from '../lib/reminders';
@@ -775,17 +775,6 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
   const initial = profile.avatar ?? (signedIn ? (email[0] ?? '?').toUpperCase() : '🙂');
   const hide = profile.hideNumbers;
 
-  const exportData = () => {
-    const blob = new Blob([JSON.stringify(getState(), null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `eathealthee-${today}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-    toast({ text: 'Backup download started' });
-  };
-
   return (
     <div className="space-y-5">
       <PageTitle sub="Manage your health plan and app settings.">Me</PageTitle>
@@ -926,17 +915,13 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
               </span>
             </span>
           </li>
-          <li>
-            <button type="button" onClick={exportData} className={rowButtonClass}>
-              <IconTile name="download" tint="bg-[#007aff]" />
-              <span className="min-w-0 flex-1">
-                <span className="block text-sm font-semibold">Download my data</span>
-                <span className="block text-xs text-slate-500 dark:text-slate-400">
-                  A copy of everything you logged, as a file
-                </span>
-              </span>
-            </button>
-          </li>
+          <Row
+            to="/me/report"
+            icon="download"
+            tint="bg-[#007aff]"
+            title="Download my data"
+            sub="A clear report of your logs, saved as PDF"
+          />
           <li>
             {danger === 'records' ? (
               <div className="p-2">

@@ -114,6 +114,17 @@
   }
 }
 
+/* Printing (the report's "Save as PDF"): plain white page, no app background. */
+@media print {
+  @page {
+    margin: 14mm;
+  }
+  body {
+    background: white !important;
+    color: #1d1d1f !important;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
