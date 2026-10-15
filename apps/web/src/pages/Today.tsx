@@ -97,7 +97,17 @@ export function Today() {
       : null;
   const reached =
     current !== null && goalKg !== undefined && (losing ? current <= goalKg : current >= goalKg);
-  const weighedToday = s.weights.some((w) => w.date === today);
+  const todayEntry = s.weights.find((w) => w.date === today);
+  // Today's weigh-in replaces any earlier one from today (only one per day counts).
+  const saveToday = (kg: number) =>
+    update((x) =>
+      setWeightOn(x, {
+        id: todayEntry?.id ?? newId(),
+        date: today,
+        measuredAt: new Date().toISOString(),
+        weightKg: kg,
+      }),
+    );
 
   return (
     <div className="space-y-4">
@@ -140,13 +150,12 @@ export function Today() {
             <p className="flex items-center gap-1.5 text-[0.9375rem] font-semibold text-[#5856d6] dark:text-[#7d7aff]">
               <Glyph name="scale" className="size-[18px]" /> Weight & BMI
             </p>
-            <button
-              type="button"
-              onClick={() => setWeighing(true)}
-              className="min-h-9 shrink-0 rounded-full bg-[#5856d6]/10 px-3 text-sm font-semibold text-[#5856d6] transition hover:bg-[#5856d6]/15 active:scale-95 dark:bg-[#7d7aff]/20 dark:text-[#a5a3ff]"
+            <Link
+              to="/progress#weights"
+              className="shrink-0 text-[0.9375rem] text-[#5856d6] hover:opacity-70 dark:text-[#a5a3ff]"
             >
-              {weighedToday ? 'Edit weight' : '+ Log weight'}
-            </button>
+              History ›
+            </Link>
           </div>
 
           <div className="mt-3 grid grid-cols-3 items-end gap-2">
@@ -218,6 +227,30 @@ export function Today() {
               </div>
             </div>
           )}
+
+          <QuickWeighIn
+            key={String(current)}
+            todayKg={todayEntry?.weightKg ?? null}
+            suggested={current ?? 60}
+            hide={false}
+            onSave={saveToday}
+            onEdit={() => setWeighing(true)}
+          />
+        </Card>
+      )}
+      {hide && (
+        <Card className="p-4">
+          <p className="flex items-center gap-1.5 text-[0.9375rem] font-semibold text-[#5856d6] dark:text-[#7d7aff]">
+            <Glyph name="scale" className="size-[18px]" /> Weigh-in
+          </p>
+          <QuickWeighIn
+            key={String(current)}
+            todayKg={todayEntry?.weightKg ?? null}
+            suggested={current ?? 60}
+            hide
+            onSave={saveToday}
+            onEdit={() => setWeighing(true)}
+          />
         </Card>
       )}
 
@@ -342,19 +375,117 @@ export function Today() {
           initial={s.weights.find((w) => w.date === today)?.weightKg ?? current ?? 60}
           onClose={() => setWeighing(false)}
           onSave={(kg) => {
-            update((x) =>
-              setWeightOn(x, {
-                id: newId(),
-                date: today,
-                measuredAt: new Date().toISOString(),
-                weightKg: kg,
-              }),
-            );
+            saveToday(kg);
             setWeighing(false);
           }}
         />
       )}
     </div>
+  );
+}
+
+/**
+ * Inline weigh-in for today: the latest weight is pre-filled, so most mornings it is
+ * a couple of taps on − / + and Save. After saving it shows the logged value with Edit.
+ */
+function QuickWeighIn({
+  todayKg,
+  suggested,
+  hide,
+  onSave,
+  onEdit,
+}: {
+  todayKg: number | null;
+  suggested: number;
+  hide: boolean;
+  onSave: (kg: number) => void;
+  onEdit: () => void;
+}) {
+  const [text, setText] = useState(fmt1(suggested).replace(/,/g, ''));
+  const kg = Number(text);
+  const ok = text.trim() !== '' && kg >= 30 && kg <= 300;
+  const step = (d: number) => setText(String(Math.round(((ok ? kg : suggested) + d) * 10) / 10));
+  const stepClass =
+    'flex size-10 shrink-0 items-center justify-center rounded-full bg-white text-lg font-semibold text-[#5856d6] shadow-[0_1px_2px_rgba(0,0,0,0.08)] active:scale-95 dark:bg-slate-700 dark:text-[#a5a3ff]';
+
+  if (todayKg !== null) {
+    return (
+      <div className="mt-4 flex items-center justify-between gap-3 rounded-[16px] bg-[#5856d6]/[0.07] px-3 py-2.5 dark:bg-[#7d7aff]/15">
+        <p className="text-sm">
+          <span className="font-semibold text-[#5856d6] dark:text-[#a5a3ff]">✓ Weighed today</span>
+          {!hide && (
+            <span className="text-slate-600 dark:text-slate-300"> · {fmt1(todayKg)} kg</span>
+          )}
+        </p>
+        <button
+          type="button"
+          onClick={onEdit}
+          className="min-h-9 rounded-full px-3 text-sm font-semibold text-[#5856d6] hover:bg-[#5856d6]/10 dark:text-[#a5a3ff]"
+        >
+          Edit
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <form
+      className="mt-4 rounded-[16px] bg-[#5856d6]/[0.07] p-3 dark:bg-[#7d7aff]/15"
+      onSubmit={(e) => {
+        e.preventDefault();
+        if (ok) onSave(Math.round(kg * 10) / 10);
+      }}
+    >
+      <label
+        htmlFor="quick-weigh-in"
+        className="text-xs font-semibold text-[#5856d6] dark:text-[#a5a3ff]"
+      >
+        Today's weigh-in
+      </label>
+      <div className="mt-2 flex items-center gap-2">
+        <button
+          type="button"
+          aria-label="Decrease by 0.1 kg"
+          className={stepClass}
+          onClick={() => step(-0.1)}
+        >
+          −
+        </button>
+        <span className="flex items-baseline gap-1">
+          <input
+            id="quick-weigh-in"
+            type="number"
+            inputMode="decimal"
+            step="0.1"
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            className="w-20 rounded-[10px] bg-white py-1.5 text-center text-xl font-bold focus:ring-2 focus:ring-[#5856d6]/40 focus:outline-none dark:bg-slate-800"
+          />
+          <span className="text-sm font-semibold text-slate-500">kg</span>
+        </span>
+        <button
+          type="button"
+          aria-label="Increase by 0.1 kg"
+          className={stepClass}
+          onClick={() => step(0.1)}
+        >
+          +
+        </button>
+        <button
+          type="submit"
+          disabled={!ok}
+          className="ml-auto min-h-10 rounded-full bg-[#5856d6] px-4 text-sm font-semibold text-white transition active:scale-95 disabled:opacity-40 dark:bg-[#7d7aff]"
+        >
+          Save
+        </button>
+      </div>
+      {!ok && text.trim() !== '' && (
+        <p className="mt-1.5 text-xs text-[#ff3b30]">Weight must be 30–300 kg.</p>
+      )}
+      <p className="mt-1.5 text-[0.6875rem] text-slate-500 dark:text-slate-400">
+        Most accurate in the morning, after the toilet and before eating.
+      </p>
+    </form>
   );
 }
 

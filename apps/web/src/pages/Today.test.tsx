@@ -65,11 +65,20 @@ describe('Today weight card', () => {
     expect(screen.getByText('BMI 24.5 Overweight')).toBeTruthy();
     expect(screen.getByText('7 kg to go')).toBeTruthy();
 
-    fireEvent.click(screen.getByRole('button', { name: '+ Log weight' }));
-    fireEvent.click(screen.getByRole('button', { name: '−0.5' }));
+    // Inline weigh-in, pre-filled with the latest weight (75).
+    expect((screen.getByLabelText("Today's weigh-in") as HTMLInputElement).value).toBe('75');
+    for (let i = 0; i < 3; i++) {
+      fireEvent.click(screen.getByRole('button', { name: 'Decrease by 0.1 kg' }));
+    }
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+    const todays = () => getState().weights.filter((w) => w.date === localToday());
+    expect(todays().map((w) => w.weightKg)).toEqual([74.7]);
+    expect(screen.getByText('✓ Weighed today')).toBeTruthy();
+
+    // Editing today's weigh-in replaces it instead of adding a second one.
+    fireEvent.click(screen.getByRole('button', { name: 'Edit' }));
     fireEvent.click(screen.getByRole('button', { name: '−0.5' }));
     fireEvent.click(screen.getByRole('button', { name: 'Save weight' }));
-    const todayEntry = getState().weights.find((w) => w.date === localToday());
-    expect(todayEntry?.weightKg).toBe(74);
+    expect(todays().map((w) => w.weightKg)).toEqual([74.2]);
   });
 });

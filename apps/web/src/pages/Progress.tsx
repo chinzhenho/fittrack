@@ -49,12 +49,6 @@ const REFUSAL_TEXT: Record<string, string> = {
   no_trend_at_window_start: 'A weigh-in from before the review period.',
 };
 
-const REASON_LABELS = {
-  initial: 'Initial',
-  profile_change: 'Profile update',
-  adaptive: 'Adjusted',
-};
-
 const WEEKDAY_SHORT = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 
 const md = (d: string) => shortDate(d);
@@ -896,15 +890,18 @@ function AdjustSection({ s, profile, today }: { s: AppState; profile: Profile; t
 
 function WeightHistorySection({ s, today }: { s: AppState; today: string }) {
   const toast = useToast();
+  const yesterday = addDays(today, -1);
+  const [formOpen, setFormOpen] = useState(false);
   const [w, setW] = useState('');
   const [waist, setWaist] = useState('');
-  const [wDate, setWDate] = useState(today);
+  const [wDate, setWDate] = useState(yesterday);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showAll, setShowAll] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const resetForm = () => {
+    setFormOpen(false);
     setEditingId(null);
-    setWDate(today);
+    setWDate(yesterday);
     setW('');
     setWaist('');
   };
@@ -920,6 +917,16 @@ function WeightHistorySection({ s, today }: { s: AppState; today: string }) {
   const entries = [...s.weights].sort(
     (a, b) => b.date.localeCompare(a.date) || b.measuredAt.localeCompare(a.measuredAt),
   );
+  const shown = entries.slice(0, showAll ? undefined : 10);
+  const goal = s.profile?.goal;
+  const dir = goal === 'fat_loss' ? -1 : goal === 'maintain' ? 0 : 1;
+  // Group rows under month headings, newest first.
+  const months: { month: string; rows: typeof shown }[] = [];
+  for (const e of shown) {
+    const m = e.date.slice(0, 7);
+    if (months.at(-1)?.month !== m) months.push({ month: m, rows: [] });
+    months.at(-1)!.rows.push(e);
+  }
 
   return (
     <Section
@@ -927,174 +934,216 @@ function WeightHistorySection({ s, today }: { s: AppState; today: string }) {
       tint="bg-[#5856d6]"
       icon="scale"
       title="Weight log"
-      sub="Add past days, edit or delete"
+      sub="All your weigh-ins"
     >
-      <form
-        className="space-y-3 rounded-2xl bg-slate-50 p-3 dark:bg-slate-700/40"
-        onSubmit={(e) => {
-          e.preventDefault();
-          if (!valid) return;
-          const old = s.weights.find((x) => x.id === editingId);
-          const entry = {
-            id: editingId ?? newId(),
-            date: wDate,
-            // Past days get a morning timestamp; only "first reading of the day" matters.
-            measuredAt:
-              wDate === today
-                ? new Date().toISOString()
-                : new Date(`${wDate}T07:00:00`).toISOString(),
-            weightKg: kg,
-            ...(waist.trim() !== '' && { waistCm }),
-          };
-          update((x) => setWeightOn(old ? removeWeight(x, old.id) : x, entry));
-          toast({ text: editingId ? 'Updated' : `Weight saved for ${formatDay(wDate, today)}` });
-          resetForm();
-        }}
-      >
-        <p className="text-sm font-bold">{editingId ? 'Edit weigh-in' : '+ New weigh-in'}</p>
-        <Field label="Date">
-          {(p) => (
-            <input
-              {...p}
-              type="date"
-              max={today}
-              value={wDate}
-              onChange={(e) => setWDate(e.target.value)}
-              className={inputClass}
-            />
-          )}
-        </Field>
-        <div className="grid grid-cols-2 gap-3">
-          <Field label="Weight (kg)">
-            {(p) => (
-              <input
-                {...p}
-                ref={inputRef}
-                type="number"
-                inputMode="decimal"
-                step="0.1"
-                value={w}
-                onChange={(e) => setW(e.target.value)}
-                className={inputClass}
-              />
-            )}
-          </Field>
-          <Field label="Waist (cm, optional)">
-            {(p) => (
-              <input
-                {...p}
-                type="number"
-                inputMode="decimal"
-                step="0.1"
-                value={waist}
-                onChange={(e) => setWaist(e.target.value)}
-                className={inputClass}
-              />
-            )}
-          </Field>
-        </div>
-        {w.trim() !== '' && (kg < 30 || kg > 300) && (
-          <p className="text-xs text-red-700 dark:text-red-400">Weight must be 30–300 kg.</p>
-        )}
-        {!editingId && w.trim() !== '' && s.weights.some((x) => x.date === wDate) && (
-          <p className="text-xs text-amber-800 dark:text-amber-300">
-            This day already has a weigh-in; saving will replace it.
+      {!s.weights.some((x) => x.date === today) && (
+        <p className="mb-3 rounded-[14px] bg-[#5856d6]/[0.07] px-3 py-2.5 text-sm dark:bg-[#7d7aff]/15">
+          Today&apos;s weight goes on the{' '}
+          <Link to="/today" className="font-semibold text-[#5856d6] dark:text-[#a5a3ff]">
+            Today page ›
+          </Link>
+        </p>
+      )}
+
+      {formOpen ? (
+        <form
+          className="mb-3 space-y-3 rounded-[18px] bg-slate-50 p-3 dark:bg-slate-700/40"
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (!valid) return;
+            const old = s.weights.find((x) => x.id === editingId);
+            const entry = {
+              id: editingId ?? newId(),
+              date: wDate,
+              // Past days get a morning timestamp; only "first reading of the day" matters.
+              measuredAt:
+                wDate === today
+                  ? new Date().toISOString()
+                  : new Date(`${wDate}T07:00:00`).toISOString(),
+              weightKg: kg,
+              ...(waist.trim() !== '' && { waistCm }),
+            };
+            update((x) => setWeightOn(old ? removeWeight(x, old.id) : x, entry));
+            toast({ text: editingId ? 'Updated' : `Weight saved for ${formatDay(wDate, today)}` });
+            resetForm();
+          }}
+        >
+          <p className="text-sm font-semibold">
+            {editingId ? 'Edit weigh-in' : 'Add a past weigh-in'}
           </p>
-        )}
-        <div className="flex gap-2">
-          {editingId && (
+          <Field label="Date">
+            {(p) => (
+              <input
+                {...p}
+                type="date"
+                max={today}
+                value={wDate}
+                onChange={(e) => setWDate(e.target.value)}
+                className={inputClass}
+              />
+            )}
+          </Field>
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Weight (kg)">
+              {(p) => (
+                <input
+                  {...p}
+                  ref={inputRef}
+                  type="number"
+                  inputMode="decimal"
+                  step="0.1"
+                  value={w}
+                  onChange={(e) => setW(e.target.value)}
+                  className={inputClass}
+                />
+              )}
+            </Field>
+            <Field label="Waist (cm, optional)">
+              {(p) => (
+                <input
+                  {...p}
+                  type="number"
+                  inputMode="decimal"
+                  step="0.1"
+                  value={waist}
+                  onChange={(e) => setWaist(e.target.value)}
+                  className={inputClass}
+                />
+              )}
+            </Field>
+          </div>
+          {w.trim() !== '' && (kg < 30 || kg > 300) && (
+            <p className="text-xs text-red-700 dark:text-red-400">Weight must be 30–300 kg.</p>
+          )}
+          {!editingId && w.trim() !== '' && s.weights.some((x) => x.date === wDate) && (
+            <p className="text-xs text-amber-800 dark:text-amber-300">
+              This day already has a weigh-in; saving will replace it.
+            </p>
+          )}
+          <div className="flex gap-2">
             <Button variant="secondary" onClick={resetForm}>
               Cancel
             </Button>
-          )}
-          <Button type="submit" className="flex-1" disabled={!valid}>
-            {editingId ? 'Save changes' : 'Save'}
-          </Button>
-        </div>
-      </form>
-
-      {entries.length === 0 ? (
-        <p className="mt-3 text-center text-sm text-slate-500 dark:text-slate-400">
-          No weigh-ins yet.
-        </p>
+            <Button type="submit" className="flex-1" disabled={!valid}>
+              {editingId ? 'Save changes' : 'Save'}
+            </Button>
+          </div>
+        </form>
       ) : (
-        <ul className="mt-2 divide-y divide-slate-100 dark:divide-slate-700">
-          {entries.slice(0, showAll ? undefined : 7).map((e) => (
-            <li key={e.id} className="flex items-center gap-2 py-2 text-sm">
-              <span className="min-w-0 flex-1">
-                <span className="block font-semibold">
-                  {fmt1(e.weightKg)} kg
-                  {e.waistCm !== undefined && (
-                    <span className="font-normal text-slate-600 dark:text-slate-300">
-                      {' '}
-                      · waist {fmt1(e.waistCm)} cm
-                    </span>
-                  )}
-                </span>
-                <span className="block text-xs text-slate-500 dark:text-slate-400">
-                  {formatDay(e.date, today)}
-                </span>
-              </span>
-              <Button
-                variant="ghost"
-                className="min-h-9 px-3"
-                aria-label={`Edit weight for ${e.date}`}
-                onClick={() => {
-                  setEditingId(e.id);
-                  setWDate(e.date);
-                  setW(String(e.weightKg));
-                  setWaist(e.waistCm !== undefined ? String(e.waistCm) : '');
-                  scrollToId('weights');
-                  inputRef.current?.focus({ preventScroll: true });
-                }}
-              >
-                Edit
-              </Button>
-              <button
-                type="button"
-                aria-label={`Delete weigh-in for ${e.date}`}
-                className="flex size-10 items-center justify-center rounded-2xl text-slate-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950"
-                onClick={() => {
-                  update((x) => removeWeight(x, e.id));
-                  if (editingId === e.id) resetForm();
-                  toast({
-                    text: `Deleted weigh-in for ${formatDay(e.date, today)}`,
-                    actionLabel: 'Undo',
-                    onAction: () => update((x) => setWeightOn(x, e)),
-                  });
-                }}
-              >
-                ✕
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
-      {entries.length > 7 && (
-        <Button variant="ghost" className="w-full" onClick={() => setShowAll((v) => !v)}>
-          {showAll ? 'Show less' : `Show all ${entries.length}`}
+        <Button
+          variant="secondary"
+          className="mb-3 w-full"
+          onClick={() => {
+            setFormOpen(true);
+            setTimeout(() => inputRef.current?.focus(), 0);
+          }}
+        >
+          + Add a past weigh-in
         </Button>
       )}
 
-      <details className="mt-3 rounded-2xl border border-slate-100 px-3 dark:border-slate-700">
-        <summary className="flex min-h-11 cursor-pointer items-center justify-between text-sm font-semibold">
-          Daily target history ({s.targets.length})
-          <span className="text-xs font-normal text-slate-500">Show</span>
-        </summary>
-        <ul className="space-y-1.5 pb-3 text-sm">
-          {[...s.targets]
-            .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
-            .map((t) => (
-              <li key={t.id} className="flex justify-between gap-3">
-                <span>{t.effectiveFrom}</span>
-                <span className="text-slate-500 dark:text-slate-400">
-                  {REASON_LABELS[t.reason]}
-                </span>
-                <span className="font-semibold">{fmtInt(t.caloriesKcal)} kcal</span>
-              </li>
-            ))}
-        </ul>
-      </details>
+      {entries.length === 0 ? (
+        <p className="py-4 text-center text-sm text-slate-500 dark:text-slate-400">
+          No weigh-ins yet.
+        </p>
+      ) : (
+        months.map(({ month, rows }) => (
+          <div key={month}>
+            <h3 className="mt-2 text-[0.8125rem] text-slate-500 uppercase dark:text-slate-400">
+              {monthLabel(month)}
+            </h3>
+            <ul className="divide-y divide-slate-100 dark:divide-slate-700">
+              {rows.map((e) => {
+                const prev = entries[entries.indexOf(e) + 1];
+                const diff = prev ? Math.round((e.weightKg - prev.weightKg) * 10) / 10 : null;
+                const good = diff !== null && dir !== 0 && diff * dir > 0;
+                return (
+                  <li key={e.id} className="flex items-center gap-2 py-2.5 text-sm">
+                    <span className="min-w-0 flex-1">
+                      <span className="block">{formatDay(e.date, today)}</span>
+                      {e.waistCm !== undefined && (
+                        <span className="block text-xs text-slate-500 dark:text-slate-400">
+                          Waist {fmt1(e.waistCm)} cm
+                        </span>
+                      )}
+                    </span>
+                    <span className="text-right">
+                      <span className="block font-semibold">{fmt1(e.weightKg)} kg</span>
+                      {diff !== null && diff !== 0 && (
+                        <span
+                          className={`block text-xs ${good ? 'text-emerald-strong dark:text-emerald' : 'text-slate-500 dark:text-slate-400'}`}
+                        >
+                          {signed(diff)} kg
+                        </span>
+                      )}
+                    </span>
+                    <button
+                      type="button"
+                      aria-label={`Edit weight for ${e.date}`}
+                      className="min-h-9 rounded-full px-2.5 text-sm text-emerald-strong hover:bg-emerald-50 dark:text-emerald dark:hover:bg-emerald/10"
+                      onClick={() => {
+                        setEditingId(e.id);
+                        setWDate(e.date);
+                        setW(String(e.weightKg));
+                        setWaist(e.waistCm !== undefined ? String(e.waistCm) : '');
+                        setFormOpen(true);
+                        scrollToId('weights');
+                        setTimeout(() => inputRef.current?.focus({ preventScroll: true }), 0);
+                      }}
+                    >
+                      Edit
+                    </button>
+                    <button
+                      type="button"
+                      aria-label={`Delete weigh-in for ${e.date}`}
+                      className="flex size-9 items-center justify-center rounded-full text-slate-400 hover:bg-red-50 hover:text-[#ff3b30] dark:hover:bg-red-950"
+                      onClick={() => {
+                        update((x) => removeWeight(x, e.id));
+                        if (editingId === e.id) resetForm();
+                        toast({
+                          text: `Deleted weigh-in for ${formatDay(e.date, today)}`,
+                          actionLabel: 'Undo',
+                          onAction: () => update((x) => setWeightOn(x, e)),
+                        });
+                      }}
+                    >
+                      ✕
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        ))
+      )}
+      {entries.length > 10 && (
+        <Button variant="ghost" className="mt-1 w-full" onClick={() => setShowAll((v) => !v)}>
+          {showAll ? 'Show less' : `Show all ${entries.length}`}
+        </Button>
+      )}
+      <p className="mt-3 text-xs text-slate-500 dark:text-slate-400">
+        Daily target history is in{' '}
+        <Link to="/me/targets" className="font-semibold text-emerald-strong dark:text-emerald">
+          Me → Daily nutrition targets
+        </Link>
+        .
+      </p>
     </Section>
   );
 }
+
+const MONTHS_LONG = [
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
+];
+const monthLabel = (m: string) => `${MONTHS_LONG[Number(m.slice(5, 7)) - 1]} ${m.slice(0, 4)}`;
