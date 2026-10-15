@@ -432,7 +432,7 @@ function PhotoCard({
 
       {!signedIn ? (
         <div className="rounded-2xl bg-white p-4 text-sm dark:bg-slate-700">
-          <p>AI snaps are free but need an account (20 per account per day).</p>
+          <p>AI snaps are free but need an account.</p>
           <div className="mt-3 flex gap-2">
             <Link
               to="/login"
@@ -583,8 +583,7 @@ function PhotoCard({
           <p className="text-sm text-red-700 dark:text-red-400" role="alert">
             {AI_ERROR_TEXT[state.error]}
           </p>
-          {/* Busy or offline: the same photo and note can be sent again. A failed try
-              doesn't use a snap (the Worker only counts answered photos). */}
+          {/* Busy or offline: the same photo and note can be sent again. */}
           {photo && (state.error === 'unavailable' || state.error === 'network') && (
             <Button className="w-full" onClick={() => void onFile(photo, hint.trim() || undefined)}>
               Try again
@@ -613,12 +612,10 @@ function PhotoCard({
           <Button
             variant="secondary"
             className="mt-2 w-full"
-            disabled={hint.trim() === '' || done.remaining <= 0}
+            disabled={hint.trim() === ''}
             onClick={() => void onFile(photo, hint)}
           >
-            {done.remaining > 0
-              ? `Re-analyse (uses 1 snap, ${done.remaining} left today)`
-              : 'No snaps left today'}
+            Re-analyse
           </Button>
         </details>
       )}
@@ -682,7 +679,7 @@ function PhotoCard({
             })}
           </ul>
           <p className="text-xs text-slate-600 dark:text-slate-300">
-            AI estimates can be off, mostly on portion size. {done.remaining} snaps left today.
+            AI estimates can be off, mostly on portion size.
           </p>
           <Button
             className="w-full"

@@ -9,8 +9,8 @@ export type AiPhotoError = 'login' | 'quota' | 'unavailable' | 'network' | 'bad_
 
 export const AI_ERROR_TEXT: Record<AiPhotoError, string> = {
   login: 'Please log in to use AI food snaps (free).',
-  quota: "You've used today's 20 AI snaps. They reset tomorrow. You can add food manually for now.",
-  unavailable: "The AI is busy right now. Try again (it won't use a snap), or add food manually.",
+  quota: "AI snaps aren't available right now. Please add food manually for now.",
+  unavailable: 'The AI is busy right now. Try again, or add food manually.',
   network: 'Connection problem. Please check and try again.',
   bad_image: "Can't read this image. Please try another one.",
 };
