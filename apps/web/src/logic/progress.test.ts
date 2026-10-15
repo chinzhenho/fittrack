@@ -1,25 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import {
-  acceptChallenge,
-  addTarget,
-  addWeight,
-  dismissInsight,
-  logFood,
-  removeWeight,
-  setDayComplete,
-} from '../data/actions';
-import { mergeStates } from '../data/merge';
+import { addTarget, addWeight, dismissInsight, logFood, setDayComplete } from '../data/actions';
 import { emptyState, type AppState, type Food, type MealType, type Profile } from '../data/types';
-import { trophyFamilies } from './trophies';
-import {
-  activeChallenge,
-  challengeProgress,
-  challengeRecord,
-  completedChallenges,
-  habitStatus,
-  habitWeek,
-  suggestedChallenges,
-} from './habits';
 import { insightKey, insightsFor } from './insights';
 import { mondayOf, periodRange, weeklySummary } from './weekly';
 
@@ -148,85 +129,6 @@ describe('weekly summary', () => {
   });
 });
 
-describe('habits', () => {
-  it('marks done, partial, not recorded and future days', () => {
-    let s = eat(base(), '2026-10-12', 1300, 'breakfast'); // protein 130 >= 120
-    s = eat(s, '2026-10-12', 100, 'lunch');
-    s = eat(s, '2026-10-12', 100, 'dinner');
-    s = eat(s, '2026-10-13', 300, 'lunch'); // protein 30
-    expect(habitStatus(s, 'meals', '2026-10-12', TODAY)).toBe('done');
-    expect(habitStatus(s, 'meals', '2026-10-13', TODAY)).toBe('partial');
-    expect(habitStatus(s, 'protein', '2026-10-12', TODAY)).toBe('done');
-    expect(habitStatus(s, 'protein', '2026-10-13', TODAY)).toBe('partial');
-    expect(habitStatus(s, 'food', '2026-10-14', TODAY)).toBe('none');
-    expect(habitStatus(s, 'food', '2026-10-17', TODAY)).toBe('future');
-    const week = habitWeek(s, '2026-10-12', TODAY);
-    expect(week).toHaveLength(4);
-    expect(week[0]?.days.map((d) => d.status)).toEqual([
-      'done',
-      'done',
-      'none',
-      'none',
-      'future',
-      'future',
-      'future',
-    ]);
-  });
-
-  it('protein is not applicable without a target', () => {
-    const s = eat({ ...emptyState, profile: profile() }, '2026-10-12', 100);
-    expect(habitStatus(s, 'protein', '2026-10-12', TODAY)).toBe('na');
-  });
-});
-
-describe('weekly challenge', () => {
-  it('tracks progress and completion from real records', () => {
-    const week = '2026-10-12';
-    let s = acceptChallenge(base(), challengeRecord('weigh3', week));
-    expect(activeChallenge(s, week)?.challenge).toBe('weigh3');
-    s = weigh(weigh(s, '2026-10-12', 80), '2026-10-13', 79.8);
-    expect(challengeProgress(s, 'weigh3', week)).toEqual({ value: 2, max: 3, done: false });
-    s = weigh(s, '2026-10-14', 79.7);
-    expect(challengeProgress(s, 'weigh3', week).done).toBe(true);
-    expect(completedChallenges(s)).toBe(1);
-    const fam = trophyFamilies(s, TODAY).find((f) => f.id === 'challenges');
-    expect(fam?.levels[0]).toEqual({ tier: 'bronze', goal: 1, earnedOn: '2026-10-14' });
-    // Deleting a weigh-in takes the completion back.
-    s = removeWeight(s, 'w2026-10-14');
-    expect(completedChallenges(s)).toBe(0);
-  });
-
-  it('a skipped challenge stays skipped after syncing with an older copy', () => {
-    const week = '2026-10-12';
-    const accepted: AppState = {
-      ...acceptChallenge(base(), {
-        ...challengeRecord('log5', week),
-        acceptedAt: '2026-10-12T01:00:00Z',
-      }),
-      updatedAt: '2026-10-12T01:00:00Z',
-    };
-    const skipped: AppState = {
-      ...acceptChallenge(accepted, {
-        ...challengeRecord('log5', week, true),
-        acceptedAt: '2026-10-13T01:00:00Z',
-      }),
-      updatedAt: '2026-10-13T01:00:00Z',
-    };
-    expect(activeChallenge(mergeStates(accepted, skipped), week)).toBeNull();
-    expect(activeChallenge(mergeStates(skipped, accepted), week)).toBeNull();
-  });
-
-  it('suggests the weakest habit first and leaves out finished ones', () => {
-    let s = base();
-    for (const d of ['2026-10-09', '2026-10-10', '2026-10-11', '2026-10-12', '2026-10-13']) {
-      s = eat(s, d, 500, 'breakfast');
-    }
-    const order = suggestedChallenges(s, TODAY);
-    expect(order[0]).toBe('weigh3'); // no weigh-ins at all
-    expect(order.at(-1)).toBe('breakfast5');
-  });
-});
-
 describe('insights', () => {
   it('scenario A: only asks for more records, with no numbers made up', () => {
     const list = insightsFor(base(), TODAY);
@@ -271,13 +173,12 @@ describe('deleting health records', () => {
   it('scenario F: clears records but keeps the profile, plan history and own foods', async () => {
     const { clearHealthRecords } = await import('../data/actions');
     let s = complete(base(), MON_TUE_WED, 2000);
-    s = acceptChallenge(weigh(s, '2026-10-12', 80), challengeRecord('log5', '2026-10-12'));
+    s = weigh(s, '2026-10-12', 80);
     s = { ...s, customFoods: [food] };
     const c = clearHealthRecords(s);
     expect(c.meals).toEqual([]);
     expect(c.weights).toEqual([]);
     expect(c.completeDays).toEqual([]);
-    expect(c.challenges).toEqual([]);
     expect(c.profile).toEqual(s.profile);
     expect(c.targets).toEqual(s.targets);
     expect(c.customFoods).toEqual([food]);

@@ -1,7 +1,6 @@
 import { nutrientsFor } from '../logic/nutrition';
 import type {
   AppState,
-  ChallengeRecord,
   Food,
   MealItem,
   MealType,
@@ -143,10 +142,6 @@ export function addWater(s: AppState, entry: WaterEntry): AppState {
 
 export function removeWater(s: AppState, id: string): AppState {
   return { ...s, water: s.water.filter((w) => w.id !== id) };
-}
-
-export function acceptChallenge(s: AppState, record: ChallengeRecord): AppState {
-  return { ...s, challenges: [...s.challenges.filter((c) => c.id !== record.id), record] };
 }
 
 export function dismissInsight(s: AppState, key: string): AppState {

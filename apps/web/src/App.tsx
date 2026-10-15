@@ -73,6 +73,7 @@ export function AppRoutes() {
         <Route path="/me" element={<Me />} />
         <Route path="/me/plan" element={<Me mode="plan" />} />
         <Route path="/me/profile" element={<Me mode="profile" />} />
+        <Route path="/me/body" element={<Me mode="body" />} />
         <Route path="/me/targets" element={<Me mode="targets" />} />
       </Route>
       <Route path="*" element={<Navigate to="/today" replace />} />

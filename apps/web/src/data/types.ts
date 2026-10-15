@@ -136,7 +136,8 @@ export interface WaterEntry {
 }
 
 /**
- * A weekly challenge the user accepted. Never deleted: skipping sets `skipped`, and the
+ * Legacy (the weekly challenge feature was removed 2026-10-15); kept so older saved
+ * data still loads and syncs. A weekly challenge the user accepted. Never deleted: skipping sets `skipped`, and the
  * newest record for a week wins, so syncing two devices cannot resurrect a skipped one.
  */
 export interface ChallengeRecord {

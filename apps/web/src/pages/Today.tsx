@@ -188,7 +188,7 @@ export function Today() {
                 </p>
               ) : (
                 <Link
-                  to="/me/profile"
+                  to="/me/body"
                   className="text-sm font-semibold text-emerald-strong dark:text-emerald"
                 >
                   Set

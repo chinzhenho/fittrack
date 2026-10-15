@@ -2,7 +2,6 @@ import { addDays } from '@fittrack/engine';
 import type { IconName } from '../components/Icons';
 import type { AppState } from '../data/types';
 import { loggedDates } from './achievements';
-import { activeChallenge, challengeProgress, type ChallengeId } from './habits';
 import { mealsOn, sumNutrients } from './nutrition';
 import { startWeightKg, targetOn, trendPoints } from './targets';
 import { datesBetween, mondayOf } from './weekly';
@@ -112,34 +111,7 @@ function lossDirection(s: AppState): -1 | 0 | 1 {
   return g === 'fat_loss' ? -1 : g === 'maintain' || !g ? 0 : 1;
 }
 
-/** A copy of the records up to and including `date`. */
-function until(s: AppState, date: string): AppState {
-  return {
-    ...s,
-    meals: s.meals.filter((m) => m.date <= date),
-    weights: s.weights.filter((w) => w.date <= date),
-    completeDays: s.completeDays.filter((d) => d <= date),
-  };
-}
-
-/** Completion date of each accepted weekly challenge that was completed. */
-export function challengeWins(s: AppState, today: string): { week: string; on: string }[] {
-  const weeks = [...new Set(s.challenges.map((c) => c.weekStart))].sort();
-  const wins: { week: string; on: string }[] = [];
-  for (const week of weeks) {
-    const rec = activeChallenge(s, week);
-    if (!rec) continue;
-    const id = rec.challenge as ChallengeId;
-    if (!challengeProgress(s, id, week).done) continue;
-    const day = datesBetween(week, addDays(week, 6))
-      .filter((d) => d <= today)
-      .find((d) => challengeProgress(until(s, d), id, week).done);
-    if (day) wins.push({ week, on: day });
-  }
-  return wins;
-}
-
-export function trophyFamilies(s: AppState, today: string): TrophyFamily[] {
+export function trophyFamilies(s: AppState): TrophyFamily[] {
   const logged = loggedDates(s);
   const streak = longestRun(logged);
   const families: TrophyFamily[] = [
@@ -188,19 +160,6 @@ export function trophyFamilies(s: AppState, today: string): TrophyFamily[] {
     });
   }
 
-  const wins = challengeWins(s, today);
-  families.push({
-    id: 'challenges',
-    icon: 'target',
-    title: 'Weekly challenges',
-    unit: 'completed',
-    value: wins.length,
-    levels: [1, 4, 12, 26].map((goal, i) => ({
-      tier: TIERS[i]!,
-      goal,
-      earnedOn: wins[goal - 1]?.on ?? null,
-    })),
-  });
   return families;
 }
 
@@ -417,7 +376,7 @@ export interface FeedItem {
 
 export function achievementFeed(s: AppState, today: string, limit = 6): FeedItem[] {
   const items: FeedItem[] = [];
-  for (const f of trophyFamilies(s, today)) {
+  for (const f of trophyFamilies(s)) {
     for (const l of f.levels) {
       if (l.earnedOn)
         items.push({

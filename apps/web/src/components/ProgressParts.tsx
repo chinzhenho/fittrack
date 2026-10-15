@@ -148,7 +148,7 @@ function FamilyRow({ f }: { f: TrophyFamily }) {
 export function Achievements({ s, today, hide }: { s: AppState; today: string; hide: boolean }) {
   const toast = useToast();
   const [showAll, setShowAll] = useState(false);
-  const families = trophyFamilies(s, today).filter((f) => !(hide && f.id === 'kg'));
+  const families = trophyFamilies(s).filter((f) => !(hide && f.id === 'kg'));
   const earned = families
     .map((f) => ({ f, top: topTier(f) }))
     .filter((x) => x.top !== null)

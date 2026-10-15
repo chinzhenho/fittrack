@@ -90,20 +90,20 @@ describe('medals', () => {
   it('dates each tier by the day it was first reached', () => {
     const days = datesBetween('2026-10-01', '2026-10-10');
     const s = eat(base(), days);
-    const streak = trophyFamilies(s, TODAY).find((f) => f.id === 'streak')!;
+    const streak = trophyFamilies(s).find((f) => f.id === 'streak')!;
     expect(streak.value).toBe(10);
     expect(streak.levels.map((l) => l.earnedOn)).toEqual(['2026-10-03', '2026-10-07', null, null]);
     expect(topTier(streak)?.tier).toBe('silver');
     expect(nextTier(streak)?.goal).toBe(30);
-    const logged = trophyFamilies(s, TODAY).find((f) => f.id === 'logged')!;
+    const logged = trophyFamilies(s).find((f) => f.id === 'logged')!;
     expect(logged.levels[0]?.earnedOn).toBe('2026-10-10');
   });
 
   it('takes a medal back when the record behind it is deleted', () => {
     let s = eat(base(), ['2026-10-01', '2026-10-02', '2026-10-03']);
-    expect(trophyFamilies(s, TODAY)[0]?.levels[0]?.earnedOn).toBe('2026-10-03');
+    expect(trophyFamilies(s)[0]?.levels[0]?.earnedOn).toBe('2026-10-03');
     s = removeMeal(s, 'm-2026-10-02');
-    expect(trophyFamilies(s, TODAY)[0]?.levels[0]?.earnedOn).toBeNull();
+    expect(trophyFamilies(s)[0]?.levels[0]?.earnedOn).toBeNull();
   });
 
   it('streakReachedOn needs consecutive days', () => {
@@ -118,12 +118,12 @@ describe('medals', () => {
       s = addWeight(s, { id: d, date: d, measuredAt: `${d}T07:00:00Z`, weightKg: kg });
       kg -= 0.1;
     }
-    const lost = trophyFamilies(s, TODAY).find((f) => f.id === 'kg')!;
+    const lost = trophyFamilies(s).find((f) => f.id === 'kg')!;
     expect(lost.title).toBe('Weight lost');
     expect(lost.levels[0]?.earnedOn).not.toBeNull();
     expect(lost.levels[3]?.earnedOn).toBeNull(); // 10 kg not reached
     const keep = base({ ...profile, goal: 'maintain' });
-    expect(trophyFamilies(keep, TODAY).some((f) => f.id === 'kg')).toBe(false);
+    expect(trophyFamilies(keep).some((f) => f.id === 'kg')).toBe(false);
   });
 });
 

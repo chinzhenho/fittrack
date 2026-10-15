@@ -2,7 +2,7 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
 import { afterEach, describe, expect, it } from 'vitest';
 import { ToastProvider } from '../components/Toast';
-import { getState, replaceState } from '../data/store';
+import { replaceState } from '../data/store';
 import { emptyState, type Profile } from '../data/types';
 import { localToday } from '../lib/dates';
 import { Progress } from './Progress';
@@ -79,15 +79,6 @@ describe('My progress', () => {
     });
     expect(screen.getByText('Gained 1.5 kg')).toBeTruthy();
     expect(screen.getByText(/3.5 kg to go/)).toBeTruthy();
-  });
-
-  it('starts and changes a weekly challenge, saved in the synced state', () => {
-    renderProgress();
-    fireEvent.click(screen.getByRole('button', { name: 'Start challenge' }));
-    expect(getState().challenges).toHaveLength(1);
-    fireEvent.click(screen.getByRole('button', { name: 'Try another' }));
-    expect(getState().challenges[0]?.skipped).toBe(true);
-    expect(screen.getByRole('button', { name: 'Start challenge' })).toBeTruthy();
   });
 
   it('scenario G: hidden numbers keep the week but drop weight and calories', () => {

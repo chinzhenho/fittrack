@@ -5,28 +5,12 @@ import { WeightChart } from '../components/Charts';
 import { useToast } from '../components/Toast';
 import { Achievements, Section } from '../components/ProgressParts';
 import { ThisWeek } from '../components/ThisWeek';
-import { Bar, Button, Field, inputClass, PageTitle } from '../components/ui';
-import {
-  acceptChallenge,
-  addTarget,
-  dismissInsight,
-  keepTarget,
-  removeWeight,
-  setWeightOn,
-} from '../data/actions';
+import { Button, Field, inputClass, PageTitle } from '../components/ui';
+import { addTarget, dismissInsight, keepTarget, removeWeight, setWeightOn } from '../data/actions';
 import { newId, update, useAppState } from '../data/store';
 import type { AppState, Profile } from '../data/types';
 import { formatDay, localToday, shortDate } from '../lib/dates';
 import { fmt1, fmtInt } from '../lib/format';
-import {
-  activeChallenge,
-  challengeProgress,
-  challengeRecord,
-  CHALLENGES,
-  isChallengeId,
-  suggestedChallenges,
-  type ChallengeId,
-} from '../logic/habits';
 import { CATEGORY_LABELS, insightKey, insightsFor, type Insight } from '../logic/insights';
 import {
   adaptiveFor,
@@ -36,16 +20,6 @@ import {
   targetOn,
   trendPoints,
 } from '../logic/targets';
-import { mondayOf } from '../logic/weekly';
-
-const REFUSAL_TEXT: Record<string, string> = {
-  window_too_short:
-    'Keep logging for 14 days after setting your goal (early changes are mostly water).',
-  not_enough_complete_logs:
-    'Tick "I logged everything I ate" in the Diary on most days (at least 80% of the last 3 weeks).',
-  not_enough_weigh_ins: 'Weigh in at least 10 times in 3 weeks.',
-  no_trend_at_window_start: 'Have at least one weigh-in from 3 weeks ago or earlier.',
-};
 
 const md = (d: string) => shortDate(d);
 const signed = (n: number) => `${n > 0 ? '+' : n < 0 ? '−' : '±'}${fmt1(Math.abs(n))}`;
@@ -117,7 +91,6 @@ export function Progress() {
       )}
       <ThisWeek s={s} today={today} hide={hide} />
       {!hide && <BodySection s={s} profile={profile} today={today} />}
-      <NextStepSection s={s} today={today} />
       <Achievements s={s} today={today} hide={hide} />
       <InsightsSection s={s} today={today} />
       {!hide && <AdjustSection s={s} profile={profile} today={today} />}
@@ -250,6 +223,8 @@ function InsightsSection({ s, today }: { s: AppState; today: string }) {
   const [showAll, setShowAll] = useState(false);
   const list = insightsFor(s, today);
   const shown = showAll ? list : list.slice(0, 3);
+  // Shown only when there is something to say.
+  if (list.length === 0) return null;
 
   return (
     <Section
@@ -259,11 +234,7 @@ function InsightsSection({ s, today }: { s: AppState; today: string }) {
       title="Tips for you"
       sub="Based on your last 7 days"
     >
-      {list.length === 0 ? (
-        <p className="rounded-2xl bg-slate-50 p-4 text-sm text-slate-600 dark:bg-slate-700/60 dark:text-slate-300">
-          No new insights right now. Keep logging and we'll tell you when we spot a pattern.
-        </p>
-      ) : (
+      {
         <ul className="space-y-2.5">
           {shown.map((i) => (
             <li key={i.id} className={`rounded-2xl border p-3.5 ${TONE_STYLE[i.tone].cls}`}>
@@ -314,7 +285,7 @@ function InsightsSection({ s, today }: { s: AppState; today: string }) {
             </li>
           ))}
         </ul>
-      )}
+      }
       {list.length > 3 && (
         <Button variant="ghost" className="mt-2 w-full" onClick={() => setShowAll((v) => !v)}>
           {showAll ? 'Show less' : `See all ${list.length}`}
@@ -327,117 +298,6 @@ function InsightsSection({ s, today }: { s: AppState; today: string }) {
     </Section>
   );
 }
-function ChallengeProgress({ s, id, week }: { s: AppState; id: ChallengeId; week: string }) {
-  const p = challengeProgress(s, id, week);
-  return (
-    <div className="mt-1">
-      <p className="flex items-center justify-between gap-2 text-sm font-semibold">
-        <span>{CHALLENGES[id].title}</span>
-        <span className={p.done ? 'text-emerald-strong dark:text-emerald' : 'text-slate-500'}>
-          {p.done ? '✓ Done' : `${p.value} / ${p.max}`}
-        </span>
-      </p>
-      <Bar value={p.value} max={p.max} color="bg-emerald-500" />
-    </div>
-  );
-}
-
-function NextStepSection({ s, today }: { s: AppState; today: string }) {
-  const toast = useToast();
-  const week = mondayOf(today);
-  const active = activeChallenge(s, week);
-  const options = suggestedChallenges(s, today);
-  const [index, setIndex] = useState(0);
-  const daysLeft = 6 - ((new Date(`${today}T00:00:00`).getDay() + 6) % 7);
-
-  if (active && isChallengeId(active.challenge)) {
-    const id = active.challenge;
-    const p = challengeProgress(s, id, week);
-    return (
-      <Section
-        id="next"
-        tint="bg-[#ff9500]"
-        icon="target"
-        title="This week's challenge"
-        sub="Keep going, it updates as you log"
-      >
-        <div className="rounded-2xl bg-gradient-to-br from-emerald-50 to-teal-50 p-4 dark:from-emerald/15 dark:to-teal-500/10">
-          <ChallengeProgress s={s} id={id} week={week} />
-          <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
-            {p.done
-              ? '🎉 Challenge complete! You can pick a new one next Monday.'
-              : `${CHALLENGES[id].why} ${daysLeft + 1} ${daysLeft === 0 ? 'day' : 'days'} left (until Sunday).`}
-          </p>
-        </div>
-        <div className="mt-3 grid grid-cols-2 gap-2">
-          <Button variant="secondary" onClick={() => scrollToId('habits')}>
-            See progress
-          </Button>
-          {!p.done && (
-            <Button
-              variant="ghost"
-              onClick={() => {
-                update((x) => acceptChallenge(x, challengeRecord(id, week, true)));
-                setIndex(0);
-                toast({ text: 'Challenge dropped. You can pick another.' });
-              }}
-            >
-              Try another
-            </Button>
-          )}
-        </div>
-      </Section>
-    );
-  }
-
-  if (options.length === 0) {
-    return (
-      <Section id="next" tint="bg-[#ff9500]" icon="target" title="This week's challenge">
-        <p className="text-sm text-slate-600 dark:text-slate-300">
-          🎉 You've already met every challenge this week. Come back on Monday for a new one.
-        </p>
-      </Section>
-    );
-  }
-
-  const id = options[index % options.length]!;
-  const p = challengeProgress(s, id, week);
-  return (
-    <Section
-      id="next"
-      tint="bg-[#ff9500]"
-      icon="target"
-      title="This week's challenge"
-      sub="A small goal to build a habit (optional)"
-    >
-      <div className="rounded-2xl bg-gradient-to-br from-emerald-50 to-teal-50 p-4 dark:from-emerald/15 dark:to-teal-500/10">
-        <p className="text-lg font-black">{CHALLENGES[id].title}</p>
-        <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">{CHALLENGES[id].why}</p>
-        <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
-          So far this week {p.value} / {p.max} · ends Sunday, change any time
-        </p>
-      </div>
-      <div className="mt-3 grid grid-cols-2 gap-2">
-        <Button
-          onClick={() => {
-            update((x) => acceptChallenge(x, challengeRecord(id, week)));
-            toast({ text: 'Challenge started! Progress updates from your logs.' });
-          }}
-        >
-          Start challenge
-        </Button>
-        <Button
-          variant="secondary"
-          disabled={options.length < 2}
-          onClick={() => setIndex((i) => i + 1)}
-        >
-          Try another
-        </Button>
-      </div>
-    </Section>
-  );
-}
-
 function AdjustSection({ s, profile, today }: { s: AppState; profile: Profile; today: string }) {
   const toast = useToast();
   const target = targetOn(s.targets, today);
@@ -448,45 +308,16 @@ function AdjustSection({ s, profile, today }: { s: AppState; profile: Profile; t
   const keptOn = [...s.adaptiveKeptOn].sort().at(-1);
   const kept = keptOn !== undefined && keptOn > addDays(today, -14);
 
+  // Shown only once there is a result: while data is still building up, after the user
+  // chose to keep the target, or right after a change, there is nothing to act on.
+  if (cooldown || kept || !adaptive?.ok) return null;
+
   let body: ReactNode;
-  if (cooldown) {
-    body = (
-      <p className="text-sm">
-        Your target was last adjusted on {formatDay(lastAdaptive.effectiveFrom, today)}. A new
-        target takes about two weeks to show its effect, so we'll review again after{' '}
-        {formatDay(addDays(lastAdaptive.effectiveFrom, 14), today)}.
-      </p>
-    );
-  } else if (!adaptive?.ok) {
-    body = (
-      <div className="space-y-2 text-sm">
-        <p>
-          After about 3 weeks of logging, we compare what you ate with how your weight changed and
-          tell you if your daily target should go up or down. To get there, you still need to:
-        </p>
-        <ul className="list-disc space-y-1 pl-5 text-slate-700 dark:text-slate-200">
-          {(adaptive && !adaptive.ok ? adaptive.reasons : []).map((r) => (
-            <li key={r}>{REFUSAL_TEXT[r]}</li>
-          ))}
-        </ul>
-        <p className="text-xs text-slate-500 dark:text-slate-400">
-          Until then, your current target of {fmtInt(target.caloriesKcal)} kcal stays.
-        </p>
-      </div>
-    );
-  } else if (adaptive.proposedTargetKcal === target.caloriesKcal) {
+  if (adaptive.proposedTargetKcal === target.caloriesKcal) {
     body = (
       <p className="text-sm">
         ✓ Based on your logs from {md(adaptive.windowStart)} – {md(adaptive.windowEnd)}, your
         current target of {fmtInt(target.caloriesKcal)} kcal fits. No change needed.
-      </p>
-    );
-  } else if (kept) {
-    body = (
-      <p className="text-sm">
-        You chose to keep your target of {fmtInt(target.caloriesKcal)} kcal on{' '}
-        {formatDay(keptOn, today)}. We'll suggest again after{' '}
-        {formatDay(addDays(keptOn, 14), today)}.
       </p>
     );
   } else {

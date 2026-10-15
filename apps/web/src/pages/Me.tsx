@@ -74,7 +74,7 @@ const REASON_LABELS: Record<TargetVersion['reason'], string> = {
 
 const AVATARS = ['🥗', '🍎', '🥑', '🍳', '🍜', '🍛', '🥦', '🍓', '💪', '🏃', '🧘', '😊'];
 
-type Mode = 'home' | 'plan' | 'profile' | 'targets';
+type Mode = 'home' | 'plan' | 'profile' | 'body' | 'targets';
 
 type Macros = Pick<TargetVersion, 'caloriesKcal' | 'proteinG' | 'carbsG' | 'fatG'>;
 
@@ -341,14 +341,30 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
     </>
   );
 
+  const run = async (job: () => Promise<string | null>, onDone: () => void) => {
+    setBusy(true);
+    setError(null);
+    const err = await job();
+    setBusy(false);
+    if (err) {
+      setError(err);
+      return;
+    }
+    onDone();
+  };
+
+  const closeDanger = () => {
+    setDanger(null);
+    setDeleteWord('');
+    setError(null);
+  };
+
   if (mode === 'profile') {
     const avatarNow = draft.avatar ?? (signedIn ? (email[0] ?? '🙂').toUpperCase() : '🙂');
     return (
       <div className="space-y-4">
         <BackToMe />
-        <PageTitle sub="Nickname and avatar are just for display; body details set your daily target.">
-          Profile
-        </PageTitle>
+        <PageTitle sub="Your name, picture and account.">Profile & account</PageTitle>
 
         <Card className="space-y-5">
           <div className="flex items-center gap-4">
@@ -392,8 +408,129 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
           </fieldset>
         </Card>
 
+        {saveBar('Save profile')}
+
+        {signedIn && (
+          <Group title="Account">
+            <ul>
+              <li className="flex min-h-14 items-center gap-3 px-2">
+                <IconTile name="mail" tint="bg-[#007aff]" />
+                <span className="min-w-0 flex-1">
+                  <span className="block text-sm font-semibold">Login email</span>
+                  <span className="block truncate text-xs text-slate-500 dark:text-slate-400">
+                    {email}
+                  </span>
+                </span>
+              </li>
+              <Row to="/update-password" icon="key" tint="bg-slate-400" title="Change password" />
+            </ul>
+            <div className="mt-2 border-t border-slate-100 px-2 pt-3 dark:border-slate-700">
+              {danger === 'account' ? (
+                <Notice tone="warn" title="Permanently delete your account?">
+                  Your login email, password, all food and weight logs in the cloud, plan and
+                  settings will be permanently deleted and can't be recovered. Export a backup first
+                  (Me → Privacy & data).
+                  <Field label="Type DELETE to confirm">
+                    {(p) => (
+                      <input
+                        {...p}
+                        value={deleteWord}
+                        onChange={(e) => setDeleteWord(e.target.value)}
+                        className={inputClass}
+                        autoComplete="off"
+                      />
+                    )}
+                  </Field>
+                  {error && (
+                    <p role="alert" className="mt-2 font-semibold text-red-700 dark:text-red-400">
+                      {error}
+                    </p>
+                  )}
+                  <div className="mt-3 flex gap-2">
+                    <Button
+                      variant="danger"
+                      disabled={busy || deleteWord.trim() !== 'DELETE'}
+                      onClick={() =>
+                        void run(deleteAccount, () => navigate('/welcome', { replace: true }))
+                      }
+                    >
+                      {busy ? 'Deleting…' : 'Delete account forever'}
+                    </Button>
+                    <Button variant="secondary" disabled={busy} onClick={closeDanger}>
+                      Cancel
+                    </Button>
+                  </div>
+                </Notice>
+              ) : (
+                <button
+                  type="button"
+                  className="min-h-11 w-full rounded-2xl text-sm font-semibold text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950"
+                  onClick={() => {
+                    closeDanger();
+                    setDanger('account');
+                  }}
+                >
+                  Delete account
+                </button>
+              )}
+            </div>
+          </Group>
+        )}
+
+        {!signedIn && (
+          <Group title="Account">
+            <div className="space-y-3 p-2">
+              <p className="text-sm text-slate-600 dark:text-slate-300">
+                You&apos;re using EatHealthee without an account, so your data is only on this
+                device. Sign up to back it up and use it on any phone.
+              </p>
+              <div className="flex gap-2">
+                <Link
+                  to="/signup"
+                  className="inline-flex min-h-11 flex-1 items-center justify-center rounded-[14px] bg-emerald-strong px-4 text-[0.9375rem] font-semibold text-white dark:bg-emerald dark:text-black"
+                >
+                  Sign up
+                </Link>
+                <Link
+                  to="/login"
+                  className="inline-flex min-h-11 flex-1 items-center justify-center rounded-[14px] bg-[#767680]/[0.12] px-4 text-[0.9375rem] font-semibold text-emerald-strong dark:bg-[#767680]/[0.24] dark:text-emerald"
+                >
+                  Log in
+                </Link>
+              </div>
+            </div>
+          </Group>
+        )}
+
+        {signedIn && (
+          <div className="pb-4">
+            <Button
+              variant="danger"
+              className="w-full"
+              disabled={busy}
+              onClick={async () => {
+                setBusy(true);
+                await signOut();
+                navigate('/welcome', { replace: true });
+              }}
+            >
+              {busy ? 'Logging out…' : 'Log out'}
+            </Button>
+            <p className="mt-2 text-center text-xs text-slate-500 dark:text-slate-400">
+              Your logs are synced before logging out, so you can get them back on any device.
+            </p>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  if (mode === 'body') {
+    return (
+      <div className="space-y-4">
+        <BackToMe />
+        <PageTitle sub="Used to work out your daily calorie target.">Body details</PageTitle>
         <Card className="space-y-5">
-          <CardTitle>Body details</CardTitle>
           <Segmented
             label="Formula"
             hint="The Mifflin–St Jeor formula has male and female versions; neutral is the average"
@@ -474,7 +611,7 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
               Log weight ›
             </Link>
           </div>
-          {saveBar('Save profile')}
+          {saveBar('Save')}
         </Card>
       </div>
     );
@@ -593,24 +730,6 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
     toast({ text: 'Backup download started' });
   };
 
-  const run = async (job: () => Promise<string | null>, onDone: () => void) => {
-    setBusy(true);
-    setError(null);
-    const err = await job();
-    setBusy(false);
-    if (err) {
-      setError(err);
-      return;
-    }
-    onDone();
-  };
-
-  const closeDanger = () => {
-    setDanger(null);
-    setDeleteWord('');
-    setError(null);
-  };
-
   return (
     <div className="space-y-5">
       <PageTitle sub="Manage your health plan and app settings.">Me</PageTitle>
@@ -676,7 +795,7 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
             sub={`${GOAL_LABELS[profile.goal]}${profile.goal !== 'maintain' ? ` · ${profile.ratePctPerWeek}% a week` : ''} · ${ACTIVITY_LABELS[profile.activityLevel].name}`}
           />
           <Row
-            to="/me/profile"
+            to="/me/body"
             icon="person"
             tint="bg-[#007aff]"
             title="Body details"
@@ -867,77 +986,6 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
         </div>
       </Group>
 
-      {signedIn && (
-        <Group title="Account & security">
-          <ul>
-            <li className="flex min-h-14 items-center gap-3 px-2">
-              <span
-                aria-hidden="true"
-                className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-lg dark:bg-slate-700"
-              >
-                ✉️
-              </span>
-              <span className="min-w-0 flex-1">
-                <span className="block text-sm font-semibold">Login email</span>
-                <span className="block truncate text-xs text-slate-500 dark:text-slate-400">
-                  {email}
-                </span>
-              </span>
-            </li>
-            <Row to="/update-password" icon="key" tint="bg-slate-400" title="Change password" />
-          </ul>
-          <div className="mt-2 border-t border-slate-100 px-2 pt-3 dark:border-slate-700">
-            {danger === 'account' ? (
-              <Notice tone="warn" title="Permanently delete your account?">
-                Your login email, password, all food and weight logs in the cloud, plan and settings
-                will be permanently deleted and can't be recovered. Export a backup above first.
-                <Field label="Type DELETE to confirm">
-                  {(p) => (
-                    <input
-                      {...p}
-                      value={deleteWord}
-                      onChange={(e) => setDeleteWord(e.target.value)}
-                      className={inputClass}
-                      autoComplete="off"
-                    />
-                  )}
-                </Field>
-                {error && (
-                  <p role="alert" className="mt-2 font-semibold text-red-700 dark:text-red-400">
-                    {error}
-                  </p>
-                )}
-                <div className="mt-3 flex gap-2">
-                  <Button
-                    variant="danger"
-                    disabled={busy || deleteWord.trim() !== 'DELETE'}
-                    onClick={() =>
-                      void run(deleteAccount, () => navigate('/welcome', { replace: true }))
-                    }
-                  >
-                    {busy ? 'Deleting…' : 'Delete account forever'}
-                  </Button>
-                  <Button variant="secondary" disabled={busy} onClick={closeDanger}>
-                    Cancel
-                  </Button>
-                </div>
-              </Notice>
-            ) : (
-              <button
-                type="button"
-                className="min-h-11 w-full rounded-2xl text-sm font-semibold text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950"
-                onClick={() => {
-                  closeDanger();
-                  setDanger('account');
-                }}
-              >
-                Delete account
-              </button>
-            )}
-          </div>
-        </Group>
-      )}
-
       <Group title="Help & info">
         <ul>
           <Row to="/how-we-calculate" icon="calc" tint="bg-[#ff9500]" title="How we calculate" />
@@ -950,26 +998,6 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
           App version {__APP_VERSION__} ({__BUILD_DATE__})
         </p>
       </Group>
-
-      {signedIn && (
-        <div className="pb-4">
-          <Button
-            variant="danger"
-            className="w-full"
-            disabled={busy}
-            onClick={async () => {
-              setBusy(true);
-              await signOut();
-              navigate('/welcome', { replace: true });
-            }}
-          >
-            {busy ? 'Logging out…' : 'Log out'}
-          </Button>
-          <p className="mt-2 text-center text-xs text-slate-500 dark:text-slate-400">
-            Your logs are synced before logging out, so you can get them back on any device.
-          </p>
-        </div>
-      )}
     </div>
   );
 }

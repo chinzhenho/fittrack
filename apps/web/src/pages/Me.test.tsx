@@ -48,7 +48,7 @@ const profile: Profile = {
   consentedAt: '2026-10-01T00:00:00Z',
 };
 
-function renderMe(hideNumbers = false) {
+function renderMe(hideNumbers = false, path = '/me') {
   replaceState({
     ...emptyState,
     profile: { ...profile, hideNumbers, nickname: 'Alex' },
@@ -72,10 +72,11 @@ function renderMe(hideNumbers = false) {
     ],
   });
   render(
-    <MemoryRouter initialEntries={['/me']}>
+    <MemoryRouter initialEntries={[path]}>
       <ToastProvider>
         <Routes>
           <Route path="/me" element={<Me />} />
+          <Route path="/me/profile" element={<Me mode="profile" />} />
           <Route path="/welcome" element={<p>welcome page</p>} />
         </Routes>
       </ToastProvider>
@@ -110,7 +111,7 @@ describe('Me page sections', () => {
     deleteAccount.mockResolvedValueOnce(
       'Delete failed. Check your connection and try again. Your account and data were not deleted.',
     );
-    renderMe();
+    renderMe(false, '/me/profile');
     fireEvent.click(screen.getByRole('button', { name: 'Delete account' }));
     const confirm = screen.getByRole('button', {
       name: 'Delete account forever',
@@ -126,7 +127,7 @@ describe('Me page sections', () => {
 
   it('scenario F: deleting the account leaves for the welcome page', async () => {
     deleteAccount.mockResolvedValueOnce(null);
-    renderMe();
+    renderMe(false, '/me/profile');
     fireEvent.click(screen.getByRole('button', { name: 'Delete account' }));
     fireEvent.change(screen.getByLabelText('Type DELETE to confirm'), {
       target: { value: 'DELETE' },
@@ -148,7 +149,7 @@ describe('Me page sections', () => {
 });
 
 describe('Me page', () => {
-  it('shows a log-out button for signed-in users that signs out and leaves', async () => {
+  it('profile & account page has log out, which signs out and leaves', async () => {
     replaceState({
       ...emptyState,
       profile: {
@@ -174,10 +175,10 @@ describe('Me page', () => {
       },
     });
     render(
-      <MemoryRouter initialEntries={['/me']}>
+      <MemoryRouter initialEntries={['/me/profile']}>
         <ToastProvider>
           <Routes>
-            <Route path="/me" element={<Me />} />
+            <Route path="/me/profile" element={<Me mode="profile" />} />
             <Route path="/welcome" element={<p>welcome page</p>} />
           </Routes>
         </ToastProvider>
