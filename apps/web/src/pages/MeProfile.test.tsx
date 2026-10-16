@@ -94,11 +94,11 @@ describe('edit profile', () => {
     expect(screen.queryByLabelText('Height')).toBeNull();
     fireEvent.change(screen.getByLabelText('Nickname'), { target: { value: ' Alex ' } });
     fireEvent.click(screen.getAllByRole('button', { name: 'Change picture' })[0]!);
-    fireEvent.click(screen.getByRole('button', { name: 'Avatar 🥑' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Avatar 🐼' }));
     fireEvent.click(screen.getByRole('button', { name: 'Save profile' }));
     await screen.findByText('me page');
     const s = getState();
-    expect(s.profile).toMatchObject({ nickname: 'Alex', avatar: '🥑' });
+    expect(s.profile).toMatchObject({ nickname: 'Alex', avatar: '🐼' });
     expect(s.targets).toHaveLength(0);
   });
 

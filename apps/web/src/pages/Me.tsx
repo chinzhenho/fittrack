@@ -88,7 +88,7 @@ const REASON_LABELS: Record<TargetVersion['reason'], string> = tr({
   adaptive: 'Adjusted',
 });
 
-const AVATARS = ['🥗', '🍎', '🥑', '🍳', '🍜', '🍛', '🥦', '🍓', '💪', '🏃', '🧘', '😊'];
+const AVATARS = ['😊', '😎', '🥳', '🤗', '🤓', '😇', '🐱', '🐶', '🐼', '🐨', '🦊', '🐰'];
 
 type Mode = 'home' | 'plan' | 'profile' | 'body' | 'targets';
 
