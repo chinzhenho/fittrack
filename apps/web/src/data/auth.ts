@@ -61,7 +61,15 @@ export function authErrorMessage(
   if (code === 'over_email_send_rate_limit' || msg.includes('rate limit'))
     return 'Too many emails sent. Please try again later.';
   if (code === 'same_password') return 'The new password must be different from the old one.';
+  if (code === 'email_address_invalid' || msg.includes('is invalid'))
+    return "This email address can't be used. Please check it, or try another one.";
+  if (code === 'email_address_not_authorized' || msg.includes('not authorized'))
+    return "We can't send email to this address yet. Please try again later.";
+  if (msg.includes('sending confirmation') || msg.includes('sending magic link'))
+    return "We couldn't send the confirmation email. Please try again later.";
+  if (code === 'signup_disabled') return 'New sign-ups are closed at the moment.';
   if (msg.includes('failed to fetch') || msg.includes('network'))
     return "Can't reach the server. Please check your connection.";
-  return 'Something went wrong. Please try again later.';
+  // Unknown: show the code so the problem can be looked up.
+  return `Something went wrong${code ? ` (${code})` : ''}. Please try again later.`;
 }
