@@ -1131,4 +1131,10 @@ export const ZH: Record<string, string> = {
     '你的数据只在这部设备上。注册账号，换手机时就不会丢失。',
   'Delete data': '删除数据',
   'Your account and all its data, for good': '永久删除账号和所有数据',
+  'Removes your food, weight and water logs. Your account, profile and plan stay.':
+    '删除你的饮食、体重和喝水记录。账号、个人资料和计划会保留。',
+  "Removes your account, login and all your data. This can't be undone.":
+    '删除你的账号、登录资料和所有数据，无法恢复。',
+  'Removes everything saved on this device, and you start over.':
+    '删除这部设备上保存的所有内容，然后重新开始。',
 };

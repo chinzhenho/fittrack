@@ -1042,7 +1042,9 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
                     {t('Delete all my logs')}
                   </span>
                   <span className="block text-sm text-slate-500 dark:text-slate-400">
-                    {t('Start fresh but keep your profile and plan')}
+                    {t(
+                      'Removes your food, weight and water logs. Your account, profile and plan stay.',
+                    )}
                   </span>
                 </span>
               </button>
@@ -1087,7 +1089,7 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
                       {t('Delete everything on this device')}
                     </span>
                     <span className="block text-sm text-slate-500 dark:text-slate-400">
-                      {t('Logs, profile and plan')}
+                      {t('Removes everything saved on this device, and you start over.')}
                     </span>
                   </span>
                 </button>
@@ -1112,7 +1114,7 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
                       {t('Delete account')}
                     </span>
                     <span className="block text-sm text-slate-500 dark:text-slate-400">
-                      {t('Your account and all its data, for good')}
+                      {t("Removes your account, login and all your data. This can't be undone.")}
                     </span>
                   </span>
                 </button>
