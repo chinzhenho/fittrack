@@ -10,7 +10,6 @@ import {
 } from '@fittrack/engine';
 import { useMemo, useState, type ReactNode } from 'react';
 import { Link, useNavigate } from 'react-router';
-import { IconTile, type IconName } from '../components/Icons';
 import { clearThumbs } from '../data/photoThumbs';
 import { useToast } from '../components/Toast';
 import {
@@ -167,30 +166,17 @@ function TargetCompare({
   );
 }
 
-function Row({
-  to,
-  icon,
-  tint,
-  title,
-  sub,
-}: {
-  to: string;
-  icon: IconName;
-  tint: string;
-  title: string;
-  sub?: ReactNode;
-}) {
+function Row({ to, title, sub }: { to: string; title: string; sub?: ReactNode }) {
   return (
     <li>
       <Link
         to={to}
-        className="flex min-h-[3.75rem] w-full items-center gap-3 text-left transition hover:opacity-70"
+        className="flex min-h-[3.75rem] w-full items-center gap-3 py-2 text-left transition hover:opacity-70"
       >
-        <IconTile name={icon} tint={tint} />
         <span className="min-w-0 flex-1">
-          <span className="block text-[0.9375rem] font-semibold">{title}</span>
+          <span className="block text-[1.0625rem]">{title}</span>
           {sub && (
-            <span className="block truncate text-xs text-slate-500 dark:text-slate-400">{sub}</span>
+            <span className="block truncate text-sm text-slate-500 dark:text-slate-400">{sub}</span>
           )}
         </span>
         <span aria-hidden="true" className="text-slate-400">
@@ -202,7 +188,7 @@ function Row({
 }
 
 const rowButtonClass =
-  'flex min-h-[3.75rem] w-full items-center gap-3 text-left transition hover:opacity-70';
+  'flex min-h-[3.75rem] w-full items-center gap-3 py-2 text-left transition hover:opacity-70';
 
 /** Daily reminders added to the phone's own calendar (see lib/reminders.ts). */
 function RemindersCard() {
@@ -837,7 +823,7 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
   const hide = profile.hideNumbers;
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-8">
       <PageTitle sub={t('Manage your health plan and app settings.')}>{t('Me')}</PageTitle>
 
       <section>
@@ -869,12 +855,12 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
           </span>
         </Link>
         {signedIn && SYNC_TEXT[sync.status] && (
-          <p className="border-t border-slate-100 px-4 py-2.5 text-xs text-slate-500 dark:border-slate-700 dark:text-slate-400">
+          <p className="pt-2 text-sm text-slate-500 dark:text-slate-400">
             {SYNC_TEXT[sync.status]}
           </p>
         )}
         {!signedIn && (
-          <div className="flex gap-2 border-t border-slate-100 p-4 dark:border-slate-700">
+          <div className="flex gap-2 pt-3">
             <Link
               to="/signup"
               className="inline-flex min-h-11 flex-1 items-center justify-center rounded-[14px] bg-emerald-strong px-4 text-[0.9375rem] font-semibold text-white dark:bg-emerald dark:text-black"
@@ -895,15 +881,11 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
         <ul>
           <Row
             to="/me/plan"
-            icon="target"
-            tint="bg-[#ff9500]"
             title={t('Goal & lifestyle')}
             sub={`${GOAL_LABELS[profile.goal]}${profile.goal !== 'maintain' ? ` · ${t('{r}% a week', { r: profile.ratePctPerWeek })}` : ''} · ${ACTIVITY_LABELS[profile.activityLevel].name}`}
           />
           <Row
             to="/me/body"
-            icon="person"
-            tint="bg-[#007aff]"
             title={t('Body details')}
             sub={t('Height {heightCm} cm · born {birthDate}{v3}', {
               heightCm: profile.heightCm,
@@ -916,8 +898,6 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
           />
           <Row
             to="/me/targets"
-            icon="fork"
-            tint="bg-emerald-500"
             title={t('Daily nutrition targets')}
             sub={
               target && !hide
@@ -930,8 +910,6 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
           />
           <Row
             to="/progress#weights"
-            icon="scale"
-            tint="bg-[#5856d6]"
             title={t('Weight log')}
             sub={
               hide
@@ -944,7 +922,8 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
         </ul>
       </Group>
 
-      {/* Same grouped-list look as Reminders and Privacy & data below. */}
+      <RemindersCard />
+
       <List
         title={t('Appearance')}
         footer={t(
@@ -981,34 +960,39 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
         />
       </List>
 
-      <RemindersCard />
-
       <Group title={t('Privacy & data')}>
         <ul>
-          <li className="flex min-h-[3.75rem] items-center gap-3 py-2">
-            <IconTile name="shield" tint="bg-[#34c759]" />
-            <span className="min-w-0 flex-1">
-              <span className="block text-[0.9375rem] font-semibold">
-                {t('Where your data is')}
-              </span>
-              <span className="block text-xs text-slate-500 dark:text-slate-400">
-                {signedIn
-                  ? t(
-                      'In your account (servers in Singapore) and on this device. Only you can see it.',
-                    )
-                  : isPersistent()
-                    ? t("Only on this device. Sign up so you don't lose it if you change phones.")
-                    : t("This browser can't save data (maybe private browsing).")}
-              </span>
-            </span>
-          </li>
           <Row
             to="/me/report"
-            icon="download"
-            tint="bg-[#007aff]"
             title={t('Download my data')}
             sub={t('A clear report of your logs, saved as PDF')}
           />
+        </ul>
+        <p className="py-3 text-sm text-slate-500 dark:text-slate-400">
+          {signedIn
+            ? t(
+                'Your data is in your account (servers in Singapore) and on this device. Only you can see it.',
+              )
+            : isPersistent()
+              ? t(
+                  "Your data is only on this device. Sign up so you don't lose it if you change phones.",
+                )
+              : t("This browser can't save data (maybe private browsing).")}
+        </p>
+      </Group>
+
+      <Group title={t('Help & info')}>
+        <ul>
+          <Row to="/how-we-calculate" title={t('How we calculate')} />
+          <Row to="/help/faq" title={t('FAQ')} />
+          <Row to="/legal/disclaimer" title={t('Health disclaimer')} />
+          <Row to="/legal/privacy" title={t('Privacy policy')} />
+          <Row to="/legal/credits" title={t('Data sources')} />
+        </ul>
+      </Group>
+
+      <Group title={t('Delete data')}>
+        <ul>
           <li>
             {danger === 'records' ? (
               <div className="p-2">
@@ -1052,12 +1036,11 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
                   setDanger('records');
                 }}
               >
-                <IconTile name="trash" tint="bg-[#ff3b30]" />
                 <span className="min-w-0 flex-1">
-                  <span className="block text-sm font-semibold text-[#ff3b30]">
+                  <span className="block text-[1.0625rem] text-[#a04438] dark:text-red-300">
                     {t('Delete all my logs')}
                   </span>
-                  <span className="block text-xs text-slate-500 dark:text-slate-400">
+                  <span className="block text-sm text-slate-500 dark:text-slate-400">
                     {t('Start fresh but keep your profile and plan')}
                   </span>
                 </span>
@@ -1098,12 +1081,11 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
                     setDanger('device');
                   }}
                 >
-                  <IconTile name="trash" tint="bg-[#ff3b30]" />
                   <span className="min-w-0 flex-1">
-                    <span className="block text-sm font-semibold text-[#ff3b30]">
+                    <span className="block text-[1.0625rem] text-[#a04438] dark:text-red-300">
                       {t('Delete everything on this device')}
                     </span>
-                    <span className="block text-xs text-slate-500 dark:text-slate-400">
+                    <span className="block text-sm text-slate-500 dark:text-slate-400">
                       {t('Logs, profile and plan')}
                     </span>
                   </span>
@@ -1113,34 +1095,15 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
           )}
         </ul>
         {signedIn && (
-          <p className="py-3 text-xs text-slate-500 dark:text-slate-400">
+          <p className="py-3 text-sm text-slate-500 dark:text-slate-400">
             {t('To delete your account, tap your name at the top of this page.')}
           </p>
         )}
       </Group>
 
-      <Group title={t('Help & info')}>
-        <ul>
-          <Row
-            to="/how-we-calculate"
-            icon="calc"
-            tint="bg-[#ff9500]"
-            title={t('How we calculate')}
-          />
-          <Row to="/help/faq" icon="question" tint="bg-[#007aff]" title={t('FAQ')} />
-          <Row
-            to="/legal/disclaimer"
-            icon="heart"
-            tint="bg-[#ff2d55]"
-            title={t('Health disclaimer')}
-          />
-          <Row to="/legal/privacy" icon="lock" tint="bg-slate-400" title={t('Privacy policy')} />
-          <Row to="/legal/credits" icon="book" tint="bg-[#af52de]" title={t('Data sources')} />
-        </ul>
-        <p className="py-3 text-xs text-slate-500 dark:text-slate-400">
-          {t('App version')} {__APP_VERSION__} ({__BUILD_DATE__})
-        </p>
-      </Group>
+      <p className="text-center text-xs text-slate-500 dark:text-slate-400">
+        {t('App version')} {__APP_VERSION__} ({__BUILD_DATE__})
+      </p>
     </div>
   );
 }

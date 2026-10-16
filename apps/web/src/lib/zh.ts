@@ -1125,4 +1125,9 @@ export const ZH: Record<string, string> = {
   '✓ = a fully logged day. Averages only count days with food logged. Calories and nutrients are estimates and not medical advice.':
     '✓ = 完整记录的日子。平均值只计算有记录饮食的日子。卡路里和营养数据都是估算值，不是医疗意见。',
   '{n} days in a row': '连续 {n} 天',
+  'Your data is in your account (servers in Singapore) and on this device. Only you can see it.':
+    '你的数据在你的账号（服务器在新加坡）和这部设备上。只有你能看到。',
+  "Your data is only on this device. Sign up so you don't lose it if you change phones.":
+    '你的数据只在这部设备上。注册账号，换手机时就不会丢失。',
+  'Delete data': '删除数据',
 };
