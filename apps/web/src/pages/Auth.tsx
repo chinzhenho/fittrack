@@ -13,6 +13,7 @@ import {
 import { authErrorMessage, clearRecovering, isRecovering, useAuth } from '../data/auth';
 import { supabase } from '../data/supabase';
 import { IconTile, type IconName } from '../components/Icons';
+import { setLang, t, tr, useLang } from '../lib/i18n';
 
 function Brand() {
   return (
@@ -23,7 +24,8 @@ function Brand() {
         className="size-8 rounded-xl bg-[#fbfaf3] ring-1 ring-black/5"
       />
       <span className="text-lg font-extrabold tracking-tight">
-        Eat<span className="text-emerald-600 dark:text-emerald-400">Healthee</span>
+        {t('Eat')}
+        <span className="text-emerald-600 dark:text-emerald-400">{t('Healthee')}</span>
       </span>
     </span>
   );
@@ -43,11 +45,11 @@ function AuthTabs({ active }: { active: 'login' | 'signup' }) {
   );
   return (
     <nav
-      aria-label="Log in or sign up"
+      aria-label={t('Log in or sign up')}
       className="grid grid-cols-2 rounded-2xl bg-slate-100 p-1 dark:bg-slate-900"
     >
-      {tab('/login', 'Log in', active === 'login')}
-      {tab('/signup', 'Sign up', active === 'signup')}
+      {tab('/login', t('Log in'), active === 'login')}
+      {tab('/signup', t('Sign up'), active === 'signup')}
     </nav>
   );
 }
@@ -76,7 +78,7 @@ function AuthLayout({
             alt=""
             className="size-10 rounded-xl bg-[#fbfaf3] ring-1 ring-black/5"
           />
-          <span className="text-2xl font-bold">EatHealthee</span>
+          <span className="text-2xl font-bold">{t('EatHealthee')}</span>
         </span>
         <div>
           <img
@@ -85,17 +87,17 @@ function AuthLayout({
             className="size-48 animate-float rounded-[2.5rem] shadow-2xl ring-4 ring-white/25"
           />
           <p className="mt-8 text-3xl leading-snug font-bold">
-            Snap a photo,
+            {t('Snap a photo,')}
             <br />
-            know what you ate.
+            {t('know what you ate.')}
           </p>
           <ul className="mt-6 space-y-3 text-emerald-50">
-            <li>📷 AI photo calories that know local food</li>
-            <li>🎯 Safe targets worked out for your body</li>
-            <li>📈 Weight trends and badges to keep you going</li>
+            <li>{t('📷 AI photo calories that know local food')}</li>
+            <li>{t('🎯 Safe targets worked out for your body')}</li>
+            <li>{t('📈 Weight trends and badges to keep you going')}</li>
           </ul>
         </div>
-        <p className="text-sm text-emerald-100">Snap · Track · Be Healthier</p>
+        <p className="text-sm text-emerald-100">{t('Snap · Track · Be Healthier')}</p>
         <span
           aria-hidden="true"
           className="pointer-events-none absolute -right-24 -bottom-24 size-80 rounded-full bg-white/10"
@@ -154,7 +156,7 @@ function ArrowRight() {
 
 const linkClass = 'font-semibold text-emerald-strong hover:underline dark:text-emerald';
 
-const FEATURES: { icon: IconName; title: string; text: string }[] = [
+const FEATURES: { icon: IconName; title: string; text: string }[] = tr([
   {
     icon: 'camera',
     title: 'Snap to count',
@@ -170,9 +172,9 @@ const FEATURES: { icon: IconName; title: string; text: string }[] = [
     title: 'Safe targets, real progress',
     text: 'A daily target worked out for your body, plus your weight trend, streaks and medals.',
   },
-];
+]);
 
-const GOALS = ['lose fat', 'gain weight', 'build muscle', 'stay in shape'];
+const GOALS = tr(['lose fat', 'gain weight', 'build muscle', 'stay in shape']);
 
 /** Cycles through the goals in the headline every 2.2 s. */
 function RotatingGoal() {
@@ -190,12 +192,28 @@ function RotatingGoal() {
   );
 }
 
+/** Switches between English and Chinese; shows the other language's own name. */
+function LanguageToggle() {
+  const lang = useLang();
+  return (
+    <button
+      type="button"
+      onClick={() => setLang(lang === 'zh' ? 'en' : 'zh')}
+      className="order-last ml-auto min-h-10 rounded-full bg-white px-4 text-sm font-medium ring-1 ring-slate-200 transition hover:bg-slate-50 dark:bg-slate-800 dark:ring-white/10"
+      lang={lang === 'zh' ? 'en' : 'zh-Hans'}
+    >
+      {lang === 'zh' ? 'English' : '中文'}
+    </button>
+  );
+}
+
 export function Welcome() {
   return (
     <div className="min-h-dvh bg-mist text-navy dark:bg-slate-900 dark:text-slate-100">
       <div className="mx-auto flex min-h-dvh max-w-5xl flex-col px-6 pt-12 pb-8 lg:grid lg:grid-cols-[1.1fr_1fr] lg:items-center lg:gap-16 lg:py-12">
         <section className="flex flex-1 flex-col">
           <div className="flex items-center gap-3">
+            <LanguageToggle />
             <div className="relative">
               <img
                 src="/brand/icon-192.png"
@@ -208,9 +226,9 @@ export function Welcome() {
               />
             </div>
             <div>
-              <p className="text-xl font-bold tracking-tight">EatHealthee</p>
+              <p className="text-xl font-bold tracking-tight">{t('EatHealthee')}</p>
               <p className="text-sm text-slate-500 dark:text-slate-400">
-                Snap · Track · Be healthier
+                {t('Snap · Track · Be healthier')}
               </p>
             </div>
           </div>
@@ -219,15 +237,16 @@ export function Welcome() {
             className="mt-10 animate-rise text-[2.25rem] leading-[1.15] font-bold tracking-tight sm:text-[2.75rem]"
             style={{ animationDelay: '0.1s' }}
           >
-            Snap your meal.
+            {t('Snap your meal.')}
             <br />
-            <span className="text-emerald-strong dark:text-emerald">Know what you ate.</span>
+            <span className="text-emerald-strong dark:text-emerald">{t('Know what you ate.')}</span>
           </h1>
           <p
             className="mt-4 max-w-md animate-rise text-[1.0625rem] leading-relaxed text-slate-500 dark:text-slate-400"
             style={{ animationDelay: '0.2s' }}
           >
-            A free calorie tracker that helps you safely <RotatingGoal />, one meal at a time.
+            {t('A free calorie tracker that helps you safely')} <RotatingGoal />
+            {t(', one meal at a time.')}
           </p>
 
           <ul className="mt-10 max-w-md space-y-6">
@@ -253,39 +272,39 @@ export function Welcome() {
           className="mx-auto mt-12 w-full max-w-md animate-rise space-y-3 lg:mt-0 lg:rounded-[20px] lg:bg-white lg:p-8 lg:shadow-sm lg:ring-1 lg:ring-slate-200 dark:lg:bg-slate-800 dark:lg:ring-white/10"
           style={{ animationDelay: '0.5s' }}
         >
-          <h2 className="hidden text-2xl font-bold tracking-tight lg:block">Get started</h2>
+          <h2 className="hidden text-2xl font-bold tracking-tight lg:block">{t('Get started')}</h2>
           <p className="hidden pb-2 text-sm text-slate-500 lg:block dark:text-slate-400">
-            Free. Set up in about a minute.
+            {t('Free. Set up in about a minute.')}
           </p>
           <Link
             to="/signup"
             className="flex min-h-13 items-center justify-center gap-2 rounded-[14px] bg-emerald-strong px-4 py-3.5 font-semibold text-white transition hover:bg-emerald-800 active:scale-[0.98] dark:bg-emerald dark:text-slate-950"
           >
-            Start for free
+            {t('Start for free')}
             <ArrowRight />
           </Link>
           <Link
             to="/login"
             className="flex min-h-12 items-center justify-center rounded-[14px] bg-white px-4 font-medium ring-1 ring-slate-200 transition hover:bg-slate-50 dark:bg-slate-800 dark:ring-white/10 dark:hover:bg-slate-700"
           >
-            I already have an account
+            {t('I already have an account')}
           </Link>
           <Link
             to="/onboarding"
             className="flex min-h-11 items-center justify-center text-sm font-medium text-emerald-strong hover:underline dark:text-emerald"
           >
-            Try it without an account ›
+            {t('Try it without an account ›')}
           </Link>
           <p className="pt-1 text-center text-xs leading-relaxed text-slate-500 dark:text-slate-400">
-            By continuing you agree to the
+            {t('By continuing you agree to the')}
             <Link to="/legal/disclaimer" className="mx-1 underline">
-              health disclaimer
+              {t('health disclaimer')}
             </Link>
-            and
+            {t('and')}
             <Link to="/legal/privacy" className="ml-1 underline">
-              privacy policy
+              {t('privacy policy')}
             </Link>
-            . Without an account, your data stays on this device.
+            {t('. Without an account, your data stays on this device.')}
           </p>
         </section>
       </div>
@@ -324,27 +343,27 @@ export function Login() {
 
   return (
     <AuthLayout
-      title="Welcome back"
-      subtitle="Log in to sync your logs across all your devices."
+      title={t('Welcome back')}
+      subtitle={t('Log in to sync your logs across all your devices.')}
       tabs="login"
       footer={
         <>
-          Don't have an account?{' '}
+          {t("Don't have an account?")}{' '}
           <Link to="/signup" replace className={linkClass}>
-            Sign up free
+            {t('Sign up free')}
           </Link>
         </>
       }
     >
       <form className="space-y-4" onSubmit={submit}>
-        <Field label="Email">
+        <Field label={t('Email')}>
           {(p) => <EmailInput {...p} value={f.email} onChange={f.setEmail} />}
         </Field>
         <Field
-          label="Password"
+          label={t('Password')}
           labelAction={
             <Link to="/reset-password" className={`text-sm ${linkClass}`}>
-              Forgot password?
+              {t('Forgot password?')}
             </Link>
           }
         >
@@ -363,7 +382,7 @@ export function Login() {
           </p>
         )}
         <Button type="submit" className={submitClass} disabled={f.busy}>
-          {f.busy ? 'Logging in…' : 'Log in'}
+          {f.busy ? t('Logging in…') : t('Log in')}
           {!f.busy && <ArrowRight />}
         </Button>
       </form>
@@ -404,13 +423,13 @@ export function Signup() {
 
   if (sentTo) {
     return (
-      <AuthLayout title="Confirm your email" back={false}>
-        <Notice title="Confirmation email sent">
-          We sent a confirmation email to <strong>{sentTo}</strong>. Open it and click the link, and
-          you'll be logged in.
+      <AuthLayout title={t('Confirm your email')} back={false}>
+        <Notice title={t('Confirmation email sent')}>
+          {t('We sent a confirmation email to')} <strong>{sentTo}</strong>
+          {t(". Open it and click the link, and you'll be logged in.")}
         </Notice>
         <p className="text-sm text-slate-600 dark:text-slate-300">
-          Didn't get it? Check your spam folder, or try again in a few minutes.
+          {t("Didn't get it? Check your spam folder, or try again in a few minutes.")}
         </p>
       </AuthLayout>
     );
@@ -418,25 +437,25 @@ export function Signup() {
 
   return (
     <AuthLayout
-      title="Create a free account"
-      subtitle="See all your logs on any phone."
+      title={t('Create a free account')}
+      subtitle={t('See all your logs on any phone.')}
       tabs="signup"
       footer={
         <>
-          Have an account?{' '}
+          {t('Have an account?')}{' '}
           <Link to="/login" replace className={linkClass}>
-            Log in
+            {t('Log in')}
           </Link>
         </>
       }
     >
       <form className="space-y-4" onSubmit={submit}>
-        <Field label="Email" error={f.email && !emailOk ? 'Enter a valid email.' : null}>
+        <Field label={t('Email')} error={f.email && !emailOk ? t('Enter a valid email.') : null}>
           {(p) => <EmailInput {...p} value={f.email} onChange={f.setEmail} />}
         </Field>
         <Field
-          label="Create a password"
-          error={f.password && !passwordOk ? 'Use at least 8 characters.' : null}
+          label={t('Create a password')}
+          error={f.password && !passwordOk ? t('Use at least 8 characters.') : null}
         >
           {(p) => (
             <>
@@ -451,8 +470,8 @@ export function Signup() {
           )}
         </Field>
         <Field
-          label="Enter it again"
-          error={confirm && !matches ? "The passwords don't match." : null}
+          label={t('Enter it again')}
+          error={confirm && !matches ? t("The passwords don't match.") : null}
         >
           {(p) => (
             <PasswordInput
@@ -464,9 +483,9 @@ export function Signup() {
           )}
         </Field>
         <Check checked={agree} onChange={setAgree}>
-          I agree to store my body, food and weight records in my account, and have read the
+          {t('I agree to store my body, food and weight records in my account, and have read the')}
           <Link to="/legal/privacy" target="_blank" className={`mx-1 ${linkClass}`}>
-            privacy policy
+            {t('privacy policy')}
           </Link>
         </Check>
         {f.error && (
@@ -479,7 +498,7 @@ export function Signup() {
           className={submitClass}
           disabled={f.busy || !emailOk || !passwordOk || !matches || !agree}
         >
-          {f.busy ? 'Signing up…' : 'Sign up and start'}
+          {f.busy ? t('Signing up…') : t('Sign up and start')}
           {!f.busy && <ArrowRight />}
         </Button>
       </form>
@@ -508,17 +527,18 @@ export function ResetPassword() {
 
   return (
     <AuthLayout
-      title="Reset password"
-      subtitle="Enter the email you signed up with and we'll send you a reset link."
+      title={t('Reset password')}
+      subtitle={t("Enter the email you signed up with and we'll send you a reset link.")}
     >
       {sent ? (
         <Notice>
-          If this email is registered, you'll get a reset email. Click the link in it to set a new
-          password.
+          {t(
+            "If this email is registered, you'll get a reset email. Click the link in it to set a new password.",
+          )}
         </Notice>
       ) : (
         <form className="space-y-4" onSubmit={submit}>
-          <Field label="Your account email">
+          <Field label={t('Your account email')}>
             {(p) => <EmailInput {...p} value={email} onChange={setEmail} />}
           </Field>
           {error && (
@@ -531,13 +551,13 @@ export function ResetPassword() {
             className={submitClass}
             disabled={busy || !EMAIL_RE.test(email.trim())}
           >
-            Send reset link
+            {t('Send reset link')}
           </Button>
         </form>
       )}
       <p className="text-center text-sm">
         <Link to="/login" className={linkClass}>
-          Back to log in
+          {t('Back to log in')}
         </Link>
       </p>
     </AuthLayout>
@@ -554,12 +574,12 @@ export function UpdatePassword() {
   if (auth.status === 'loading') return <Loading />;
   if (auth.status === 'signedOut') {
     return (
-      <AuthLayout title="Link expired">
+      <AuthLayout title={t('Link expired')}>
         <p className="text-sm">
-          This reset link has been used or has expired. Please request a new one.
+          {t('This reset link has been used or has expired. Please request a new one.')}
         </p>
         <Link to="/reset-password" className={linkClass}>
-          Send a new reset link
+          {t('Send a new reset link')}
         </Link>
       </AuthLayout>
     );
@@ -577,11 +597,11 @@ export function UpdatePassword() {
   };
 
   return (
-    <AuthLayout title={isRecovering() ? 'Set a new password' : 'Change password'}>
+    <AuthLayout title={isRecovering() ? t('Set a new password') : t('Change password')}>
       <form className="space-y-4" onSubmit={submit}>
         <Field
-          label="New password"
-          error={password && password.length < 8 ? 'Use at least 8 characters.' : null}
+          label={t('New password')}
+          error={password && password.length < 8 ? t('Use at least 8 characters.') : null}
         >
           {(p) => (
             <>
@@ -601,7 +621,7 @@ export function UpdatePassword() {
           </p>
         )}
         <Button type="submit" className={submitClass} disabled={busy || password.length < 8}>
-          Save new password
+          {t('Save new password')}
         </Button>
       </form>
     </AuthLayout>
@@ -611,7 +631,7 @@ export function UpdatePassword() {
 export function Loading() {
   return (
     <div className="flex min-h-dvh items-center justify-center" role="status">
-      <p className="text-sm text-slate-600 dark:text-slate-300">Loading your data…</p>
+      <p className="text-sm text-slate-600 dark:text-slate-300">{t('Loading your data…')}</p>
     </div>
   );
 }

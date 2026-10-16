@@ -1,3 +1,4 @@
+import { tr } from './i18n';
 // Daily reminders through the phone's own calendar: we build a standard .ics file with
 // repeating events and an alert at the event time. No server and no notification
 // permission is needed, and the user can change or delete them in their calendar app.
@@ -13,12 +14,12 @@ export interface Reminder {
   on: boolean;
 }
 
-export const DEFAULT_REMINDERS: Reminder[] = [
+export const DEFAULT_REMINDERS: Reminder[] = tr([
   { id: 'weigh', label: 'Weigh-in', title: 'Weigh yourself', time: '07:30', on: true },
   { id: 'breakfast', label: 'Breakfast', title: 'Log your breakfast', time: '08:30', on: true },
   { id: 'lunch', label: 'Lunch', title: 'Log your lunch', time: '13:00', on: true },
   { id: 'dinner', label: 'Dinner', title: 'Log your dinner', time: '19:30', on: true },
-];
+]);
 
 const pad = (n: number) => String(n).padStart(2, '0');
 

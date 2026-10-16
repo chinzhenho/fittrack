@@ -3,25 +3,26 @@ import { Link } from 'react-router';
 import { Bar } from '../components/ui';
 import { fmt1, fmtInt } from '../lib/format';
 import { clampMessage, GOAL_LABELS, warningMessage } from '../lib/messages';
+import { t } from '../lib/i18n';
 
 export function PlanSummary({ plan, goal }: { plan: Plan; goal: Goal }) {
   const { macros, caloriesKcal } = plan;
   const delta = Math.round(plan.appliedDeltaKcal);
   const rows = [
     {
-      name: 'Protein',
+      name: t('Protein'),
       g: macros.proteinG,
       kcal: macros.proteinG * KCAL_PER_G.protein,
       color: 'bg-emerald-strong dark:bg-emerald',
     },
     {
-      name: 'Carbs',
+      name: t('Carbs'),
       g: macros.carbsG,
       kcal: macros.carbsG * KCAL_PER_G.carbs,
       color: 'bg-[#b5793a] dark:bg-[#e8b978]',
     },
     {
-      name: 'Fat',
+      name: t('Fat'),
       g: macros.fatG,
       kcal: macros.fatG * KCAL_PER_G.fat,
       color: 'bg-[#b8664f] dark:bg-[#e69a8a]',
@@ -36,18 +37,18 @@ export function PlanSummary({ plan, goal }: { plan: Plan; goal: Goal }) {
     <div className="space-y-4">
       <div className="rounded-2xl bg-navy p-5 text-white dark:bg-slate-700 dark:ring-1 dark:ring-emerald/40">
         <p className="text-sm text-slate-300">
-          {GOAL_LABELS[goal]} · daily calorie target (estimate)
+          {GOAL_LABELS[goal]} {t('· daily calorie target (estimate)')}
         </p>
         <p className="mt-1 text-5xl font-semibold tracking-tight">
           {fmtInt(caloriesKcal)}
-          <span className="ml-2 text-xl font-normal text-slate-300">kcal</span>
+          <span className="ml-2 text-xl font-normal text-slate-300">{t('kcal')}</span>
         </p>
         <p className="mt-2 text-sm text-slate-300">
           {delta === 0
-            ? 'About your estimated maintenance calories'
+            ? t('About your estimated maintenance calories')
             : delta < 0
-              ? `About ${fmtInt(-delta)} kcal below estimated maintenance`
-              : `About ${fmtInt(delta)} kcal above estimated maintenance`}
+              ? t('About {v1} kcal below estimated maintenance', { v1: fmtInt(-delta) })
+              : t('About {v1} kcal above estimated maintenance', { v1: fmtInt(delta) })}
         </p>
       </div>
       <ul className="space-y-3">
@@ -68,10 +69,17 @@ export function PlanSummary({ plan, goal }: { plan: Plan; goal: Goal }) {
         ))}
       </ul>
       <p className="text-xs text-slate-600 dark:text-slate-300">
-        Protein is {macros.proteinGPerKg} g/kg × {fmt1(macros.referenceWeightKg)} kg reference
-        weight. BMR about {fmtInt(plan.bmrKcal)} kcal, TDEE about {fmtInt(plan.tdeeKcal)} kcal.
+        {t(
+          'Protein is {perKg} g/kg × {ref} kg reference weight. BMR about {bmr} kcal, TDEE about {tdee} kcal.',
+          {
+            perKg: macros.proteinGPerKg,
+            ref: fmt1(macros.referenceWeightKg),
+            bmr: fmtInt(plan.bmrKcal),
+            tdee: fmtInt(plan.tdeeKcal),
+          },
+        )}{' '}
         <Link to="/how-we-calculate" className="underline">
-          How we calculate
+          {t('How we calculate')}
         </Link>
       </p>
       {notes.length > 0 && (

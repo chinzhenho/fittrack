@@ -14,6 +14,7 @@ import { formatDateFull, formatDay, localToday } from '../lib/dates';
 import { fmt1, fmtInt } from '../lib/format';
 import { calorieGap, MEAL_LABELS, MEAL_TYPES, mealsOn, sumNutrients } from '../logic/nutrition';
 import { targetOn } from '../logic/targets';
+import { t } from '../lib/i18n';
 
 export function Diary() {
   const s = useAppState();
@@ -33,16 +34,20 @@ export function Diary() {
 
   return (
     <div className="space-y-4">
-      <PageTitle>Food diary</PageTitle>
+      <PageTitle>{t('Food diary')}</PageTitle>
       <div className="flex items-center justify-between py-1">
-        <Button variant="ghost" aria-label="Previous day" onClick={() => go(addDays(date, -1))}>
-          ‹<span className="hidden sm:inline"> Previous</span>
+        <Button
+          variant="ghost"
+          aria-label={t('Previous day')}
+          onClick={() => go(addDays(date, -1))}
+        >
+          ‹<span className="hidden sm:inline"> {t('Previous')}</span>
         </Button>
         <button
           type="button"
           onClick={() => setPicking((v) => !v)}
           aria-expanded={picking}
-          aria-label={`Choose a date, now ${formatDateFull(date)}`}
+          aria-label={t('Choose a date, now {v1}', { v1: formatDateFull(date) })}
           className="flex min-h-11 items-center gap-2 rounded-2xl px-3 hover:bg-slate-50 dark:hover:bg-slate-700"
         >
           <span aria-hidden="true">📅</span>
@@ -67,11 +72,11 @@ export function Diary() {
         </button>
         <Button
           variant="ghost"
-          aria-label="Next day"
+          aria-label={t('Next day')}
           disabled={date >= today}
           onClick={() => go(addDays(date, 1))}
         >
-          <span className="hidden sm:inline">Next </span>›
+          <span className="hidden sm:inline">{t('Next')} </span>›
         </Button>
       </div>
 
@@ -96,7 +101,7 @@ export function Diary() {
                 setPicking(false);
               }}
             >
-              Back to today
+              {t('Back to today')}
             </Button>
           )}
         </div>
@@ -106,11 +111,11 @@ export function Diary() {
         <Card>
           <div className="mb-3 flex items-end justify-between gap-3">
             <div>
-              <p className="text-sm text-slate-600 dark:text-slate-300">Eaten</p>
+              <p className="text-sm text-slate-600 dark:text-slate-300">{t('Eaten')}</p>
               <p className="text-3xl font-bold">
                 {fmtInt(total.kcal)}
                 <span className="ml-1 text-base font-medium text-slate-600 dark:text-slate-300">
-                  {target ? `/ ${fmtInt(target.caloriesKcal)} kcal` : 'kcal'}
+                  {target ? t('/ {v1} kcal', { v1: fmtInt(target.caloriesKcal) }) : 'kcal'}
                 </span>
               </p>
             </div>
@@ -136,18 +141,18 @@ export function Diary() {
           <div className="mt-4 grid grid-cols-3 gap-3 text-sm">
             {[
               {
-                n: 'Protein',
+                n: t('Protein'),
                 v: total.proteinG,
                 t: target?.proteinG,
                 c: 'bg-emerald-strong dark:bg-emerald',
               },
               {
-                n: 'Carbs',
+                n: t('Carbs'),
                 v: total.carbsG,
                 t: target?.carbsG,
                 c: 'bg-[#b5793a] dark:bg-[#e8b978]',
               },
-              { n: 'Fat', v: total.fatG, t: target?.fatG, c: 'bg-[#b8664f] dark:bg-[#e69a8a]' },
+              { n: t('Fat'), v: total.fatG, t: target?.fatG, c: 'bg-[#b8664f] dark:bg-[#e69a8a]' },
             ].map((m) => (
               <div key={m.n}>
                 <p className="flex items-center gap-1.5 text-slate-600 dark:text-slate-300">
@@ -178,20 +183,26 @@ export function Diary() {
                 <h2 className="text-lg font-semibold">{MEAL_LABELS[meal]}</h2>
                 <p className="text-sm text-slate-600 dark:text-slate-300">
                   {list.length === 0
-                    ? 'Nothing logged'
+                    ? t('Nothing logged')
                     : hide
-                      ? `${list.length} ${list.length === 1 ? 'item' : 'items'}`
-                      : `${list.length} ${list.length === 1 ? 'item' : 'items'} · ${fmtInt(sub.kcal)} kcal`}
+                      ? t(list.length === 1 ? '{n} item' : '{n} items', { n: list.length })
+                      : t(
+                          list.length === 1 ? '{n} item · {kcal} kcal' : '{n} items · {kcal} kcal',
+                          {
+                            n: list.length,
+                            kcal: fmtInt(sub.kcal),
+                          },
+                        )}
                 </p>
               </div>
               <SnapButton
                 meal={meal}
                 date={date}
-                label={`Add to ${MEAL_LABELS[meal].toLowerCase()}`}
+                label={t('Add to {v1}', { v1: MEAL_LABELS[meal].toLowerCase() })}
                 className="inline-flex min-h-11 items-center gap-1.5 rounded-full bg-emerald-strong px-4 text-sm font-semibold text-white transition hover:bg-emerald-800 active:scale-95 dark:bg-emerald dark:text-black"
               >
                 <Glyph name="camera" className="size-[18px]" />
-                Add
+                {t('Add')}
               </SnapButton>
             </div>
             {list.length > 0 && (
@@ -207,12 +218,14 @@ export function Diary() {
 
       <Card>
         <CheckCards
-          label="Done for the day?"
-          hint="Tick this when every meal is logged. Only complete days are used to check what you really burn and to suggest target changes."
+          label={t('Done for the day?')}
+          hint={t(
+            'Tick this when every meal is logged. Only complete days are used to check what you really burn and to suggest target changes.',
+          )}
           options={[
             {
               key: 'complete',
-              label: 'I logged everything I ate this day',
+              label: t('I logged everything I ate this day'),
               icon: '✅',
               checked: complete,
             },
@@ -237,8 +250,8 @@ function MealRow({ item: i, hide }: { item: MealItem; hide: boolean }) {
   const remove = () => {
     update((x) => removeMeal(x, i.id));
     toast({
-      text: `Deleted ${i.name}`,
-      actionLabel: 'Undo',
+      text: t('Deleted {name}', { name: i.name }),
+      actionLabel: t('Undo'),
       onAction: () => update((x) => restoreMeal(x, i)),
     });
   };
@@ -249,7 +262,7 @@ function MealRow({ item: i, hide }: { item: MealItem; hide: boolean }) {
         <button
           type="button"
           onClick={() => setEditing(true)}
-          aria-label={`Edit ${i.name}`}
+          aria-label={t('Edit {name}', { name: i.name })}
           className="flex w-full items-center gap-3 rounded-2xl py-3 text-left hover:bg-slate-50 dark:hover:bg-slate-700"
         >
           <FoodThumb item={i} size="size-10" />
@@ -266,7 +279,11 @@ function MealRow({ item: i, hide }: { item: MealItem; hide: boolean }) {
               {fmt1(i.grams)} g
             </span>
           </span>
-          {!hide && <span className="shrink-0 font-semibold">{fmtInt(i.nutrients.kcal)} kcal</span>}
+          {!hide && (
+            <span className="shrink-0 font-semibold">
+              {fmtInt(i.nutrients.kcal)} {t('kcal')}
+            </span>
+          )}
           <span aria-hidden="true" className="shrink-0 pr-1 text-sm text-slate-400">
             ✎
           </span>
@@ -280,17 +297,21 @@ function MealRow({ item: i, hide }: { item: MealItem; hide: boolean }) {
       <div className="space-y-4 rounded-[18px] bg-slate-50 p-3 dark:bg-slate-700/50">
         <p className="font-semibold">{i.name}</p>
         <Stepper
-          label="Amount"
-          hint={!hide && ok ? `About ${fmtInt((i.nutrients.kcal * g) / i.grams)} kcal` : undefined}
+          label={t('Amount')}
+          hint={
+            !hide && ok
+              ? t('About {v1} kcal', { v1: fmtInt((i.nutrients.kcal * g) / i.grams) })
+              : undefined
+          }
           unit="g"
           step={10}
           fallback={i.grams}
           value={grams}
           onChange={setGrams}
-          error={ok ? null : 'Must be 1 to 5000 g'}
+          error={ok ? null : t('Must be 1 to 5000 g')}
         />
         <ChoiceCards
-          label="Meal"
+          label={t('Meal')}
           columns={4}
           value={meal}
           options={MEAL_TYPES.map((m) => ({
@@ -303,13 +324,13 @@ function MealRow({ item: i, hide }: { item: MealItem; hide: boolean }) {
         {meal === 'snack' && (
           <div>
             <label htmlFor={`name-${i.id}`} className="text-sm font-semibold">
-              Name <span className="font-normal text-slate-500">(optional)</span>
+              {t('Name')} <span className="font-normal text-slate-500">{t('(optional)')}</span>
             </label>
             <input
               id={`name-${i.id}`}
               maxLength={20}
               value={label}
-              placeholder="e.g. tea time"
+              placeholder={t('e.g. tea time')}
               onChange={(e) => setLabel(e.target.value)}
               className="mt-1.5 block min-h-12 w-full rounded-[14px] bg-white px-4 ring-1 ring-slate-200 focus:ring-2 focus:ring-emerald focus:outline-none dark:bg-slate-800 dark:ring-slate-600"
             />
@@ -318,10 +339,10 @@ function MealRow({ item: i, hide }: { item: MealItem; hide: boolean }) {
       </div>
       <div className="flex gap-2">
         <Button variant="danger" onClick={remove}>
-          Delete
+          {t('Delete')}
         </Button>
         <Button variant="secondary" onClick={() => setEditing(false)}>
-          Cancel
+          {t('Cancel')}
         </Button>
         <Button
           className="flex-1"
@@ -329,10 +350,10 @@ function MealRow({ item: i, hide }: { item: MealItem; hide: boolean }) {
           onClick={() => {
             update((x) => editMeal(x, i.id, { grams: g, meal, label }));
             setEditing(false);
-            toast({ text: 'Updated' });
+            toast({ text: t('Updated') });
           }}
         >
-          Save
+          {t('Save')}
         </Button>
       </div>
     </li>

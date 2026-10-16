@@ -5,6 +5,7 @@ import { ToastProvider } from './components/Toast';
 import { useAuth } from './data/auth';
 import { useAppState } from './data/store';
 import { useSync } from './data/sync';
+import { useLang } from './lib/i18n';
 import { AddFood } from './pages/AddFood';
 import { Loading, Login, ResetPassword, Signup, UpdatePassword, Welcome } from './pages/Auth';
 import { Diary } from './pages/Diary';
@@ -91,10 +92,12 @@ export function AppRoutes() {
 }
 
 export function App() {
+  // Switching language redraws every page in the new language.
+  const lang = useLang();
   return (
     <BrowserRouter>
       <ToastProvider>
-        <AppRoutes />
+        <AppRoutes key={lang} />
       </ToastProvider>
     </BrowserRouter>
   );

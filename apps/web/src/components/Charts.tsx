@@ -2,6 +2,7 @@ import { addDays, daysBetween } from '@fittrack/engine';
 import type { TrendPoint } from '@fittrack/engine';
 import { useEffect, useRef, useState } from 'react';
 import { localToday, shortDate } from '../lib/dates';
+import { t } from '../lib/i18n';
 
 export function Ring({
   value,
@@ -92,7 +93,7 @@ export function WeightChart({
     return (
       <div ref={ref}>
         <p className="py-8 text-center text-sm text-slate-600 dark:text-slate-300">
-          No weigh-ins in this period. Try a longer range.
+          {t('No weigh-ins in this period. Try a longer range.')}
         </p>
       </div>
     );
@@ -166,7 +167,7 @@ export function WeightChart({
         height={H}
         viewBox={`0 0 ${W} ${H}`}
         role="img"
-        aria-label="Weight and trend chart"
+        aria-label={t('Weight and trend chart')}
       >
         {ticks.map((t) => (
           <g key={t}>
@@ -200,9 +201,9 @@ export function WeightChart({
             className="stroke-slate-100 dark:stroke-slate-700/60"
           />
         ))}
-        {startKg != null && refLine(startKg, 'Start', 'stroke-slate-400')}
+        {startKg != null && refLine(startKg, t('Start'), 'stroke-slate-400')}
         {showGoal &&
-          refLine(goalKg, 'Goal', 'stroke-emerald-strong dark:stroke-emerald', goalLabelDy)}
+          refLine(goalKg, t('Goal'), 'stroke-emerald-strong dark:stroke-emerald', goalLabelDy)}
         {trendLine && (
           <path
             d={trendLine}
@@ -226,7 +227,11 @@ export function WeightChart({
             key={p.date}
             role="button"
             tabIndex={0}
-            aria-label={`${md(p.date)} weight ${p.weightKg.toFixed(1)} kg, trend ${p.trendKg.toFixed(1)} kg`}
+            aria-label={t('{v1} weight {v2} kg, trend {v3} kg', {
+              v1: md(p.date),
+              v2: p.weightKg.toFixed(1),
+              v3: p.trendKg.toFixed(1),
+            })}
             className="cursor-pointer outline-none"
             onClick={() => setSelected((v) => (v === p.date ? null : p.date))}
             onFocus={() => setSelected(p.date)}
@@ -269,7 +274,7 @@ export function WeightChart({
                   fontWeight="700"
                   className="fill-white dark:fill-slate-900"
                 >
-                  {md(sel.date)} · {sel.weightKg.toFixed(1)} kg
+                  {md(sel.date)} · {sel.weightKg.toFixed(1)} {t('kg')}
                 </text>
                 <text
                   x={bx + 10}
@@ -277,7 +282,7 @@ export function WeightChart({
                   fontSize="11"
                   className="fill-slate-300 dark:fill-slate-600"
                 >
-                  Trend {sel.trendKg.toFixed(1)} kg
+                  {t('Trend')} {sel.trendKg.toFixed(1)} {t('kg')}
                 </text>
               </g>
             );
@@ -295,7 +300,7 @@ export function WeightChart({
               textAnchor={anchor}
               className="fill-slate-600 dark:fill-slate-300"
             >
-              {d === today ? 'Today' : md(d)}
+              {d === today ? t('Today') : md(d)}
             </text>
           );
         })}

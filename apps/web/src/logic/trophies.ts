@@ -5,6 +5,7 @@ import { loggedDates } from './achievements';
 import { mealsOn, sumNutrients } from './nutrition';
 import { startWeightKg, targetOn, trendPoints } from './targets';
 import { datesBetween, mondayOf } from './weekly';
+import { getLang, t, tr } from '../lib/i18n';
 
 // Strava-style achievements: tiered medals, a monthly challenge, personal records and
 // a feed of recent achievements. Everything, including the date a medal was earned, is
@@ -12,12 +13,12 @@ import { datesBetween, mondayOf } from './weekly';
 
 export type Tier = 'bronze' | 'silver' | 'gold' | 'platinum';
 export const TIERS: Tier[] = ['bronze', 'silver', 'gold', 'platinum'];
-export const TIER_LABELS: Record<Tier, string> = {
+export const TIER_LABELS: Record<Tier, string> = tr({
   bronze: 'Bronze',
   silver: 'Silver',
   gold: 'Gold',
   platinum: 'Platinum',
-};
+});
 
 export interface TrophyLevel {
   tier: Tier;
@@ -124,14 +125,13 @@ function lossDirection(s: AppState): -1 | 0 | 1 {
 export function trophyFamilies(s: AppState): TrophyFamily[] {
   const logged = loggedDates(s);
   const streak = longestRun(logged);
-  const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`;
   const families: TrophyFamily[] = [
     {
       id: 'streak',
       icon: 'flame',
-      title: 'Logging streak',
-      unit: 'days in a row',
-      describe: (n) => `Log food ${n} days in a row`,
+      title: t('Logging streak'),
+      unit: t('days in a row'),
+      describe: (n) => t('Log food {n} days in a row', { n }),
       value: streak.value,
       levels: [3, 7, 14, 30].map((goal, i) => ({
         tier: TIERS[i]!,
@@ -142,36 +142,47 @@ export function trophyFamilies(s: AppState): TrophyFamily[] {
     countFamily(
       'logged',
       'fork',
-      'Days logged',
-      'days',
-      (n) => `Log food on ${plural(n, 'day')}`,
+      t('Days logged'),
+      t('days'),
+      (n) => t(n === 1 ? 'Log food on {n} day' : 'Log food on {n} days', { n }),
       logged,
       [7, 30, 100, 365],
     ),
     countFamily(
       'complete',
       'check',
-      'Complete days',
-      'days',
-      (n) => `Log everything you ate on ${plural(n, 'day')}`,
+      t('Complete days'),
+      t('days'),
+      (n) =>
+        t(n === 1 ? 'Log everything you ate on {n} day' : 'Log everything you ate on {n} days', {
+          n,
+        }),
       completeDates(s),
       [3, 14, 30, 60],
     ),
     countFamily(
       'protein',
       'egg',
-      'Protein days',
-      'days on target',
-      (n) => `Reach your protein target on ${plural(n, 'day')}`,
+      t('Protein days'),
+      t('days on target'),
+      (n) =>
+        t(
+          n === 1
+            ? 'Reach your protein target on {n} day'
+            : 'Reach your protein target on {n} days',
+          {
+            n,
+          },
+        ),
       proteinDates(s),
       [3, 14, 30, 60],
     ),
     countFamily(
       'weigh',
       'scale',
-      'Weigh-ins',
-      'days',
-      (n) => `Weigh yourself on ${plural(n, 'day')}`,
+      t('Weigh-ins'),
+      t('days'),
+      (n) => t(n === 1 ? 'Weigh yourself on {n} day' : 'Weigh yourself on {n} days', { n }),
       weighDates(s),
       [5, 15, 30, 60],
     ),
@@ -190,12 +201,17 @@ export function trophyFamilies(s: AppState): TrophyFamily[] {
       families.push({
         id: 'kg',
         icon: 'target',
-        title: 'Toward your goal',
-        unit: '% of the way',
+        title: t('Toward your goal'),
+        unit: t('% of the way'),
         describe: (pct) =>
           pct === 100
-            ? `Reach your goal weight of ${goalKg} kg`
-            : `Get ${pct}% of the way to ${goalKg} kg (${(Math.round(total * pct) / 100).toFixed(1)} kg ${dir < 0 ? 'lost' : 'gained'})`,
+            ? t('Reach your goal weight of {kg} kg', { kg: goalKg })
+            : t(
+                dir < 0
+                  ? 'Get {pct}% of the way to {kg} kg ({part} kg lost)'
+                  : 'Get {pct}% of the way to {kg} kg ({part} kg gained)',
+                { pct, kg: goalKg, part: (Math.round(total * pct) / 100).toFixed(1) },
+              ),
         value: Math.min(100, Math.floor((best / total) * 100)),
         levels: [25, 50, 75, 100].map((pct, i) => ({
           tier: TIERS[i]!,
@@ -208,9 +224,9 @@ export function trophyFamilies(s: AppState): TrophyFamily[] {
       families.push({
         id: 'kg',
         icon: 'trend',
-        title: dir < 0 ? 'Weight lost' : 'Weight gained',
+        title: dir < 0 ? t('Weight lost') : t('Weight gained'),
         unit: 'kg',
-        describe: (n) => `${dir < 0 ? 'Lose' : 'Gain'} ${n} kg`,
+        describe: (n) => t(dir < 0 ? 'Lose {n} kg' : 'Gain {n} kg', { n }),
         value: Math.round(best * 10) / 10,
         levels: [1, 2, 3, 5].map((goal, i) => ({
           tier: TIERS[i]!,
@@ -265,7 +281,16 @@ const MONTH_NAMES = [
 ];
 
 export function monthName(month: string): string {
-  return `${MONTH_NAMES[Number(month.slice(5, 7)) - 1]} ${month.slice(0, 4)}`;
+  const m = Number(month.slice(5, 7));
+  return getLang() === 'zh'
+    ? `${month.slice(0, 4)}年${m}月`
+    : `${MONTH_NAMES[m - 1]} ${month.slice(0, 4)}`;
+}
+
+/** Month without the year, e.g. "October" or "10月". */
+export function monthOnly(month: string): string {
+  const m = Number(month.slice(5, 7));
+  return getLang() === 'zh' ? `${m}月` : MONTH_NAMES[m - 1]!;
 }
 
 export function lastDayOfMonth(month: string): string {
@@ -338,8 +363,8 @@ export function personalRecords(s: AppState, today: string): PersonalRecord[] {
     out.push({
       id: 'streak',
       icon: 'flame',
-      title: 'Longest streak of days logged',
-      value: `${run.value} days`,
+      title: t('Longest streak of days logged'),
+      value: t('{n} days', { n: run.value }),
       on: run.endedOn,
       isNew: recent(run.endedOn),
     });
@@ -356,8 +381,8 @@ export function personalRecords(s: AppState, today: string): PersonalRecord[] {
     out.push({
       id: 'month',
       icon: 'star',
-      title: 'Most days logged in a month',
-      value: `${bestMonth.n} days`,
+      title: t('Most days logged in a month'),
+      value: t('{n} days', { n: bestMonth.n }),
       on: `${bestMonth.month}-01`,
       isNew: recent(bestMonth.on),
     });
@@ -372,7 +397,7 @@ export function personalRecords(s: AppState, today: string): PersonalRecord[] {
     out.push({
       id: 'weight',
       icon: dir < 0 ? 'arrowDown' : 'arrowUp',
-      title: dir < 0 ? 'Lowest weigh-in' : 'Highest weigh-in',
+      title: dir < 0 ? t('Lowest weigh-in') : t('Highest weigh-in'),
       value: `${best.weightKg.toFixed(1)} kg`,
       on: best.date,
       isNew: recent(best.date),
@@ -449,13 +474,13 @@ export function achievementFeed(s: AppState, today: string, limit = 6): FeedItem
     }
   }
   const goal = goalReachedOn(s);
-  if (goal) items.push({ date: goal, icon: 'star', text: 'Reached your goal weight' });
+  if (goal) items.push({ date: goal, icon: 'star', text: t('Reached your goal weight') });
   for (const m of monthlyTrophies(s, today)) {
     if (m.earnedOn)
       items.push({
         date: m.earnedOn,
         icon: 'calendar',
-        text: `${monthName(m.month)} challenge complete`,
+        text: t('{v1} challenge complete', { v1: monthName(m.month) }),
       });
   }
   return items.sort((a, b) => b.date.localeCompare(a.date)).slice(0, limit);

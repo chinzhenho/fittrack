@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import type { MealType } from '../data/types';
 import { MEAL_LABELS, MEAL_TYPES } from '../logic/nutrition';
 import type { PhotoSource } from '../data/pendingPhoto';
+import { t, tr } from '../lib/i18n';
 
 const MEAL_ICON: Record<MealType, string> = {
   breakfast: '🌅',
@@ -11,7 +12,7 @@ const MEAL_ICON: Record<MealType, string> = {
 };
 
 /** One-tap additions to the optional note. */
-export const NOTE_CHIPS = ['Less rice', 'No sugar', 'Ate half', 'Less oil', 'Extra egg'];
+export const NOTE_CHIPS = tr(['Less rice', 'No sugar', 'Ate half', 'Less oil', 'Extra egg']);
 
 type CamState = 'starting' | 'live' | 'unavailable';
 
@@ -133,7 +134,7 @@ export function CameraScreen({
     <div
       role="dialog"
       aria-modal="true"
-      aria-label="Snap your food"
+      aria-label={t('Snap your food')}
       className="fixed inset-0 z-50 flex flex-col bg-black text-white"
     >
       <video
@@ -150,7 +151,7 @@ export function CameraScreen({
       <div className="relative flex items-center justify-between px-4 pt-[calc(1rem+env(safe-area-inset-top))]">
         <button
           type="button"
-          aria-label="Close camera"
+          aria-label={t('Close camera')}
           onClick={onClose}
           className="flex size-10 items-center justify-center rounded-full border border-white/20 bg-black/40 text-lg backdrop-blur-md"
         >
@@ -158,7 +159,7 @@ export function CameraScreen({
         </button>
         <span className="flex items-center gap-1.5 rounded-full border border-emerald-400/50 bg-emerald-600/90 px-3 py-1 text-xs font-bold shadow-lg backdrop-blur-md">
           <span className="size-2 animate-ping rounded-full bg-white" />
-          AI food snap
+          {t('AI food snap')}
         </span>
         <span className="size-10" />
       </div>
@@ -177,12 +178,12 @@ export function CameraScreen({
             ))}
             <span className="absolute inset-x-6 h-0.5 animate-scan rounded-full bg-emerald-400 shadow-[0_0_14px_3px_rgba(34,197,94,0.75)]" />
             <p className="absolute -bottom-8 w-full text-center text-sm font-semibold text-white/90">
-              Fit the whole meal in, with the plate if you can
+              {t('Fit the whole meal in, with the plate if you can')}
             </p>
           </div>
         ) : state === 'starting' ? (
           <p className="text-sm text-white/80" role="status">
-            Opening the camera…
+            {t('Opening the camera…')}
           </p>
         ) : (
           <div className="max-w-xs space-y-4 text-center">
@@ -190,11 +191,12 @@ export function CameraScreen({
               📷
             </p>
             <p className="text-sm leading-relaxed text-white/85">
-              Can't open the camera here (camera permission may be off). Use the button below to
-              take a photo, or pick one from your album.
+              {t(
+                "Can't open the camera here (camera permission may be off). Use the button below to take a photo, or pick one from your album.",
+              )}
             </p>
             <label className="flex min-h-12 cursor-pointer items-center justify-center rounded-2xl bg-emerald-600 font-bold">
-              📸 Use the phone camera
+              {t('📸 Use the phone camera')}
               {fileInput(true)}
             </label>
           </div>
@@ -208,16 +210,16 @@ export function CameraScreen({
             <span aria-hidden="true">📝</span>
             <input
               value={note}
-              aria-label="What is it? (optional)"
+              aria-label={t('What is it? (optional)')}
               maxLength={120}
               onChange={(e) => setNote(e.target.value)}
-              placeholder="What is it? (optional) e.g. kopi O, half rice"
+              placeholder={t('What is it? (optional) e.g. kopi O, half rice')}
               className="min-h-11 w-full bg-transparent text-sm text-white placeholder:text-white/55 focus:outline-none"
             />
             {note && (
               <button
                 type="button"
-                aria-label="Clear note"
+                aria-label={t('Clear note')}
                 onClick={() => setNote('')}
                 className="shrink-0 text-white/70"
               >
@@ -228,7 +230,7 @@ export function CameraScreen({
           <div
             className="flex gap-1.5 overflow-x-auto pb-0.5"
             role="group"
-            aria-label="Quick notes"
+            aria-label={t('Quick notes')}
           >
             {NOTE_CHIPS.map((c) => (
               <button
@@ -242,7 +244,11 @@ export function CameraScreen({
             ))}
           </div>
         </div>
-        <div className="mx-auto grid max-w-sm grid-cols-4 gap-2" role="group" aria-label="Meal">
+        <div
+          className="mx-auto grid max-w-sm grid-cols-4 gap-2"
+          role="group"
+          aria-label={t('Meal')}
+        >
           {MEAL_TYPES.map((m) => (
             <button
               key={m}
@@ -263,12 +269,12 @@ export function CameraScreen({
             <span className="flex size-12 items-center justify-center rounded-2xl border-2 border-white/70 bg-white/15 text-xl backdrop-blur">
               🖼️
             </span>
-            Album
+            {t('Album')}
             {fileInput(false)}
           </label>
           <button
             type="button"
-            aria-label="Take photo"
+            aria-label={t('Take photo')}
             disabled={state !== 'live'}
             onClick={shoot}
             className="flex size-20 items-center justify-center rounded-full border-4 border-emerald-400 bg-white shadow-[0_0_24px_rgba(34,197,94,0.5)] transition active:scale-90 disabled:opacity-40"
@@ -283,7 +289,7 @@ export function CameraScreen({
             <span className="flex size-12 items-center justify-center rounded-2xl border-2 border-white/70 bg-white/15 text-xl backdrop-blur">
               ✍️
             </span>
-            Manual
+            {t('Manual')}
           </button>
         </div>
       </div>

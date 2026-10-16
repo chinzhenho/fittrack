@@ -2,6 +2,7 @@ import { addDays } from '@fittrack/engine';
 import type { AppState } from '../data/types';
 import { mealsOn, sumNutrients } from './nutrition';
 import { targetOn } from './targets';
+import { tr } from '../lib/i18n';
 
 // Weekly summary for the progress page. Rules (shown to the user in the UI):
 // - A "complete" day is one the user marked as fully recorded (Diary checkbox). Only
@@ -12,11 +13,11 @@ import { targetOn } from './targets';
 //   safety floor, so eating far less than planned is not rewarded.
 export type Period = 'this_week' | 'last_week' | 'last_7';
 
-export const PERIOD_LABELS: Record<Period, string> = {
+export const PERIOD_LABELS: Record<Period, string> = tr({
   this_week: 'This week',
   last_week: 'Last week',
   last_7: 'Last 7 days',
-};
+});
 
 /** Monday of the week containing `date` (local calendar dates). */
 export function mondayOf(date: string): string {

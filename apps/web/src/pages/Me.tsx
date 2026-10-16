@@ -56,6 +56,7 @@ import {
 } from '../lib/messages';
 import { setTheme, useTheme, type Theme } from '../lib/theme';
 import { latestWeight, planFor, targetFromPlan, targetOn } from '../logic/targets';
+import { setLang, t, tr, useLang, type Lang } from '../lib/i18n';
 
 const RATE_OPTIONS: Record<Goal, number[]> = {
   fat_loss: [0.25, 0.5, 0.75, 1],
@@ -64,19 +65,19 @@ const RATE_OPTIONS: Record<Goal, number[]> = {
   weight_gain: [0.25, 0.5],
 };
 
-const SYNC_TEXT: Record<SyncStatus, string> = {
+const SYNC_TEXT: Record<SyncStatus, string> = tr({
   off: '',
   syncing: 'Syncing…',
   synced: '✓ Your logs are synced to your account',
   offline: "You're offline: logs are saved on this device and sync when you reconnect.",
   error: 'Sync failed. It will retry automatically.',
-};
+});
 
-const REASON_LABELS: Record<TargetVersion['reason'], string> = {
+const REASON_LABELS: Record<TargetVersion['reason'], string> = tr({
   initial: 'Initial',
   profile_change: 'Profile update',
   adaptive: 'Adjusted',
-};
+});
 
 const AVATARS = ['🥗', '🍎', '🥑', '🍳', '🍜', '🍛', '🥦', '🍓', '💪', '🏃', '🧘', '😊'];
 
@@ -97,29 +98,29 @@ function TargetCompare({
   onKeep: () => void;
 }) {
   const rows: { k: string; a: number; b: number; u: string }[] = [
-    { k: 'Daily calories', a: before.caloriesKcal, b: after.caloriesKcal, u: 'kcal' },
-    { k: 'Protein', a: before.proteinG, b: after.proteinG, u: 'g' },
-    { k: 'Carbs', a: before.carbsG, b: after.carbsG, u: 'g' },
-    { k: 'Fat', a: before.fatG, b: after.fatG, u: 'g' },
+    { k: t('Daily calories'), a: before.caloriesKcal, b: after.caloriesKcal, u: 'kcal' },
+    { k: t('Protein'), a: before.proteinG, b: after.proteinG, u: 'g' },
+    { k: t('Carbs'), a: before.carbsG, b: after.carbsG, u: 'g' },
+    { k: t('Fat'), a: before.fatG, b: after.fatG, u: 'g' },
   ];
   return (
     <div
       role="region"
-      aria-label="Old and new targets"
+      aria-label={t('Old and new targets')}
       className="space-y-3 rounded-2xl border-2 border-emerald-200 bg-emerald-50/60 p-4 dark:border-emerald/40 dark:bg-emerald/10"
     >
-      <p className="font-bold">Update your daily target?</p>
+      <p className="font-bold">{t('Update your daily target?')}</p>
       <table className="w-full text-sm">
         <thead>
           <tr className="text-xs text-slate-500 dark:text-slate-400">
             <th scope="col" className="text-left font-semibold">
-              Item
+              {t('Item')}
             </th>
             <th scope="col" className="text-right font-semibold">
-              Now
+              {t('Now')}
             </th>
             <th scope="col" className="text-right font-semibold">
-              New
+              {t('New')}
             </th>
           </tr>
         </thead>
@@ -146,13 +147,13 @@ function TargetCompare({
         </tbody>
       </table>
       <p className="text-xs text-slate-600 dark:text-slate-300">
-        The new target starts today. Past food logs and target history are kept unchanged.
+        {t('The new target starts today. Past food logs and target history are kept unchanged.')}
       </p>
       <div className="grid grid-cols-2 gap-2">
         <Button variant="secondary" onClick={onKeep}>
-          Keep current plan
+          {t('Keep current plan')}
         </Button>
-        <Button onClick={onConfirm}>Confirm update</Button>
+        <Button onClick={onConfirm}>{t('Confirm update')}</Button>
       </div>
     </div>
   );
@@ -210,13 +211,15 @@ function RemindersCard() {
     a.download = 'eathealthee-reminders.ics';
     a.click();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
-    toast({ text: 'Open the downloaded file to add the reminders to your calendar' });
+    toast({ text: t('Open the downloaded file to add the reminders to your calendar') });
   };
   return (
     <div className="space-y-2">
       <List
-        title="Reminders"
-        footer="Reminders are added to your phone's calendar (iPhone Calendar, Google Calendar or Outlook). To change or stop them later, edit or delete the EatHealthee events there."
+        title={t('Reminders')}
+        footer={t(
+          "Reminders are added to your phone's calendar (iPhone Calendar, Google Calendar or Outlook). To change or stop them later, edit or delete the EatHealthee events there.",
+        )}
       >
         {reminders.map((r) => (
           <div key={r.id} className="flex min-h-12 items-center justify-between gap-3 py-2">
@@ -228,7 +231,7 @@ function RemindersCard() {
             <span className="flex items-center gap-3">
               <input
                 type="time"
-                aria-label={`${r.label} reminder time`}
+                aria-label={t('{label} reminder time', { label: r.label })}
                 value={r.time}
                 disabled={!r.on}
                 onChange={(e) => e.target.value && setOne(r.id, { time: e.target.value })}
@@ -244,7 +247,7 @@ function RemindersCard() {
           onClick={download}
           className="min-h-12 w-full text-left text-[1.0625rem] text-emerald-strong disabled:opacity-40 dark:text-emerald"
         >
-          Add to my calendar
+          {t('Add to my calendar')}
         </button>
       </List>
     </div>
@@ -268,7 +271,7 @@ function BackToMe() {
   return (
     <Link to="/me" className={backButtonClass}>
       <BackArrow />
-      Me
+      {t('Me')}
     </Link>
   );
 }
@@ -278,6 +281,7 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
   const toast = useToast();
   const navigate = useNavigate();
   const theme = useTheme();
+  const lang = useLang();
   const today = useMemo(() => localToday(), []);
   const profile = s.profile;
   const [draft, setDraft] = useState<Profile | null>(profile);
@@ -346,7 +350,7 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
       update((x) =>
         updateProfileDetails(x, { ...candidate, goalStartDate: profile.goalStartDate }),
       );
-      toast({ text: 'Saved' });
+      toast({ text: t('Saved') });
       navigate('/me');
       return;
     }
@@ -369,7 +373,11 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
         ),
       ),
     );
-    toast({ text: `Updated. Your new daily target is ${fmtInt(preview.plan.caloriesKcal)} kcal` });
+    toast({
+      text: t('Updated. Your new daily target is {v1} kcal', {
+        v1: fmtInt(preview.plan.caloriesKcal),
+      }),
+    });
     navigate('/me');
   };
 
@@ -378,7 +386,7 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
     setHeightText(String(profile.heightCm));
     setTargetText(profile.targetWeightKg !== undefined ? String(profile.targetWeightKg) : '');
     setConfirming(false);
-    toast({ text: 'Kept your current plan. Nothing changed.' });
+    toast({ text: t('Kept your current plan. Nothing changed.') });
     navigate('/me');
   };
 
@@ -402,7 +410,7 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
           disabled={!changed || !preview?.ok}
           onClick={() => (targetChanges && target ? setConfirming(true) : save())}
         >
-          {changed && targetChanges && target ? 'Preview new daily target' : label}
+          {changed && targetChanges && target ? t('Preview new daily target') : label}
         </Button>
       )}
     </>
@@ -431,7 +439,7 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
     return (
       <div className="space-y-4">
         <BackToMe />
-        <PageTitle sub="Your name, picture and account.">Profile & account</PageTitle>
+        <PageTitle sub={t('Your name, picture and account.')}>{t('Profile & account')}</PageTitle>
 
         <div className="flex flex-col items-center gap-2 pb-1">
           <span
@@ -446,25 +454,25 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
         <Card className="space-y-6">
           <div>
             <label htmlFor="nickname" className="text-[1.0625rem] font-semibold">
-              Nickname
+              {t('Nickname')}
             </label>
             <input
               id="nickname"
               maxLength={20}
-              placeholder="What should we call you?"
+              placeholder={t('What should we call you?')}
               value={draft.nickname ?? ''}
               onChange={(e) => setDraft({ ...draft, nickname: e.target.value })}
               className="mt-2 block min-h-14 w-full rounded-[16px] bg-white px-4 text-[1.25rem] font-semibold ring-1 ring-slate-200 placeholder:text-base placeholder:font-normal placeholder:text-slate-400 focus:ring-2 focus:ring-emerald focus:outline-none dark:bg-slate-800 dark:ring-slate-600"
             />
           </div>
           <fieldset>
-            <legend className="text-[1.0625rem] font-semibold">Picture</legend>
-            <div className="mt-2 grid grid-cols-6 gap-2" role="group" aria-label="Avatar">
+            <legend className="text-[1.0625rem] font-semibold">{t('Picture')}</legend>
+            <div className="mt-2 grid grid-cols-6 gap-2" role="group" aria-label={t('Avatar')}>
               {AVATARS.map((a) => (
                 <button
                   key={a}
                   type="button"
-                  aria-label={`Avatar ${a}`}
+                  aria-label={t('Avatar {a}', { a })}
                   aria-pressed={draft.avatar === a}
                   onClick={() => setDraft({ ...draft, avatar: a })}
                   className={`flex aspect-square items-center justify-center rounded-full text-2xl transition ${draft.avatar === a ? 'bg-emerald-100 ring-2 ring-emerald-strong dark:bg-emerald/20 dark:ring-emerald' : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-700'}`}
@@ -476,40 +484,48 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
           </fieldset>
         </Card>
 
-        {saveBar('Save profile')}
+        {saveBar(t('Save profile'))}
 
         {signedIn && (
-          <List title="Account">
+          <List title={t('Account')}>
             <div className="flex min-h-12 items-center justify-between gap-3 py-2">
-              <span className="text-[1.0625rem]">Email</span>
+              <span className="text-[1.0625rem]">{t('Email')}</span>
               <span className="truncate text-[1.0625rem] text-slate-500 dark:text-slate-400">
                 {email}
               </span>
             </div>
             <Link to="/update-password" className={linkRowClass}>
-              <LinkRowContent label="Change password" />
+              <LinkRowContent label={t('Change password')} />
             </Link>
           </List>
         )}
 
         {!signedIn && (
           <List
-            title="Account"
-            footer="Without an account your data is only on this device. Sign up to back it up and use it on any phone."
+            title={t('Account')}
+            footer={t(
+              'Without an account your data is only on this device. Sign up to back it up and use it on any phone.',
+            )}
           >
             <Link to="/signup" className={linkRowClass}>
               <LinkRowContent
-                label={<span className="text-emerald-strong dark:text-emerald">Sign up</span>}
+                label={
+                  <span className="text-emerald-strong dark:text-emerald">{t('Sign up')}</span>
+                }
               />
             </Link>
             <Link to="/login" className={linkRowClass}>
-              <LinkRowContent label="Log in" />
+              <LinkRowContent label={t('Log in')} />
             </Link>
           </List>
         )}
 
         {signedIn && (
-          <List footer="Your logs are synced before logging out, so you can get them back on any device.">
+          <List
+            footer={t(
+              'Your logs are synced before logging out, so you can get them back on any device.',
+            )}
+          >
             <button
               type="button"
               disabled={busy}
@@ -520,7 +536,7 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
               }}
               className="min-h-12 w-full text-center text-[1.0625rem] text-[#ff3b30] disabled:opacity-50"
             >
-              {busy ? 'Logging out…' : 'Log out'}
+              {busy ? t('Logging out…') : t('Log out')}
             </button>
           </List>
         )}
@@ -529,11 +545,11 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
           <List>
             {danger === 'account' ? (
               <div className="py-3">
-                <Notice tone="warn" title="Permanently delete your account?">
-                  Your login email, password, all food and weight logs in the cloud, plan and
-                  settings will be permanently deleted and can&apos;t be recovered. Download your
-                  data first if you want a copy (Me → Privacy & data).
-                  <Field label="Type DELETE to confirm">
+                <Notice tone="warn" title={t('Permanently delete your account?')}>
+                  {t(
+                    "Your login email, password, all food and weight logs in the cloud, plan and settings will be permanently deleted and can't be recovered. Download your data first if you want a copy (Me → Privacy & data).",
+                  )}
+                  <Field label={t('Type DELETE to confirm')}>
                     {(p) => (
                       <input
                         {...p}
@@ -557,10 +573,10 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
                         void run(deleteAccount, () => navigate('/welcome', { replace: true }))
                       }
                     >
-                      {busy ? 'Deleting…' : 'Delete account forever'}
+                      {busy ? t('Deleting…') : t('Delete account forever')}
                     </Button>
                     <Button variant="secondary" disabled={busy} onClick={closeDanger}>
-                      Cancel
+                      {t('Cancel')}
                     </Button>
                   </div>
                 </Notice>
@@ -574,7 +590,7 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
                   setDanger('account');
                 }}
               >
-                Delete account
+                {t('Delete account')}
               </button>
             )}
           </List>
@@ -587,23 +603,25 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
     return (
       <div className="space-y-4">
         <BackToMe />
-        <PageTitle sub="Used to work out your daily calorie target.">Body details</PageTitle>
+        <PageTitle sub={t('Used to work out your daily calorie target.')}>
+          {t('Body details')}
+        </PageTitle>
         <Card className="space-y-6">
           <ChoiceCards
-            label="Formula"
-            hint="The calorie formula has a male and a female version; neutral is the average."
+            label={t('Formula')}
+            hint={t('The calorie formula has a male and a female version; neutral is the average.')}
             columns={3}
             value={draft.formulaSex}
             options={[
-              { value: 'male', label: 'Male', icon: '♂️' },
-              { value: 'female', label: 'Female', icon: '♀️' },
-              { value: 'neutral', label: 'Neutral', icon: '⚧️', sub: 'average' },
+              { value: 'male', label: t('Male'), icon: '♂️' },
+              { value: 'female', label: t('Female'), icon: '♀️' },
+              { value: 'neutral', label: t('Neutral'), icon: '⚧️', sub: t('average') },
             ]}
             onChange={(v) => set('formulaSex', v as FormulaSex)}
           />
           <div>
             <label htmlFor="birth-date" className="text-[1.0625rem] font-semibold">
-              Date of birth
+              {t('Date of birth')}
             </label>
             <input
               id="birth-date"
@@ -618,7 +636,7 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
             )}
           </div>
           <Stepper
-            label="Height"
+            label={t('Height')}
             unit="cm"
             step={1}
             fallback={profile.heightCm}
@@ -628,19 +646,21 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
           />
           {draft.goal !== 'maintain' && (
             <Stepper
-              label="Target weight"
-              hint="Optional. Only used to show your progress; it doesn't change your daily calories."
+              label={t('Target weight')}
+              hint={t(
+                "Optional. Only used to show your progress; it doesn't change your daily calories.",
+              )}
               unit="kg"
               step={0.5}
               fallback={weight || 60}
-              placeholder="Not set"
+              placeholder={t('Not set')}
               value={targetText}
               onChange={setTargetText}
               error={
                 invalid === 'targetWeightKg'
                   ? draft.goal === 'fat_loss'
-                    ? 'Must be below your current weight'
-                    : 'Must be above your current weight'
+                    ? t('Must be below your current weight')
+                    : t('Must be above your current weight')
                   : null
               }
             />
@@ -651,18 +671,18 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
           >
             <span>
               <span className="block text-xs text-slate-500 dark:text-slate-400">
-                Current weight
+                {t('Current weight')}
               </span>
               <span className="text-[1.25rem] font-bold">
-                {profile.hideNumbers ? 'Hidden' : `${fmt1(weight)} kg`}
+                {profile.hideNumbers ? t('Hidden') : t('{v1} kg', { v1: fmt1(weight) })}
               </span>
             </span>
             <span className="text-sm font-semibold text-emerald-strong dark:text-emerald">
-              Log weight ›
+              {t('Log weight ›')}
             </span>
           </Link>
         </Card>
-        {saveBar('Save')}
+        {saveBar(t('Save'))}
       </div>
     );
   }
@@ -671,31 +691,36 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
     return (
       <div className="space-y-4">
         <BackToMe />
-        <PageTitle sub="You'll see old and new targets side by side before anything changes.">
-          Goal & lifestyle
+        <PageTitle sub={t("You'll see old and new targets side by side before anything changes.")}>
+          {t('Goal & lifestyle')}
         </PageTitle>
         <Card className="space-y-6">
           <ChoiceCards
-            label="Your goal"
+            label={t('Your goal')}
             value={draft.goal}
             options={[
               {
                 value: 'fat_loss',
-                label: 'Lose fat',
-                sub: 'Eat a little less than you burn',
+                label: t('Lose fat'),
+                sub: t('Eat a little less than you burn'),
                 icon: '🔥',
               },
-              { value: 'maintain', label: 'Maintain', sub: 'Keep your weight steady', icon: '⚖️' },
+              {
+                value: 'maintain',
+                label: t('Maintain'),
+                sub: t('Keep your weight steady'),
+                icon: '⚖️',
+              },
               {
                 value: 'muscle_gain',
-                label: 'Build muscle',
-                sub: 'More protein, a small surplus',
+                label: t('Build muscle'),
+                sub: t('More protein, a small surplus'),
                 icon: '💪',
               },
               {
                 value: 'weight_gain',
-                label: 'Gain weight',
-                sub: 'Eat a little more than you burn',
+                label: t('Gain weight'),
+                sub: t('Eat a little more than you burn'),
                 icon: '📈',
               },
             ]}
@@ -705,18 +730,18 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
           />
           {draft.goal !== 'maintain' && (
             <ChoiceCards
-              label="Pace"
-              hint="A slower pace is easier to keep up and helps you keep muscle."
+              label={t('Pace')}
+              hint={t('A slower pace is easier to keep up and helps you keep muscle.')}
               value={String(draft.ratePctPerWeek)}
               options={RATE_OPTIONS[draft.goal].map((r) => ({
                 value: String(r),
                 label:
                   r === RATE_PCT_PER_WEEK[draft.goal].default
-                    ? `${r}% · recommended`
-                    : `${r}% a week`,
+                    ? t('{r}% · recommended', { r })
+                    : t('{r}% a week', { r }),
                 sub: weight
-                  ? `about ${((r / 100) * weight).toFixed(2)} kg a week`
-                  : 'of body weight a week',
+                  ? t('about {v1} kg a week', { v1: ((r / 100) * weight).toFixed(2) })
+                  : t('of body weight a week'),
               }))}
               onChange={(v) => set('ratePctPerWeek', Number(v))}
             />
@@ -725,8 +750,8 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
 
         <Card>
           <ChoiceCards
-            label="How active are you?"
-            hint="Count your job and exercise together."
+            label={t('How active are you?')}
+            hint={t('Count your job and exercise together.')}
             columns={1}
             value={draft.activityLevel}
             options={(Object.keys(ACTIVITY_LABELS) as ActivityLevel[]).map((a) => ({
@@ -741,26 +766,26 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
 
         <Card className="space-y-6">
           <CheckCards
-            label="Health"
-            hint="Only used to keep our advice safe for you. Tick any that apply."
+            label={t('Health')}
+            hint={t('Only used to keep our advice safe for you. Tick any that apply.')}
             columns={1}
             options={[
               {
                 key: 'pregnantOrLactating',
-                label: 'Pregnant or breastfeeding',
+                label: t('Pregnant or breastfeeding'),
                 icon: '🤰',
                 checked: draft.screening.pregnantOrLactating,
               },
               {
                 key: 'eatingDisorderHistory',
-                label: 'Eating disorder',
-                sub: 'diagnosed or in treatment',
+                label: t('Eating disorder'),
+                sub: t('diagnosed or in treatment'),
                 icon: '💭',
                 checked: draft.screening.eatingDisorderHistory,
               },
               {
                 key: 'kidneyDisease',
-                label: 'Kidney disease',
+                label: t('Kidney disease'),
                 icon: '🩺',
                 checked: draft.screening.kidneyDisease,
               },
@@ -768,7 +793,7 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
             onToggle={(k, v) => set('screening', { ...draft.screening, [k]: v })}
           />
           <CheckCards
-            label="Diet"
+            label={t('Diet')}
             options={(Object.keys(DIET_LABELS) as DietTag[]).map((t) => ({
               key: t,
               label: DIET_LABELS[t],
@@ -783,7 +808,7 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
           />
         </Card>
 
-        {saveBar('Save')}
+        {saveBar(t('Save'))}
       </div>
     );
   }
@@ -805,12 +830,12 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
 
   return (
     <div className="space-y-5">
-      <PageTitle sub="Manage your health plan and app settings.">Me</PageTitle>
+      <PageTitle sub={t('Manage your health plan and app settings.')}>{t('Me')}</PageTitle>
 
       <section>
         <Link
           to="/me/profile"
-          aria-label="Edit profile"
+          aria-label={t('Edit profile')}
           className="flex items-center gap-4 py-2 transition hover:opacity-80"
         >
           <span
@@ -821,14 +846,14 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
           </span>
           <span className="min-w-0 flex-1">
             <span className="block truncate text-[1.375rem] leading-tight font-semibold">
-              {profile.nickname ?? (signedIn ? 'No nickname yet' : 'Guest')}
+              {profile.nickname ?? (signedIn ? t('No nickname yet') : t('Guest'))}
             </span>
             <span className="block truncate text-sm text-slate-500 dark:text-slate-400">
-              {signedIn ? email : 'Not logged in'}
+              {signedIn ? email : t('Not logged in')}
             </span>
             <span className="mt-1 block text-xs text-slate-500 dark:text-slate-400">
               {GOAL_LABELS[profile.goal]}
-              {target && !hide && ` · ${fmtInt(target.caloriesKcal)} kcal a day`}
+              {target && !hide && t(' · {v1} kcal a day', { v1: fmtInt(target.caloriesKcal) })}
             </span>
           </span>
           <span aria-hidden="true" className="text-xl text-slate-300 dark:text-slate-500">
@@ -846,84 +871,107 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
               to="/signup"
               className="inline-flex min-h-11 flex-1 items-center justify-center rounded-[14px] bg-emerald-strong px-4 text-[0.9375rem] font-semibold text-white dark:bg-emerald dark:text-black"
             >
-              Sign up
+              {t('Sign up')}
             </Link>
             <Link
               to="/login"
               className="inline-flex min-h-11 flex-1 items-center justify-center rounded-[14px] bg-[#767680]/[0.12] px-4 text-[0.9375rem] font-semibold text-emerald-strong dark:bg-[#767680]/[0.24] dark:text-emerald"
             >
-              Log in
+              {t('Log in')}
             </Link>
           </div>
         )}
       </section>
 
-      <Group title="My health plan">
+      <Group title={t('My health plan')}>
         <ul>
           <Row
             to="/me/plan"
             icon="target"
             tint="bg-[#ff9500]"
-            title="Goal & lifestyle"
-            sub={`${GOAL_LABELS[profile.goal]}${profile.goal !== 'maintain' ? ` · ${profile.ratePctPerWeek}% a week` : ''} · ${ACTIVITY_LABELS[profile.activityLevel].name}`}
+            title={t('Goal & lifestyle')}
+            sub={`${GOAL_LABELS[profile.goal]}${profile.goal !== 'maintain' ? ` · ${t('{r}% a week', { r: profile.ratePctPerWeek })}` : ''} · ${ACTIVITY_LABELS[profile.activityLevel].name}`}
           />
           <Row
             to="/me/body"
             icon="person"
             tint="bg-[#007aff]"
-            title="Body details"
-            sub={`Height ${profile.heightCm} cm · born ${profile.birthDate}${profile.targetWeightKg !== undefined && !hide ? ` · target ${fmt1(profile.targetWeightKg)} kg` : ''}`}
+            title={t('Body details')}
+            sub={t('Height {heightCm} cm · born {birthDate}{v3}', {
+              heightCm: profile.heightCm,
+              birthDate: profile.birthDate,
+              v3:
+                profile.targetWeightKg !== undefined && !hide
+                  ? ` · ${t('target {kg} kg', { kg: fmt1(profile.targetWeightKg) })}`
+                  : '',
+            })}
           />
           <Row
             to="/me/targets"
             icon="fork"
             tint="bg-emerald-500"
-            title="Daily nutrition targets"
+            title={t('Daily nutrition targets')}
             sub={
               target && !hide
-                ? `${fmtInt(target.caloriesKcal)} kcal · protein ${target.proteinG} g · how it's worked out`
-                : "How it's worked out, and history"
+                ? t("{v1} kcal · protein {proteinG} g · how it's worked out", {
+                    v1: fmtInt(target.caloriesKcal),
+                    proteinG: target.proteinG,
+                  })
+                : t("How it's worked out, and history")
             }
           />
           <Row
             to="/progress#weights"
             icon="scale"
             tint="bg-[#5856d6]"
-            title="Weight log"
+            title={t('Weight log')}
             sub={
               hide
-                ? 'Add, edit or delete weigh-ins'
+                ? t('Add, edit or delete weigh-ins')
                 : weight
-                  ? `Latest ${fmt1(weight)} kg`
-                  : 'No weigh-ins yet'
+                  ? t('Latest {v1} kg', { v1: fmt1(weight) })
+                  : t('No weigh-ins yet')
             }
           />
         </ul>
       </Group>
 
-      <section aria-label="Appearance">
+      <section aria-label={t('Appearance')}>
         <h2 className="mb-3 text-xs font-semibold tracking-[0.08em] text-emerald-strong uppercase dark:text-emerald">
-          Appearance
+          {t('Appearance')}
         </h2>
         <div className="space-y-5">
+          {/* Each language is named in itself, so it can be found in either language. */}
+          <ChoiceCards<Lang>
+            label={t('Language')}
+            columns={2}
+            value={lang}
+            options={[
+              { value: 'en', label: 'English', icon: '🇬🇧' },
+              { value: 'zh', label: '简体中文', icon: '🇨🇳' },
+            ]}
+            onChange={setLang}
+          />
           <ChoiceCards<Theme>
-            label="Theme"
+            label={t('Theme')}
             columns={3}
             value={theme}
             options={[
-              { value: 'light', label: 'Light', icon: '☀️' },
-              { value: 'dark', label: 'Dark', icon: '🌙' },
-              { value: 'system', label: 'Auto', icon: '📱', sub: 'match phone' },
+              { value: 'light', label: t('Light'), icon: '☀️' },
+              { value: 'dark', label: t('Dark'), icon: '🌙' },
+              { value: 'system', label: t('Auto'), icon: '📱', sub: t('match phone') },
             ]}
             onChange={setTheme}
           />
           <CheckCards
-            label="Privacy on screen"
-            hint="If the numbers stress you out, or someone can see your screen. You still log as usual; the app shows your habits instead."
+            label={t('Privacy on screen')}
+            hint={t(
+              'If the numbers stress you out, or someone can see your screen. You still log as usual; the app shows your habits instead.',
+            )}
             options={[
               {
                 key: 'hide',
-                label: 'Hide calories and weight',
+                label: t('Hide calories and weight'),
                 icon: '🙈',
                 checked: hide,
               },
@@ -935,18 +983,22 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
 
       <RemindersCard />
 
-      <Group title="Privacy & data">
+      <Group title={t('Privacy & data')}>
         <ul>
           <li className="flex min-h-[3.75rem] items-center gap-3 py-2">
             <IconTile name="shield" tint="bg-[#34c759]" />
             <span className="min-w-0 flex-1">
-              <span className="block text-[0.9375rem] font-semibold">Where your data is</span>
+              <span className="block text-[0.9375rem] font-semibold">
+                {t('Where your data is')}
+              </span>
               <span className="block text-xs text-slate-500 dark:text-slate-400">
                 {signedIn
-                  ? 'In your account (servers in Singapore) and on this device. Only you can see it.'
+                  ? t(
+                      'In your account (servers in Singapore) and on this device. Only you can see it.',
+                    )
                   : isPersistent()
-                    ? "Only on this device. Sign up so you don't lose it if you change phones."
-                    : "This browser can't save data (maybe private browsing)."}
+                    ? t("Only on this device. Sign up so you don't lose it if you change phones.")
+                    : t("This browser can't save data (maybe private browsing).")}
               </span>
             </span>
           </li>
@@ -954,16 +1006,18 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
             to="/me/report"
             icon="download"
             tint="bg-[#007aff]"
-            title="Download my data"
-            sub="A clear report of your logs, saved as PDF"
+            title={t('Download my data')}
+            sub={t('A clear report of your logs, saved as PDF')}
           />
           <li>
             {danger === 'records' ? (
               <div className="p-2">
-                <Notice tone="warn" title="Delete all your logs?">
-                  All food, weight and water logs will be permanently deleted from{' '}
-                  {signedIn ? 'your account and this device' : 'this device'}. Your profile and plan
-                  stay. This can&apos;t be undone, so download your data first if you want a copy.
+                <Notice tone="warn" title={t('Delete all your logs?')}>
+                  {t('All food, weight and water logs will be permanently deleted from')}{' '}
+                  {signedIn ? t('your account and this device') : t('this device')}
+                  {t(
+                    ". Your profile and plan stay. This can't be undone, so download your data first if you want a copy.",
+                  )}
                   {error && (
                     <p role="alert" className="mt-2 font-semibold text-red-700 dark:text-red-400">
                       {error}
@@ -976,14 +1030,14 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
                       onClick={() =>
                         void run(deleteHealthRecords, () => {
                           closeDanger();
-                          toast({ text: 'All logs deleted' });
+                          toast({ text: t('All logs deleted') });
                         })
                       }
                     >
-                      {busy ? 'Deleting…' : 'Delete logs'}
+                      {busy ? t('Deleting…') : t('Delete logs')}
                     </Button>
                     <Button variant="secondary" disabled={busy} onClick={closeDanger}>
-                      Cancel
+                      {t('Cancel')}
                     </Button>
                   </div>
                 </Notice>
@@ -991,7 +1045,7 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
             ) : (
               <button
                 type="button"
-                aria-label="Delete all health records"
+                aria-label={t('Delete all health records')}
                 className={rowButtonClass}
                 onClick={() => {
                   closeDanger();
@@ -1001,10 +1055,10 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
                 <IconTile name="trash" tint="bg-[#ff3b30]" />
                 <span className="min-w-0 flex-1">
                   <span className="block text-sm font-semibold text-[#ff3b30]">
-                    Delete all my logs
+                    {t('Delete all my logs')}
                   </span>
                   <span className="block text-xs text-slate-500 dark:text-slate-400">
-                    Start fresh but keep your profile and plan
+                    {t('Start fresh but keep your profile and plan')}
                   </span>
                 </span>
               </button>
@@ -1014,9 +1068,10 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
             <li>
               {danger === 'device' ? (
                 <div className="p-2">
-                  <Notice tone="warn" title="Delete everything on this device?">
-                    Your profile, plan and all logs will be permanently deleted, and you&apos;ll
-                    start again from the welcome page.
+                  <Notice tone="warn" title={t('Delete everything on this device?')}>
+                    {t(
+                      "Your profile, plan and all logs will be permanently deleted, and you'll start again from the welcome page.",
+                    )}
                     <div className="mt-3 flex gap-2">
                       <Button
                         variant="danger"
@@ -1026,10 +1081,10 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
                           navigate('/welcome', { replace: true });
                         }}
                       >
-                        Delete everything
+                        {t('Delete everything')}
                       </Button>
                       <Button variant="secondary" onClick={closeDanger}>
-                        Cancel
+                        {t('Cancel')}
                       </Button>
                     </div>
                   </Notice>
@@ -1046,10 +1101,10 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
                   <IconTile name="trash" tint="bg-[#ff3b30]" />
                   <span className="min-w-0 flex-1">
                     <span className="block text-sm font-semibold text-[#ff3b30]">
-                      Delete everything on this device
+                      {t('Delete everything on this device')}
                     </span>
                     <span className="block text-xs text-slate-500 dark:text-slate-400">
-                      Logs, profile and plan
+                      {t('Logs, profile and plan')}
                     </span>
                   </span>
                 </button>
@@ -1059,21 +1114,31 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
         </ul>
         {signedIn && (
           <p className="py-3 text-xs text-slate-500 dark:text-slate-400">
-            To delete your account, tap your name at the top of this page.
+            {t('To delete your account, tap your name at the top of this page.')}
           </p>
         )}
       </Group>
 
-      <Group title="Help & info">
+      <Group title={t('Help & info')}>
         <ul>
-          <Row to="/how-we-calculate" icon="calc" tint="bg-[#ff9500]" title="How we calculate" />
-          <Row to="/help/faq" icon="question" tint="bg-[#007aff]" title="FAQ" />
-          <Row to="/legal/disclaimer" icon="heart" tint="bg-[#ff2d55]" title="Health disclaimer" />
-          <Row to="/legal/privacy" icon="lock" tint="bg-slate-400" title="Privacy policy" />
-          <Row to="/legal/credits" icon="book" tint="bg-[#af52de]" title="Data sources" />
+          <Row
+            to="/how-we-calculate"
+            icon="calc"
+            tint="bg-[#ff9500]"
+            title={t('How we calculate')}
+          />
+          <Row to="/help/faq" icon="question" tint="bg-[#007aff]" title={t('FAQ')} />
+          <Row
+            to="/legal/disclaimer"
+            icon="heart"
+            tint="bg-[#ff2d55]"
+            title={t('Health disclaimer')}
+          />
+          <Row to="/legal/privacy" icon="lock" tint="bg-slate-400" title={t('Privacy policy')} />
+          <Row to="/legal/credits" icon="book" tint="bg-[#af52de]" title={t('Data sources')} />
         </ul>
         <p className="py-3 text-xs text-slate-500 dark:text-slate-400">
-          App version {__APP_VERSION__} ({__BUILD_DATE__})
+          {t('App version')} {__APP_VERSION__} ({__BUILD_DATE__})
         </p>
       </Group>
     </div>
@@ -1100,8 +1165,8 @@ function TargetsPage({
     return (
       <div className="space-y-4">
         <BackToMe />
-        <PageTitle>Daily nutrition targets</PageTitle>
-        <Notice>No daily target yet. Please finish setting up your profile first.</Notice>
+        <PageTitle>{t('Daily nutrition targets')}</PageTitle>
+        <Notice>{t('No daily target yet. Please finish setting up your profile first.')}</Notice>
       </div>
     );
   }
@@ -1126,30 +1191,33 @@ function TargetsPage({
   return (
     <div className="space-y-4">
       <BackToMe />
-      <PageTitle sub="How your daily target is worked out.">Daily nutrition targets</PageTitle>
+      <PageTitle sub={t('How your daily target is worked out.')}>
+        {t('Daily nutrition targets')}
+      </PageTitle>
 
       {hide && (
         <Notice>
-          You've chosen to hide numbers. This page still shows them because it explains the
-          calculation; go back if you'd rather not see them.
+          {t(
+            "You've chosen to hide numbers. This page still shows them because it explains the calculation; go back if you'd rather not see them.",
+          )}
         </Notice>
       )}
 
       <Card className="space-y-3">
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
           {[
-            { k: 'Daily calories', v: `${fmtInt(target.caloriesKcal)}`, u: 'kcal' },
+            { k: t('Daily calories'), v: `${fmtInt(target.caloriesKcal)}`, u: 'kcal' },
             {
-              k: 'Protein',
+              k: t('Protein'),
               v: `${target.proteinG}`,
               u: `g · ${Math.round((kcalOf.p / total) * 100)}%`,
             },
             {
-              k: 'Carbs',
+              k: t('Carbs'),
               v: `${target.carbsG}`,
               u: `g · ${Math.round((kcalOf.c / total) * 100)}%`,
             },
-            { k: 'Fat', v: `${target.fatG}`, u: `g · ${Math.round((kcalOf.f / total) * 100)}%` },
+            { k: t('Fat'), v: `${target.fatG}`, u: `g · ${Math.round((kcalOf.f / total) * 100)}%` },
           ].map((x) => (
             <div key={x.k} className="rounded-2xl bg-slate-50 px-3 py-2.5 dark:bg-slate-700/60">
               <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">{x.k}</p>
@@ -1159,20 +1227,27 @@ function TargetsPage({
           ))}
         </div>
         <p className="text-xs text-slate-500 dark:text-slate-400">
-          In effect from {target.effectiveFrom} ({REASON_LABELS[target.reason]}), based on a weight
-          of {fmt1(target.weightKg)} kg at the time.
+          {t('In effect from {date} ({reason}), based on a weight of {kg} kg at the time.', {
+            date: target.effectiveFrom,
+            reason: REASON_LABELS[target.reason],
+            kg: fmt1(target.weightKg),
+          })}
         </p>
       </Card>
 
       <Card className="space-y-4 text-sm leading-relaxed">
-        <CardTitle>Step by step</CardTitle>
+        <CardTitle>{t('Step by step')}</CardTitle>
         <div>
-          <p className="font-bold">① Basal metabolic rate (BMR): {fmtInt(target.bmrKcal)} kcal</p>
+          <p className="font-bold">
+            {t('① Basal metabolic rate (BMR):')} {fmtInt(target.bmrKcal)} {t('kcal')}
+          </p>
           <p className="text-slate-600 dark:text-slate-300">
-            What your body burns in a day at complete rest, using the Mifflin–St Jeor equation:
+            {t(
+              'What your body burns in a day at complete rest, using the Mifflin–St Jeor equation:',
+            )}
           </p>
           <p className="mt-1 rounded-xl bg-slate-50 px-3 py-2 font-mono text-xs dark:bg-slate-700/60">
-            10 × weight + 6.25 × height − 5 × age{' '}
+            {t('10 × weight + 6.25 × height − 5 × age')}{' '}
             {profile.formulaSex === 'male'
               ? '+ 5'
               : profile.formulaSex === 'female'
@@ -1187,46 +1262,58 @@ function TargetsPage({
             )}
           </p>
           <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-            Formula: {SEX_LABELS[profile.formulaSex]}
-            {profile.formulaSex === 'neutral' && ' (average of the male and female constants)'}
+            {t('Formula:')} {SEX_LABELS[profile.formulaSex]}
+            {profile.formulaSex === 'neutral' && t(' (average of the male and female constants)')}
           </p>
         </div>
         <div>
           <p className="font-bold">
-            ② Total daily energy expenditure (TDEE): {fmtInt(target.tdeeKcal)} kcal
+            {t('② Total daily energy expenditure (TDEE):')} {fmtInt(target.tdeeKcal)} {t('kcal')}
           </p>
           <p className="text-slate-600 dark:text-slate-300">
             {target.reason === 'adaptive'
-              ? 'Adjusted from your real intake and weight trend, so it fits you better than the formula alone.'
-              : `BMR × activity factor ${factor} (${ACTIVITY_LABELS[profile.activityLevel].name}).`}
+              ? t(
+                  'Adjusted from your real intake and weight trend, so it fits you better than the formula alone.',
+                )
+              : t('BMR × activity factor {factor} ({name}).', {
+                  factor,
+                  name: ACTIVITY_LABELS[profile.activityLevel].name,
+                })}
           </p>
         </div>
         <div>
           <p className="font-bold">
-            ③ Goal adjustment:{' '}
-            {adjust === 0 ? 'none' : `${adjust > 0 ? '+' : '−'}${fmtInt(Math.abs(adjust))} kcal`}
+            {t('③ Goal adjustment:')}{' '}
+            {adjust === 0
+              ? 'none'
+              : t('{v1}{v2} kcal', { v1: adjust > 0 ? '+' : '−', v2: fmtInt(Math.abs(adjust)) })}
           </p>
           <p className="text-slate-600 dark:text-slate-300">
             {GOAL_LABELS[profile.goal]}
             {profile.goal !== 'maintain' &&
-              `, about ${profile.ratePctPerWeek}% of body weight a week`}
+              t(', about {ratePctPerWeek}% of body weight a week', {
+                ratePctPerWeek: profile.ratePctPerWeek,
+              })}
             .{' '}
             {profile.goal === 'fat_loss'
-              ? 'The deficit is at most 25% of TDEE.'
+              ? t('The deficit is at most 25% of TDEE.')
               : profile.goal === 'maintain'
                 ? ''
-                : 'The surplus is at most 500 kcal a day.'}
+                : t('The surplus is at most 500 kcal a day.')}
           </p>
         </div>
         <div>
-          <p className="font-bold">④ Safety floor: {fmtInt(target.calorieFloorKcal)} kcal</p>
+          <p className="font-bold">
+            {t('④ Safety floor:')} {fmtInt(target.calorieFloorKcal)} {t('kcal')}
+          </p>
           <p className="text-slate-600 dark:text-slate-300">
-            Your daily target never goes below your BMR, or below 1,200 (female) / 1,500 (male,
-            neutral) kcal.
+            {t(
+              'Your daily target never goes below your BMR, or below 1,200 (female) / 1,500 (male, neutral) kcal.',
+            )}
           </p>
         </div>
         {target.clamps.length > 0 && (
-          <Notice title="Adjustments made in this calculation">
+          <Notice title={t('Adjustments made in this calculation')}>
             <ul className="list-disc space-y-1 pl-5">
               {target.clamps.map((c) => (
                 <li key={c}>
@@ -1237,22 +1324,23 @@ function TargetsPage({
           </Notice>
         )}
         <p className="text-xs text-slate-500 dark:text-slate-400">
-          The formula is only a starting point; everyone burns a little differently. Once you have
-          enough logs, Progress → Target suggestion fine-tunes it from your real data.
+          {t(
+            'The formula is only a starting point; everyone burns a little differently. Once you have enough logs, Progress → Target suggestion fine-tunes it from your real data.',
+          )}
           <Link
             to="/how-we-calculate"
             className="ml-1 font-semibold text-emerald-strong dark:text-emerald"
           >
-            Full method ›
+            {t('Full method ›')}
           </Link>
         </p>
       </Card>
 
       <Card className="space-y-3">
-        <CardTitle>Recalculate with your latest weight</CardTitle>
+        <CardTitle>{t('Recalculate with your latest weight')}</CardTitle>
         {!fresh ? (
           <p className="text-sm text-slate-600 dark:text-slate-300">
-            Log a weigh-in first to recalculate.
+            {t('Log a weigh-in first to recalculate.')}
           </p>
         ) : !fresh.ok ? (
           <Notice tone="warn" title={rejectMessage(fresh.reason).title}>
@@ -1261,7 +1349,9 @@ function TargetsPage({
         ) : fresh.plan.caloriesKcal === target.caloriesKcal &&
           fresh.plan.macros.proteinG === target.proteinG ? (
           <p className="text-sm text-slate-600 dark:text-slate-300">
-            ✓ Your latest weight of {fmt1(weight)} kg gives the same target. No update needed.
+            {t('✓ Your latest weight of {kg} kg gives the same target. No update needed.', {
+              kg: fmt1(weight),
+            })}
           </p>
         ) : recalc ? (
           <TargetCompare
@@ -1269,7 +1359,7 @@ function TargetsPage({
             after={{ caloriesKcal: fresh.plan.caloriesKcal, ...fresh.plan.macros }}
             onKeep={() => {
               setRecalc(false);
-              toast({ text: 'Kept your current plan. Nothing changed.' });
+              toast({ text: t('Kept your current plan. Nothing changed.') });
             }}
             onConfirm={() => {
               const plan = fresh.plan;
@@ -1290,7 +1380,9 @@ function TargetsPage({
               );
               setRecalc(false);
               toast({
-                text: `Updated. Your new daily target is ${fmtInt(plan.caloriesKcal)} kcal`,
+                text: t('Updated. Your new daily target is {v1} kcal', {
+                  v1: fmtInt(plan.caloriesKcal),
+                }),
               });
               navigate('/me/targets', { replace: true });
             }}
@@ -1298,33 +1390,37 @@ function TargetsPage({
         ) : (
           <>
             <p className="text-sm text-slate-600 dark:text-slate-300">
-              Your target was set at {fmt1(target.weightKg)} kg and your latest weight is{' '}
-              {fmt1(weight)} kg. Preview the old and new targets before deciding.
+              {t(
+                'Your target was set at {then} kg and your latest weight is {now} kg. Preview the old and new targets before deciding.',
+                { then: fmt1(target.weightKg), now: fmt1(weight) },
+              )}
             </p>
             <Button variant="secondary" className="w-full" onClick={() => setRecalc(true)}>
-              Preview recalculated target
+              {t('Preview recalculated target')}
             </Button>
           </>
         )}
       </Card>
 
       <Card>
-        <CardTitle>Target history</CardTitle>
+        <CardTitle>{t('Target history')}</CardTitle>
         <ul className="divide-y divide-slate-100 text-sm dark:divide-slate-700">
           {[...targets]
             .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
-            .map((t) => (
-              <li key={t.id} className="flex items-center justify-between gap-3 py-2">
+            .map((tv) => (
+              <li key={tv.id} className="flex items-center justify-between gap-3 py-2">
                 <span>
-                  <span className="block font-medium">{t.effectiveFrom}</span>
+                  <span className="block font-medium">{tv.effectiveFrom}</span>
                   <span className="text-xs text-slate-500 dark:text-slate-400">
-                    {REASON_LABELS[t.reason]} · weight {fmt1(t.weightKg)} kg
+                    {REASON_LABELS[tv.reason]} {t('· weight')} {fmt1(tv.weightKg)} {t('kg')}
                   </span>
                 </span>
                 <span className="text-right">
-                  <span className="block font-bold">{fmtInt(t.caloriesKcal)} kcal</span>
+                  <span className="block font-bold">
+                    {fmtInt(tv.caloriesKcal)} {t('kcal')}
+                  </span>
                   <span className="text-xs text-slate-500 dark:text-slate-400">
-                    protein {t.proteinG} g
+                    {t('protein')} {tv.proteinG} g
                   </span>
                 </span>
               </li>

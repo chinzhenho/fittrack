@@ -3,6 +3,7 @@ import type { AppState } from '../data/types';
 import { fmt1, fmtInt } from '../lib/format';
 import { adaptiveFor, targetOn, trendPoints } from './targets';
 import { datesBetween, mondayOf, weeklySummary } from './weekly';
+import { t, tr } from '../lib/i18n';
 
 // Personal insights: fixed rules over the user's own records, never a diagnosis or a
 // promise. Each rule states what it looked at, so the user can check it. A rule only
@@ -28,7 +29,7 @@ export interface Insight {
   priority: number;
 }
 
-export const CATEGORY_LABELS: Record<InsightCategory, string> = {
+export const CATEGORY_LABELS: Record<InsightCategory, string> = tr({
   recording: 'Logging',
   consistency: 'Consistency',
   protein: 'Protein',
@@ -36,7 +37,7 @@ export const CATEGORY_LABELS: Record<InsightCategory, string> = {
   meals: 'Meals',
   weight: 'Weight',
   adjust: 'Target',
-};
+});
 
 export function insightKey(id: string, today: string): string {
   return `${id}:${mondayOf(today)}`;
@@ -56,10 +57,12 @@ export function insightsFor(s: AppState, today: string): Insight[] {
       id: 'few_logs',
       category: 'recording',
       tone: 'tip',
-      title: 'Log a few more days',
-      body: "With 3 or more days logged, your eating patterns start to show. It doesn't need to be perfect; a rough log is fine.",
-      data: `Last 7 days: food logged on ${w.loggedDays} days`,
-      action: { label: 'Log food', to: '/diary' },
+      title: t('Log a few more days'),
+      body: t(
+        "With 3 or more days logged, your eating patterns start to show. It doesn't need to be perfect; a rough log is fine.",
+      ),
+      data: t('Last 7 days: food logged on {loggedDays} days', { loggedDays: w.loggedDays }),
+      action: { label: t('Log food'), to: '/diary' },
       numeric: false,
       priority: 1,
     });
@@ -68,9 +71,11 @@ export function insightsFor(s: AppState, today: string): Insight[] {
       id: 'steady_logs',
       category: 'consistency',
       tone: 'good',
-      title: "You're logging consistently",
-      body: "You've logged almost every day recently. That's the most important step to understanding your eating habits.",
-      data: `Last 7 days: food logged on ${w.loggedDays} days`,
+      title: t("You're logging consistently"),
+      body: t(
+        "You've logged almost every day recently. That's the most important step to understanding your eating habits.",
+      ),
+      data: t('Last 7 days: food logged on {loggedDays} days', { loggedDays: w.loggedDays }),
       numeric: false,
       priority: 8,
     });
@@ -82,10 +87,15 @@ export function insightsFor(s: AppState, today: string): Insight[] {
       id: 'mark_complete',
       category: 'recording',
       tone: 'tip',
-      title: 'Tick "I logged everything" in the Diary',
-      body: 'When a day has all your meals logged, tick "I logged everything I ate this day" at the bottom of the Diary. We use these complete days to check your calories and your target, so half-logged days don\'t throw it off.',
-      data: `Last 7 days: food logged on ${w.loggedDays} days, ${w.completeDays} ticked as complete`,
-      action: { label: 'Go to Diary', to: '/diary' },
+      title: t('Tick "I logged everything" in the Diary'),
+      body: t(
+        'When a day has all your meals logged, tick "I logged everything I ate this day" at the bottom of the Diary. We use these complete days to check your calories and your target, so half-logged days don\'t throw it off.',
+      ),
+      data: t('Last 7 days: food logged on {loggedDays} days, {completeDays} ticked as complete', {
+        loggedDays: w.loggedDays,
+        completeDays: w.completeDays,
+      }),
+      action: { label: t('Go to Diary'), to: '/diary' },
       numeric: false,
       priority: 2,
     });
@@ -99,9 +109,18 @@ export function insightsFor(s: AppState, today: string): Insight[] {
         id: 'protein_low',
         category: 'protein',
         tone: 'tip',
-        title: 'Protein is often low',
-        body: 'Try adding a protein to each meal, such as eggs, tofu, fish, chicken or a glass of milk.',
-        data: `Last 7 days: you reached ${w.targetProteinG} g on ${w.proteinMetDays} of ${w.proteinJudgedDays} complete days`,
+        title: t('Protein is often low'),
+        body: t(
+          'Try adding a protein to each meal, such as eggs, tofu, fish, chicken or a glass of milk.',
+        ),
+        data: t(
+          'Last 7 days: you reached {targetProteinG} g on {proteinMetDays} of {proteinJudgedDays} complete days',
+          {
+            targetProteinG: w.targetProteinG,
+            proteinMetDays: w.proteinMetDays,
+            proteinJudgedDays: w.proteinJudgedDays,
+          },
+        ),
         numeric: false,
         priority: 3,
       });
@@ -110,9 +129,12 @@ export function insightsFor(s: AppState, today: string): Insight[] {
         id: 'protein_good',
         category: 'protein',
         tone: 'good',
-        title: 'Protein is on track',
-        body: 'You hit your protein target on most days. Keep it up.',
-        data: `Last 7 days: on target ${w.proteinMetDays} of ${w.proteinJudgedDays} complete days`,
+        title: t('Protein is on track'),
+        body: t('You hit your protein target on most days. Keep it up.'),
+        data: t('Last 7 days: on target {proteinMetDays} of {proteinJudgedDays} complete days', {
+          proteinMetDays: w.proteinMetDays,
+          proteinJudgedDays: w.proteinJudgedDays,
+        }),
         numeric: false,
         priority: 9,
       });
@@ -120,39 +142,49 @@ export function insightsFor(s: AppState, today: string): Insight[] {
   }
 
   // Calories: complete days only, compared with the target and the safety floor.
-  const t = targetOn(s.targets, today);
-  if (t && w.completeDays >= 3 && w.avgCompleteKcal !== null) {
+  const tg = targetOn(s.targets, today);
+  if (tg && w.completeDays >= 3 && w.avgCompleteKcal !== null) {
     const avg = w.avgCompleteKcal;
-    const data = `Last 7 days: about ${fmtInt(avg)} kcal a day on complete days; your target is ${fmtInt(t.caloriesKcal)} kcal`;
-    if (avg < t.calorieFloorKcal) {
+    const data = t(
+      'Last 7 days: about {avg} kcal a day on complete days; your target is {target} kcal',
+      { avg: fmtInt(avg), target: fmtInt(tg.caloriesKcal) },
+    );
+    if (avg < tg.calorieFloorKcal) {
       out.push({
         id: 'kcal_below_floor',
         category: 'calories',
         tone: 'care',
-        title: 'Eating below your safety floor',
-        body: `Eating too little for long can leave you tired, make it hard to keep going, and cost muscle. Aim for at least ${fmtInt(t.calorieFloorKcal)} kcal a day; if you feel unwell, talk to a doctor or dietitian.`,
+        title: t('Eating below your safety floor'),
+        body: t(
+          'Eating too little for long can leave you tired, make it hard to keep going, and cost muscle. Aim for at least {v1} kcal a day; if you feel unwell, talk to a doctor or dietitian.',
+          { v1: fmtInt(tg.calorieFloorKcal) },
+        ),
         data,
         numeric: true,
         priority: 0,
       });
-    } else if (avg > t.caloriesKcal * 1.1 && goal !== 'muscle_gain' && goal !== 'weight_gain') {
+    } else if (avg > tg.caloriesKcal * 1.1 && goal !== 'muscle_gain' && goal !== 'weight_gain') {
       out.push({
         id: 'kcal_above',
         category: 'calories',
         tone: 'tip',
-        title: 'Often over your calorie target',
-        body: "Look for the meal with the biggest portion or the most oil or sugar, and start there. It doesn't have to be perfect every day.",
+        title: t('Often over your calorie target'),
+        body: t(
+          "Look for the meal with the biggest portion or the most oil or sugar, and start there. It doesn't have to be perfect every day.",
+        ),
         data,
         numeric: true,
         priority: 4,
       });
-    } else if (avg < t.caloriesKcal * 0.9 && (goal === 'muscle_gain' || goal === 'weight_gain')) {
+    } else if (avg < tg.caloriesKcal * 0.9 && (goal === 'muscle_gain' || goal === 'weight_gain')) {
       out.push({
         id: 'kcal_below_gain',
         category: 'calories',
         tone: 'tip',
-        title: 'Not eating enough to gain',
-        body: 'Gaining weight means eating more than you burn. Add a snack, or a little more rice, nuts or milk at meals.',
+        title: t('Not eating enough to gain'),
+        body: t(
+          'Gaining weight means eating more than you burn. Add a snack, or a little more rice, nuts or milk at meals.',
+        ),
         data,
         numeric: true,
         priority: 4,
@@ -171,9 +203,14 @@ export function insightsFor(s: AppState, today: string): Insight[] {
         id: 'breakfast_rare',
         category: 'meals',
         tone: 'tip',
-        title: 'Breakfast is rarely logged',
-        body: "If you usually skip breakfast, that's fine. If you just forget to log it, adding it makes your daily calories more accurate.",
-        data: `Breakfast on ${breakfast} of ${days.length} logged days (last 7 days)`,
+        title: t('Breakfast is rarely logged'),
+        body: t(
+          "If you usually skip breakfast, that's fine. If you just forget to log it, adding it makes your daily calories more accurate.",
+        ),
+        data: t('Breakfast on {breakfast} of {length} logged days (last 7 days)', {
+          breakfast,
+          length: days.length,
+        }),
         numeric: false,
         priority: 6,
       });
@@ -189,15 +226,20 @@ export function insightsFor(s: AppState, today: string): Insight[] {
   if (weighIns >= 4 && now !== null && before !== null) {
     const change = now - before;
     const perWeekPct = ((change / before) * 100) / 2;
-    const data = `Last 14 days: ${weighIns} weigh-ins, about ${change > 0 ? '+' : ''}${fmt1(change)} kg`;
+    const data = t('Last 14 days: {n} weigh-ins, about {change} kg', {
+      n: weighIns,
+      change: `${change > 0 ? '+' : ''}${fmt1(change)}`,
+    });
     const toward = goal === 'fat_loss' ? change < -0.2 : goal === 'maintain' ? false : change > 0.2;
     if (goal === 'fat_loss' && perWeekPct < -1) {
       out.push({
         id: 'loss_fast',
         category: 'weight',
         tone: 'care',
-        title: 'Losing weight quite fast',
-        body: "Losing more than 1% of body weight a week is hard to keep up and can cost muscle. Check that you're not eating too little.",
+        title: t('Losing weight quite fast'),
+        body: t(
+          "Losing more than 1% of body weight a week is hard to keep up and can cost muscle. Check that you're not eating too little.",
+        ),
         data,
         numeric: true,
         priority: 1,
@@ -207,8 +249,10 @@ export function insightsFor(s: AppState, today: string): Insight[] {
         id: 'trend_toward',
         category: 'weight',
         tone: 'good',
-        title: 'Your weight is moving toward your goal',
-        body: "Over the last two weeks your weight has been going the right way. Keep doing what you're doing.",
+        title: t('Your weight is moving toward your goal'),
+        body: t(
+          "Over the last two weeks your weight has been going the right way. Keep doing what you're doing.",
+        ),
         data,
         numeric: true,
         priority: 7,
@@ -218,8 +262,8 @@ export function insightsFor(s: AppState, today: string): Insight[] {
         id: 'trend_stable',
         category: 'weight',
         tone: 'good',
-        title: 'Your weight is steady',
-        body: "Your weight barely moved in two weeks, so you're eating about what you burn.",
+        title: t('Your weight is steady'),
+        body: t("Your weight barely moved in two weeks, so you're eating about what you burn."),
         data,
         numeric: true,
         priority: 7,
@@ -229,8 +273,10 @@ export function insightsFor(s: AppState, today: string): Insight[] {
         id: 'trend_flat',
         category: 'weight',
         tone: 'tip',
-        title: 'Little change in the last two weeks',
-        body: 'Water, salt and hormonal cycles all affect weight, so two flat weeks are common. Check your logs are complete before changing anything.',
+        title: t('Little change in the last two weeks'),
+        body: t(
+          'Water, salt and hormonal cycles all affect weight, so two flat weeks are common. Check your logs are complete before changing anything.',
+        ),
         data,
         numeric: true,
         priority: 5,
@@ -241,15 +287,17 @@ export function insightsFor(s: AppState, today: string): Insight[] {
   // Adjustment suggestion ready.
   const adaptive = adaptiveFor(s, today);
   const kept = s.adaptiveKeptOn.some((d) => d > addDays(today, -14));
-  if (adaptive?.ok && t && adaptive.proposedTargetKcal !== t.caloriesKcal && !kept) {
+  if (adaptive?.ok && tg && adaptive.proposedTargetKcal !== tg.caloriesKcal && !kept) {
     out.push({
       id: 'adjust_ready',
       category: 'adjust',
       tone: 'tip',
-      title: 'A new target suggestion is ready',
-      body: "Based on your recent logs, we worked out a daily target that may suit you better. It's your choice whether to use it.",
-      data: `Based on ${adaptive.windowDays} days of logs`,
-      action: { label: 'See suggestion', to: '#adjust' },
+      title: t('A new target suggestion is ready'),
+      body: t(
+        "Based on your recent logs, we worked out a daily target that may suit you better. It's your choice whether to use it.",
+      ),
+      data: t('Based on {windowDays} days of logs', { windowDays: adaptive.windowDays }),
+      action: { label: t('See suggestion'), to: '#adjust' },
       numeric: true,
       priority: 2,
     });

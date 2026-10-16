@@ -32,14 +32,15 @@ import {
   validateCustomFood,
   type CustomFoodError,
 } from '../logic/nutrition';
+import { t, tr } from '../lib/i18n';
 
-const ERROR_TEXT: Record<CustomFoodError, string> = {
+const ERROR_TEXT: Record<CustomFoodError, string> = tr({
   name: 'Enter a food name.',
   kcal: 'Calories per 100 g must be 0 to 900 kcal.',
   macro: 'Protein, carbs and fat per 100 g must each be 0 to 100 g.',
   macroSum: 'Protein, carbs and fat per 100 g cannot add up to more than 100 g.',
   sodium: 'Sodium must be 0 to 40,000 mg.',
-};
+});
 
 /**
  * Foods eaten recently, newest first. Built from the logged items themselves so AI
@@ -66,7 +67,7 @@ function recentFoods(meals: MealItem[], known: Food[], limit = 8): Food[] {
         },
         source: m.foodId.startsWith('ai-') ? 'ai' : 'user',
         sourceRef: m.sourceRef,
-        servings: [{ label: 'Last time', grams: m.grams }],
+        servings: [{ label: t('Last time'), grams: m.grams }],
       },
     );
     if (out.length >= limit) break;
@@ -119,17 +120,19 @@ export function AddFood() {
   const add = () => {
     if (!selected || !gramsOk) return;
     log(selected, g);
-    toast({ text: `Added to ${where}: ${selected.name}` });
+    toast({ text: t('Added to {where}: {name}', { where, name: selected.name }) });
     backToDiary();
   };
 
   return (
     <div className="space-y-4">
       <BackButton fallback="/diary" />
-      <PageTitle sub={`For ${formatDay(date, localToday())}`}>Add food</PageTitle>
+      <PageTitle sub={t('For {v1}', { v1: formatDay(date, localToday()) })}>
+        {t('Add food')}
+      </PageTitle>
       <Card className="space-y-4">
         <ChoiceCards
-          label="Meal"
+          label={t('Meal')}
           columns={4}
           value={meal}
           options={MEAL_TYPES.map((m) => ({
@@ -142,12 +145,13 @@ export function AddFood() {
         {meal === 'snack' && (
           <div>
             <label htmlFor="snack-name" className="text-sm font-semibold">
-              Name this meal <span className="font-normal text-slate-500">(optional)</span>
+              {t('Name this meal')}{' '}
+              <span className="font-normal text-slate-500">{t('(optional)')}</span>
             </label>
             <input
               id="snack-name"
               maxLength={20}
-              placeholder="e.g. tea time, supper"
+              placeholder={t('e.g. tea time, supper')}
               value={label}
               onChange={(e) => setLabel(e.target.value)}
               className="mt-1.5 block min-h-12 w-full rounded-[14px] bg-white px-4 ring-1 ring-slate-200 focus:ring-2 focus:ring-emerald focus:outline-none dark:bg-slate-800 dark:ring-slate-600"
@@ -158,7 +162,7 @@ export function AddFood() {
       {meal === 'snack' && (
         <div>
           <div className="flex flex-wrap gap-2">
-            {['Tea time', 'Supper', 'Drink', 'Snack', 'Fruit'].map((x) => (
+            {[t('Tea time'), t('Supper'), t('Drink'), t('Snack'), t('Fruit')].map((x) => (
               <Button
                 key={x}
                 variant={label === x ? 'primary' : 'secondary'}
@@ -178,12 +182,14 @@ export function AddFood() {
             <p className="font-semibold">{selected.name}</p>
             <p className="text-xs text-slate-600 dark:text-slate-300">
               {selected.source === 'usda'
-                ? `Source: ${selected.sourceRef} (verified)`
+                ? t('Source: {sourceRef} (verified)', { sourceRef: selected.sourceRef })
                 : selected.source === 'sgfoodid'
-                  ? `Source: Singapore Health Promotion Board ${selected.sourceRef}`
+                  ? t('Source: Singapore Health Promotion Board {sourceRef}', {
+                      sourceRef: selected.sourceRef,
+                    })
                   : selected.source === 'ai'
-                    ? `Source: ${selected.sourceRef}`
-                    : 'Source: your own entry from a food label'}
+                    ? t('Source: {sourceRef}', { sourceRef: selected.sourceRef })
+                    : t('Source: your own entry from a food label')}
             </p>
             {selected.description && (
               <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">
@@ -194,7 +200,7 @@ export function AddFood() {
           {selected.servings?.map((sv) => (
             <div key={sv.label}>
               <p className="mb-2 text-sm">
-                {sv.label}: about {fmtInt(sv.grams)} g
+                {t('{label}: about {g} g', { label: sv.label, g: fmtInt(sv.grams) })}
               </p>
               <div className="flex flex-wrap gap-2">
                 {[0.5, 1, 1.5, 2].map((m) => (
@@ -210,21 +216,21 @@ export function AddFood() {
             </div>
           ))}
           <Stepper
-            label="Amount"
+            label={t('Amount')}
             unit="g"
             step={10}
             fallback={100}
             value={grams}
             onChange={setGrams}
-            error={gramsOk ? null : 'Must be 1 to 5000 g'}
+            error={gramsOk ? null : t('Must be 1 to 5000 g')}
           />
           {gramsOk && <NutrientLine food={selected} grams={g} />}
           <div className="flex gap-3">
             <Button variant="secondary" onClick={() => setSelected(null)}>
-              Back
+              {t('Back')}
             </Button>
             <Button className="flex-1" disabled={!gramsOk} onClick={add}>
-              Add to {where}
+              {t('Add to {where}', { where })}
             </Button>
           </div>
         </Card>
@@ -254,21 +260,28 @@ export function AddFood() {
                 0,
               );
               toast({
-                text: `Added ${items.length} ${items.length === 1 ? 'item' : 'items'} to ${where}, about ${fmtInt(kcal)} kcal`,
+                text: t(
+                  items.length === 1
+                    ? 'Added {n} item to {where}, about {kcal} kcal'
+                    : 'Added {n} items to {where}, about {kcal} kcal',
+                  { n: items.length, where, kcal: fmtInt(kcal) },
+                ),
               });
               backToDiary();
             }}
           />
-          {recent.length > 0 && <FoodList title="Recently eaten" foods={recent} onPick={pick} />}
+          {recent.length > 0 && (
+            <FoodList title={t('Recently eaten')} foods={recent} onPick={pick} />
+          )}
           <Card className="flex items-center justify-between gap-3">
             <div>
-              <p className="font-medium">Enter manually</p>
+              <p className="font-medium">{t('Enter manually')}</p>
               <p className="text-xs text-slate-600 dark:text-slate-300">
-                For packaged food, enter the label values. Most accurate.
+                {t('For packaged food, enter the label values. Most accurate.')}
               </p>
             </div>
             <Button variant="secondary" className="shrink-0" onClick={() => setCreating(true)}>
-              + Enter
+              {t('+ Enter')}
             </Button>
           </Card>
         </>
@@ -277,17 +290,20 @@ export function AddFood() {
   );
 }
 
-const SOURCE_LABEL: Record<Food['source'], string> = {
+const SOURCE_LABEL: Record<Food['source'], string> = tr({
   usda: 'USDA',
   sgfoodid: 'SG FoodID',
   user: 'Custom',
   ai: 'AI estimate',
-};
+});
 
 function servingText(f: Food): string {
   const sv = f.servings?.[0];
-  if (!sv) return `${fmtInt(f.per100g.kcal)} kcal per 100 g`;
-  return `${sv.label}: about ${fmtInt(nutrientsFor(f.per100g, sv.grams).kcal)} kcal`;
+  if (!sv) return t('{kcal} kcal per 100 g', { kcal: fmtInt(f.per100g.kcal) });
+  return t('{label}: about {kcal} kcal', {
+    label: sv.label,
+    kcal: fmtInt(nutrientsFor(f.per100g, sv.grams).kcal),
+  });
 }
 
 const CONSENT_KEY = 'fittrack:aiPhotoConsent';
@@ -428,39 +444,39 @@ function PhotoCard({
           📷
         </span>
         <div>
-          <h2 className="text-lg font-semibold">AI photo calories</h2>
+          <h2 className="text-lg font-semibold">{t('AI photo calories')}</h2>
           <p className="text-sm text-slate-700 dark:text-slate-300">
-            Snap your whole meal. AI spots each food and estimates the portion and calories; you
-            check before it is logged.
+            {t(
+              'Snap your whole meal. AI spots each food and estimates the portion and calories; you check before it is logged.',
+            )}
           </p>
         </div>
       </div>
 
       {!signedIn ? (
         <div className="rounded-2xl bg-white p-4 text-sm dark:bg-slate-700">
-          <p>AI snaps are free but need an account.</p>
+          <p>{t('AI snaps are free but need an account.')}</p>
           <div className="mt-3 flex gap-2">
             <Link
               to="/login"
               className="inline-flex min-h-11 flex-1 items-center justify-center rounded-2xl bg-emerald-strong px-4 font-semibold text-white dark:bg-emerald dark:text-slate-950"
             >
-              Log in
+              {t('Log in')}
             </Link>
             <Link
               to="/signup"
               className="inline-flex min-h-11 flex-1 items-center justify-center rounded-2xl border border-emerald-200 bg-white px-4 font-semibold text-emerald-900 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
             >
-              Sign up
+              {t('Sign up')}
             </Link>
           </div>
         </div>
       ) : !consent ? (
         <div className="space-y-3 rounded-2xl bg-white p-4 text-sm dark:bg-slate-700">
           <p>
-            Photos are shrunk and sent to Google Gemini (or Cloudflare AI as a backup) for analysis.
-            Our servers don't keep photos (a small thumbnail stays on this device for your food
-            log), but Google's free service may use uploads to improve its products. Please keep
-            faces and personal details out of the shot.
+            {t(
+              "Photos are shrunk and sent to Google Gemini (or Cloudflare AI as a backup) for analysis. Our servers don't keep photos (a small thumbnail stays on this device for your food log), but Google's free service may use uploads to improve its products. Please keep faces and personal details out of the shot.",
+            )}
           </p>
           <Check
             checked={false}
@@ -474,24 +490,27 @@ function PhotoCard({
               setConsent(true);
             }}
           >
-            {waiting ? 'I understand, analyse my photo' : 'I understand, start using AI snaps'}
+            {waiting
+              ? t('I understand, analyse my photo')
+              : t('I understand, start using AI snaps')}
           </Check>
         </div>
       ) : picked ? (
         <div className="space-y-3">
           <img
             src={picked.url}
-            alt="Your food photo"
+            alt={t('Your food photo')}
             className="max-h-64 w-full rounded-2xl object-cover"
           />
           <div>
             <label htmlFor="album-note" className="text-sm font-semibold">
-              What is it? <span className="font-normal text-slate-500">(optional)</span>
+              {t('What is it?')}{' '}
+              <span className="font-normal text-slate-500">{t('(optional)')}</span>
             </label>
             <input
               id="album-note"
               maxLength={120}
-              placeholder="e.g. kopi O, half rice"
+              placeholder={t('e.g. kopi O, half rice')}
               value={hint}
               onChange={(e) => setHint(e.target.value)}
               className="mt-1.5 block min-h-12 w-full rounded-[14px] bg-white px-4 ring-1 ring-slate-200 focus:ring-2 focus:ring-emerald focus:outline-none dark:bg-slate-800 dark:ring-slate-600"
@@ -509,12 +528,12 @@ function PhotoCard({
               ))}
             </div>
             <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
-              Telling the AI what the photo can't show makes it more accurate.
+              {t("Telling the AI what the photo can't show makes it more accurate.")}
             </p>
           </div>
           <div className="flex gap-2">
             <Button variant="secondary" className="flex-1" onClick={() => setPicked(null)}>
-              Cancel
+              {t('Cancel')}
             </Button>
             <Button
               className="flex-1"
@@ -524,7 +543,7 @@ function PhotoCard({
                 void onFile(f, hint.trim() || undefined);
               }}
             >
-              Analyse photo
+              {t('Analyse photo')}
             </Button>
           </div>
         </div>
@@ -537,9 +556,9 @@ function PhotoCard({
             onClick={() => setCamera(true)}
             className="inline-flex min-h-12 flex-1 items-center justify-center gap-2 rounded-2xl bg-emerald-strong px-4 text-sm font-semibold whitespace-nowrap text-white shadow-sm hover:bg-emerald-800 disabled:opacity-50 dark:bg-emerald dark:text-slate-950"
           >
-            📸 Take photo
+            {t('📸 Take photo')}
           </button>
-          {fileButton('Choose from album', false)}
+          {fileButton(t('Choose from album'), false)}
         </div>
       )}
       {camera &&
@@ -567,7 +586,7 @@ function PhotoCard({
 
       {preview && state.status !== 'idle' && (
         <div className="relative overflow-hidden rounded-2xl">
-          <img src={preview} alt="Your food photo" className="max-h-64 w-full object-cover" />
+          <img src={preview} alt={t('Your food photo')} className="max-h-64 w-full object-cover" />
           {state.status === 'working' && (
             <>
               <span className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/50" />
@@ -577,7 +596,7 @@ function PhotoCard({
               />
               <span className="absolute top-3 left-1/2 flex -translate-x-1/2 items-center gap-1.5 rounded-full bg-emerald-600/90 px-3 py-1 text-xs font-bold whitespace-nowrap text-white shadow-lg backdrop-blur">
                 <span className="size-2 animate-ping rounded-full bg-white" />
-                AI is identifying your food…
+                {t('AI is identifying your food…')}
               </span>
             </>
           )}
@@ -585,7 +604,7 @@ function PhotoCard({
       )}
       {state.status === 'working' && (
         <p className="text-sm" role="status">
-          AI is taking a careful look. About 10–30 seconds…
+          {t('AI is taking a careful look. About 10–30 seconds…')}
         </p>
       )}
       {state.status === 'error' && (
@@ -596,7 +615,7 @@ function PhotoCard({
           {/* Busy or offline: the same photo and note can be sent again. */}
           {photo && (state.error === 'unavailable' || state.error === 'network') && (
             <Button className="w-full" onClick={() => void onFile(photo, hint.trim() || undefined)}>
-              Try again
+              {t('Try again')}
             </Button>
           )}
         </div>
@@ -605,17 +624,18 @@ function PhotoCard({
       {done && photo && (
         <details className="rounded-2xl bg-white/70 p-3 text-sm dark:bg-slate-700/60">
           <summary className="cursor-pointer font-semibold">
-            Wrong food or amount? Add a note and re-analyse
+            {t('Wrong food or amount? Add a note and re-analyse')}
           </summary>
           <p className="mt-2 text-xs text-slate-600 dark:text-slate-300">
-            e.g. "nasi kandar, only half the rice, no curry" or "kopi O, no sugar". Telling the AI
-            what the photo can't show makes it more accurate.
+            {t(
+              'e.g. "nasi kandar, only half the rice, no curry" or "kopi O, no sugar". Telling the AI what the photo can\'t show makes it more accurate.',
+            )}
           </p>
           <textarea
             value={hint}
             maxLength={120}
             rows={2}
-            aria-label="Note for the AI"
+            aria-label={t('Note for the AI')}
             onChange={(e) => setHint(e.target.value)}
             className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 dark:border-slate-600 dark:bg-slate-900"
           />
@@ -625,20 +645,20 @@ function PhotoCard({
             disabled={hint.trim() === ''}
             onClick={() => void onFile(photo, hint)}
           >
-            Re-analyse
+            {t('Re-analyse')}
           </Button>
         </details>
       )}
       {done && !done.result.isFood && (
         <p className="text-sm text-amber-800 dark:text-amber-300" role="alert">
-          This doesn't look like food. Please try another photo.
+          {t("This doesn't look like food. Please try another photo.")}
         </p>
       )}
       {done && done.result.isFood && (
         <div className="space-y-3">
           {done.result.confidence === 'low' && (
             <p className="text-sm text-amber-800 dark:text-amber-300">
-              The AI isn't sure. Please check the names and amounts.
+              {t("The AI isn't sure. Please check the names and amounts.")}
             </p>
           )}
           <ul className="space-y-2">
@@ -656,7 +676,7 @@ function PhotoCard({
                   <div className="flex items-start gap-3">
                     <input
                       type="checkbox"
-                      aria-label={`Include ${item.name}`}
+                      aria-label={t('Include {name}', { name: item.name })}
                       checked={row.include}
                       onChange={(e) => set({ include: e.target.checked })}
                       className="mt-1 size-5 shrink-0 accent-emerald-strong"
@@ -665,16 +685,24 @@ function PhotoCard({
                       <p className="font-medium">{item.name}</p>
                       <p className="text-xs text-slate-600 dark:text-slate-300">
                         {item.matchId
-                          ? 'Calories from nutrition database'
-                          : 'AI-estimated calories'}
+                          ? t('Calories from nutrition database')
+                          : t('AI-estimated calories')}
                         {n &&
-                          ` · protein ${fmt1(n.proteinG)} g · carbs ${fmt1(n.carbsG)} g · fat ${fmt1(n.fatG)} g`}
+                          t(' · protein {v1} g · carbs {v2} g · fat {v3} g', {
+                            v1: fmt1(n.proteinG),
+                            v2: fmt1(n.carbsG),
+                            v3: fmt1(n.fatG),
+                          })}
                       </p>
                     </div>
-                    <span className="shrink-0 font-semibold">{n ? fmtInt(n.kcal) : '—'} kcal</span>
+                    <span className="shrink-0 font-semibold">
+                      {n ? fmtInt(n.kcal) : '—'} {t('kcal')}
+                    </span>
                   </div>
                   <label className="mt-2 flex items-center gap-2 pl-8 text-sm">
-                    <span className="shrink-0 text-slate-600 dark:text-slate-300">Amount</span>
+                    <span className="shrink-0 text-slate-600 dark:text-slate-300">
+                      {t('Amount')}
+                    </span>
                     <input
                       type="number"
                       inputMode="decimal"
@@ -689,7 +717,7 @@ function PhotoCard({
             })}
           </ul>
           <p className="text-xs text-slate-600 dark:text-slate-300">
-            AI estimates can be off, mostly on portion size.
+            {t('AI estimates can be off, mostly on portion size.')}
           </p>
           <Button
             className="w-full"
@@ -705,7 +733,7 @@ function PhotoCard({
               )
             }
           >
-            Add to {where} (about {fmtInt(total)} kcal)
+            {t('Add to {where} (about {kcal} kcal)', { where, kcal: fmtInt(total) })}
           </Button>
         </div>
       )}
@@ -718,19 +746,21 @@ function NutrientLine({ food, grams }: { food: Food; grams: number }) {
   return (
     <div className="grid grid-cols-4 gap-2 rounded-xl bg-mist p-3 text-center text-sm dark:bg-slate-700">
       <div>
-        <p className="text-xs text-slate-600 dark:text-slate-300">Calories</p>
-        <p className="font-semibold">{fmtInt(n.kcal)} kcal</p>
+        <p className="text-xs text-slate-600 dark:text-slate-300">{t('Calories')}</p>
+        <p className="font-semibold">
+          {fmtInt(n.kcal)} {t('kcal')}
+        </p>
       </div>
       <div>
-        <p className="text-xs text-slate-600 dark:text-slate-300">Protein</p>
+        <p className="text-xs text-slate-600 dark:text-slate-300">{t('Protein')}</p>
         <p className="font-semibold">{fmt1(n.proteinG)} g</p>
       </div>
       <div>
-        <p className="text-xs text-slate-600 dark:text-slate-300">Carbs</p>
+        <p className="text-xs text-slate-600 dark:text-slate-300">{t('Carbs')}</p>
         <p className="font-semibold">{fmt1(n.carbsG)} g</p>
       </div>
       <div>
-        <p className="text-xs text-slate-600 dark:text-slate-300">Fat</p>
+        <p className="text-xs text-slate-600 dark:text-slate-300">{t('Fat')}</p>
         <p className="font-semibold">{fmt1(n.fatG)} g</p>
       </div>
     </div>
@@ -750,7 +780,7 @@ function FoodList({
     <Card>
       <h2 className="mb-2 text-sm font-semibold">{title}</h2>
       {foods.length === 0 ? (
-        <p className="text-sm text-slate-600 dark:text-slate-300">No matching foods.</p>
+        <p className="text-sm text-slate-600 dark:text-slate-300">{t('No matching foods.')}</p>
       ) : (
         <ul className="divide-y divide-slate-100 dark:divide-slate-700">
           {foods.map((f) => (
@@ -798,7 +828,7 @@ function CustomFoodForm({ onSave, onCancel }: { onSave: (f: Food) => void; onCan
       type="number"
       inputMode="decimal"
       step="0.1"
-      placeholder={k === 'sodium' ? 'Optional' : '0'}
+      placeholder={k === 'sodium' ? t('Optional') : '0'}
       value={v[k]}
       onChange={(e) => setV({ ...v, [k]: e.target.value })}
       error={err}
@@ -808,26 +838,26 @@ function CustomFoodForm({ onSave, onCancel }: { onSave: (f: Food) => void; onCan
   return (
     <Card className="space-y-4">
       <div>
-        <h2 className="font-semibold">New custom food</h2>
+        <h2 className="font-semibold">{t('New custom food')}</h2>
         <p className="text-xs text-slate-600 dark:text-slate-300">
-          Enter the "per 100 g" values from the nutrition label. Only you can see this food.
+          {t('Enter the "per 100 g" values from the nutrition label. Only you can see this food.')}
         </p>
       </div>
       <List nested>
         <InputRow
-          label="Name"
-          placeholder="e.g. Gardenia bread"
+          label={t('Name')}
+          placeholder={t('e.g. Gardenia bread')}
           value={v.name}
           onChange={(e) => setV({ ...v, name: e.target.value })}
           error={show('name')}
         />
       </List>
-      <List nested title="Per 100 g">
-        {num('kcal', 'Calories', 'kcal', show('kcal'))}
-        {num('protein', 'Protein', 'g')}
-        {num('carbs', 'Carbs', 'g')}
-        {num('fat', 'Fat', 'g')}
-        {num('sodium', 'Sodium', 'mg', show('sodium'))}
+      <List nested title={t('Per 100 g')}>
+        {num('kcal', t('Calories'), 'kcal', show('kcal'))}
+        {num('protein', t('Protein'), 'g')}
+        {num('carbs', t('Carbs'), 'g')}
+        {num('fat', t('Fat'), 'g')}
+        {num('sodium', t('Sodium'), 'mg', show('sodium'))}
       </List>
       {tried && (errors.includes('macro') || errors.includes('macroSum')) && (
         <p className="text-sm text-red-700 dark:text-red-400">
@@ -836,12 +866,12 @@ function CustomFoodForm({ onSave, onCancel }: { onSave: (f: Food) => void; onCan
       )}
       {tried && empty && (
         <p className="text-sm text-red-700 dark:text-red-400">
-          Please fill in calories, protein, carbs and fat.
+          {t('Please fill in calories, protein, carbs and fat.')}
         </p>
       )}
       <div className="flex gap-3">
         <Button variant="secondary" onClick={onCancel}>
-          Cancel
+          {t('Cancel')}
         </Button>
         <Button
           className="flex-1"
@@ -859,7 +889,7 @@ function CustomFoodForm({ onSave, onCancel }: { onSave: (f: Food) => void; onCan
             });
           }}
         >
-          Save and choose
+          {t('Save and choose')}
         </Button>
       </div>
     </Card>

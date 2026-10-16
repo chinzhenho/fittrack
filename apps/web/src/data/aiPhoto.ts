@@ -1,5 +1,6 @@
 import type { AiFoodResult } from '../logic/aiFood';
 import { supabase } from './supabase';
+import { tr } from '../lib/i18n';
 
 // Sends a food photo to our Worker (/api/food-photo), which asks a vision model.
 // The photo is shrunk to at most 1024 px and re-encoded as JPEG first (~100-200 KB),
@@ -7,13 +8,13 @@ import { supabase } from './supabase';
 
 export type AiPhotoError = 'login' | 'quota' | 'unavailable' | 'network' | 'bad_image';
 
-export const AI_ERROR_TEXT: Record<AiPhotoError, string> = {
+export const AI_ERROR_TEXT: Record<AiPhotoError, string> = tr({
   login: 'Please log in to use AI food snaps (free).',
   quota: "AI snaps aren't available right now. Please add food manually for now.",
   unavailable: 'The AI is busy right now. Try again, or add food manually.',
   network: 'Connection problem. Please check and try again.',
   bad_image: "Can't read this image. Please try another one.",
-};
+});
 
 const MAX_SIDE = 1024;
 

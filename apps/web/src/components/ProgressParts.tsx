@@ -12,6 +12,7 @@ import {
   monthlyChallenge,
   monthlyTrophies,
   monthName,
+  monthOnly,
   nextTier,
   personalRecords,
   TIER_LABELS,
@@ -20,6 +21,7 @@ import {
   type Tier,
   type TrophyFamily,
 } from '../logic/trophies';
+import { getLang, t } from '../lib/i18n';
 
 /** Apple-style card with a small tinted icon, title and optional action on the right. */
 export function Section({
@@ -130,19 +132,26 @@ function FamilyRow({ f }: { f: TrophyFamily }) {
           <>
             <Bar value={Math.min(f.value, next.goal)} max={next.goal} color="bg-emerald-500" />
             <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">
-              Next ({TIER_LABELS[next.tier]}): {f.describe(next.goal)}
+              {t('Next ({tier}): {goal}', {
+                tier: TIER_LABELS[next.tier],
+                goal: f.describe(next.goal),
+              })}
             </p>
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              You&apos;re at {Math.min(f.value, next.goal)} / {next.goal} {f.unit}
+              {t("You're at {value} / {goal} {unit}", {
+                value: Math.min(f.value, next.goal),
+                goal: next.goal,
+                unit: f.unit,
+              })}
             </p>
           </>
         ) : (
           <p className="text-xs text-slate-500 dark:text-slate-400">
-            All levels earned 🎉 ({f.describe(f.levels.at(-1)!.goal)})
+            {t('All levels earned 🎉 ({goal})', { goal: f.describe(f.levels.at(-1)!.goal) })}
           </p>
         )}
         <span className="sr-only">
-          {top ? `${TIER_LABELS[top.tier]} earned` : 'Not earned yet'}
+          {top ? t('{v1} earned', { v1: TIER_LABELS[top.tier] }) : t('Not earned yet')}
         </span>
       </div>
     </li>
@@ -173,8 +182,8 @@ export function Achievements({ s, today, hide }: { s: AppState; today: string; h
       id="achievements"
       icon="trophy"
       tint="bg-[#ffcc00]"
-      title="Achievements"
-      sub={`${earned.length + monthTrophies.length} medals earned`}
+      title={t('Achievements')}
+      sub={t('{v1} medals earned', { v1: earned.length + monthTrophies.length })}
     >
       {/* Trophy case */}
       {earned.length + monthTrophies.length === 0 ? (
@@ -182,14 +191,19 @@ export function Achievements({ s, today, hide }: { s: AppState; today: string; h
           <Medal icon={closest?.f.icon ?? 'star'} tier={null} />
           <p className="text-sm text-slate-600 dark:text-slate-300">
             {closest
-              ? `Your first medal: ${closest.f.title}, ${closest.next!.goal} ${closest.f.unit}. You're at ${closest.f.value}.`
-              : 'Log food to earn your first medal.'}
+              ? t("Your first medal: {title}, {goal} {unit}. You're at {value}.", {
+                  title: closest.f.title,
+                  goal: closest.next!.goal,
+                  unit: closest.f.unit,
+                  value: closest.f.value,
+                })
+              : t('Log food to earn your first medal.')}
           </p>
         </div>
       ) : (
         <ul
           className="-mx-5 flex gap-4 overflow-x-auto px-5 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-          aria-label="Trophy case"
+          aria-label={t('Trophy case')}
         >
           {earned.map(({ f, top }) => (
             <li key={f.id} className="flex w-20 shrink-0 flex-col items-center text-center">
@@ -203,10 +217,10 @@ export function Achievements({ s, today, hide }: { s: AppState; today: string; h
           {monthTrophies.map((m) => (
             <li key={m.month} className="flex w-20 shrink-0 flex-col items-center text-center">
               <Medal icon="calendar" tier="gold" />
-              <p className="mt-1.5 text-xs leading-tight font-semibold">
-                {monthName(m.month).split(' ')[0]}
+              <p className="mt-1.5 text-xs leading-tight font-semibold">{monthOnly(m.month)}</p>
+              <p className="text-[0.6875rem] text-slate-500 dark:text-slate-400">
+                {t('Challenge')}
               </p>
-              <p className="text-[0.6875rem] text-slate-500 dark:text-slate-400">Challenge</p>
             </li>
           ))}
         </ul>
@@ -220,16 +234,18 @@ export function Achievements({ s, today, hide }: { s: AppState; today: string; h
             className="flex size-12 shrink-0 flex-col items-center justify-center rounded-[12px] bg-white text-emerald-strong"
           >
             <span className="text-[0.625rem] leading-none font-bold uppercase">
-              {monthName(month).slice(0, 3)}
+              {getLang() === 'zh' ? monthOnly(month) : monthOnly(month).slice(0, 3)}
             </span>
             <span className="text-lg leading-none font-bold">20</span>
           </span>
           <div className="min-w-0 flex-1">
-            <p className="text-xs font-semibold uppercase opacity-90">Monthly challenge</p>
+            <p className="text-xs font-semibold uppercase opacity-90">{t('Monthly challenge')}</p>
             <p className="text-[1.0625rem] leading-snug font-bold">
-              {monthName(month).split(' ')[0]} Logging Challenge
+              {t('{month} Logging Challenge', { month: monthOnly(month) })}
             </p>
-            <p className="text-sm opacity-90">Log food on {mc.goal} days this month.</p>
+            <p className="text-sm opacity-90">
+              {t('Log food on')} {mc.goal} {t('days this month.')}
+            </p>
           </div>
         </div>
         {mc.joined || mc.done ? (
@@ -242,12 +258,17 @@ export function Achievements({ s, today, hide }: { s: AppState; today: string; h
             </div>
             <p className="mt-1.5 text-sm font-semibold">
               {mc.done && mc.joined
-                ? `✓ Completed on ${formatDay(mc.earnedOn!, today)}`
-                : `${mc.value} / ${mc.goal} days · ${mc.daysLeft} ${mc.daysLeft === 1 ? 'day' : 'days'} left`}
+                ? t('✓ Completed on {v1}', { v1: formatDay(mc.earnedOn!, today) })
+                : t(
+                    mc.daysLeft === 1
+                      ? '{value} / {goal} days · {daysLeft} day left'
+                      : '{value} / {goal} days · {daysLeft} days left',
+                    { value: mc.value, goal: mc.goal, daysLeft: mc.daysLeft },
+                  )}
             </p>
             {mc.joined && !mc.done && !mc.reachable && (
               <p className="text-xs opacity-90">
-                Not enough days left to finish this month, but every day logged still counts.
+                {t('Not enough days left to finish this month, but every day logged still counts.')}
               </p>
             )}
             {!mc.joined && (
@@ -255,11 +276,11 @@ export function Achievements({ s, today, hide }: { s: AppState; today: string; h
                 type="button"
                 onClick={() => {
                   update((x) => joinMonthlyChallenge(x, month));
-                  toast({ text: 'Joined! Your trophy is in the trophy case.' });
+                  toast({ text: t('Joined! Your trophy is in the trophy case.') });
                 }}
                 className="mt-2 min-h-10 w-full rounded-[12px] bg-white font-semibold text-emerald-strong"
               >
-                Join and claim trophy
+                {t('Join and claim trophy')}
               </button>
             )}
           </div>
@@ -268,20 +289,22 @@ export function Achievements({ s, today, hide }: { s: AppState; today: string; h
             type="button"
             onClick={() => {
               update((x) => joinMonthlyChallenge(x, month));
-              toast({ text: `Joined the ${monthName(month).split(' ')[0]} challenge` });
+              toast({
+                text: t('Joined the {month} challenge', { month: monthOnly(month) }),
+              });
             }}
             className="mt-3 min-h-11 w-full rounded-[12px] bg-white font-semibold text-emerald-strong"
           >
-            Join challenge
+            {t('Join challenge')}
           </button>
         )}
       </div>
 
       {/* Personal records */}
-      <h3 className="mt-5 mb-1 text-[1.0625rem] font-semibold">Personal records</h3>
+      <h3 className="mt-5 mb-1 text-[1.0625rem] font-semibold">{t('Personal records')}</h3>
       {records.length === 0 ? (
         <p className="text-sm text-slate-500 dark:text-slate-400">
-          Log a few days to set your first records.
+          {t('Log a few days to set your first records.')}
         </p>
       ) : (
         <ul className="divide-y divide-slate-100 dark:divide-slate-700">
@@ -292,7 +315,7 @@ export function Achievements({ s, today, hide }: { s: AppState; today: string; h
                 <span className="block text-sm">{r.title}</span>
                 <span className="block text-xs text-slate-500 dark:text-slate-400">
                   {r.id === 'week'
-                    ? `Week of ${shortDate(r.on)}`
+                    ? t('Week of {v1}', { v1: shortDate(r.on) })
                     : r.id === 'month'
                       ? monthName(monthKey(r.on))
                       : formatDay(r.on, today)}
@@ -301,7 +324,7 @@ export function Achievements({ s, today, hide }: { s: AppState; today: string; h
               <span className="flex shrink-0 items-center gap-1.5 text-sm font-bold">
                 {r.isNew && (
                   <span className="rounded-full bg-[#ff9500] px-1.5 py-0.5 text-[0.625rem] font-bold text-white">
-                    NEW
+                    {t('NEW')}
                   </span>
                 )}
                 {r.value}
@@ -314,7 +337,7 @@ export function Achievements({ s, today, hide }: { s: AppState; today: string; h
       {/* Recent achievements */}
       {feed.length > 0 && (
         <>
-          <h3 className="mt-5 mb-1 text-[1.0625rem] font-semibold">Recent</h3>
+          <h3 className="mt-5 mb-1 text-[1.0625rem] font-semibold">{t('Recent')}</h3>
           <ul className="divide-y divide-slate-100 dark:divide-slate-700">
             {feed.map((i) => (
               <li key={`${i.date}-${i.text}`} className="flex items-center gap-3 py-2.5">
@@ -330,7 +353,7 @@ export function Achievements({ s, today, hide }: { s: AppState; today: string; h
       )}
 
       <Button variant="secondary" className="mt-4 w-full" onClick={() => setShowAll((v) => !v)}>
-        {showAll ? 'Hide all medals' : 'All medals'}
+        {showAll ? t('Hide all medals') : t('All medals')}
       </Button>
       {showAll && (
         <ul className="mt-2 divide-y divide-slate-100 dark:divide-slate-700">

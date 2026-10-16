@@ -6,6 +6,7 @@ import { decideSync, mergeStates } from './merge';
 import { getState, replaceState, subscribe } from './store';
 import { supabase } from './supabase';
 import { emptyState, type AppState } from './types';
+import { t } from '../lib/i18n';
 
 // Keeps the browser copy and the user's cloud row (public.user_state) in step.
 // Writes go to the browser first; the cloud is updated 1.5 s after the last change,
@@ -199,7 +200,7 @@ export async function deleteHealthRecords(): Promise<string | null> {
     .from('user_state')
     .upsert({ user_id: userId, state: next, updated_at: next.updatedAt });
   if (error)
-    return 'Delete failed. Check your connection and try again. Your records were not deleted.';
+    return t('Delete failed. Check your connection and try again. Your records were not deleted.');
   writeMeta(next.updatedAt);
   replaceState(next);
   void clearThumbs();
@@ -212,13 +213,17 @@ export async function deleteHealthRecords(): Promise<string | null> {
  * supabase/migrations/20261014000000_delete_account.sql), then clears this browser.
  */
 export async function deleteAccount(): Promise<string | null> {
-  if (!userId) return 'Not logged in.';
+  if (!userId) return t('Not logged in.');
   clearTimeout(timer);
   const { error } = await supabase.rpc('delete_my_account');
   if (error) {
     return error.code === 'PGRST202'
-      ? 'Account deletion is not enabled on the server yet. Your account and data were not deleted.'
-      : 'Delete failed. Check your connection and try again. Your account and data were not deleted.';
+      ? t(
+          'Account deletion is not enabled on the server yet. Your account and data were not deleted.',
+        )
+      : t(
+          'Delete failed. Check your connection and try again. Your account and data were not deleted.',
+        );
   }
   // The user no longer exists, so the server may refuse the sign-out call; the local
   // session is removed either way.

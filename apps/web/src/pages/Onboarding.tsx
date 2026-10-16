@@ -32,6 +32,7 @@ import {
 } from '../lib/messages';
 import { planFor, targetFromPlan } from '../logic/targets';
 import { PlanSummary } from './PlanSummary';
+import { t } from '../lib/i18n';
 
 const RATE_OPTIONS: Record<Goal, number[]> = {
   fat_loss: [0.25, 0.5, 0.75, 1],
@@ -263,25 +264,26 @@ export function Onboarding() {
   const anyHealth = d.pregnantOrLactating || d.eatingDisorderHistory || d.kidneyDisease;
 
   const TITLES: Record<StepId, string> = {
-    start: 'Welcome! A 1-minute setup',
-    goal: "What's your main goal right now?",
-    sex: 'Which formula should we use?',
-    body: 'About your body',
-    activity: 'How active are you?',
-    health: 'Do any of these apply?',
-    rate: 'How fast do you want to go?',
-    target: 'Do you have a target weight?',
-    diet: 'Any diet restrictions?',
-    plan: 'Your plan',
+    start: t('Welcome! A 1-minute setup'),
+    goal: t("What's your main goal right now?"),
+    sex: t('Which formula should we use?'),
+    body: t('About your body'),
+    activity: t('How active are you?'),
+    health: t('Do any of these apply?'),
+    rate: t('How fast do you want to go?'),
+    target: t('Do you have a target weight?'),
+    diet: t('Any diet restrictions?'),
+    plan: t('Your plan'),
   };
   const HINTS: Partial<Record<StepId, string>> = {
-    sex: 'The Mifflin–St Jeor formula has male and female versions; neutral is the average',
-    activity: 'Count work and exercise together',
-    health:
+    sex: t('The Mifflin–St Jeor formula has male and female versions; neutral is the average'),
+    activity: t('Count work and exercise together'),
+    health: t(
       'Only used for safety checks so our advice never puts you at risk. Choose any that apply.',
-    rate: 'A slower pace is easier to keep up and helps keep muscle',
-    target: "Optional. Only used to show progress; it doesn't change your daily calories",
-    diet: 'Choose any, or skip',
+    ),
+    rate: t('A slower pace is easier to keep up and helps keep muscle'),
+    target: t("Optional. Only used to show progress; it doesn't change your daily calories"),
+    diet: t('Choose any, or skip'),
   };
 
   // Steps answered by tapping a card have no bottom button.
@@ -294,7 +296,7 @@ export function Onboarding() {
           {index > 0 ? (
             <button type="button" onClick={goBack} className={backButtonClass}>
               <BackArrow />
-              Back
+              {t('Back')}
             </button>
           ) : (
             <span className="flex min-h-11 items-center gap-2 px-2">
@@ -304,7 +306,7 @@ export function Onboarding() {
                 className="size-8 rounded-xl bg-[#fbfaf3] ring-1 ring-black/5"
               />
               <span className="text-lg font-bold text-emerald-strong dark:text-emerald">
-                EatHealthee
+                {t('EatHealthee')}
               </span>
             </span>
           )}
@@ -332,36 +334,42 @@ export function Onboarding() {
           {step === 'start' && (
             <Card className="space-y-5">
               <p className="leading-relaxed">
-                EatHealthee helps you lose fat, gain weight, build muscle or maintain, safely and in
-                a way that fits your life. You don't need a gym to start.
+                {t(
+                  "EatHealthee helps you lose fat, gain weight, build muscle or maintain, safely and in a way that fits your life. You don't need a gym to start.",
+                )}
               </p>
               <Notice>
                 {signedIn
-                  ? "You're logged in: your data is saved to your account over an encrypted connection (server in Singapore). You'll see it on any device, and only you can access it."
-                  : "You're not logged in: your data stays in this device's browser only. You can sign up later from the Me page to back it up to an account."}
+                  ? t(
+                      "You're logged in: your data is saved to your account over an encrypted connection (server in Singapore). You'll see it on any device, and only you can access it.",
+                    )
+                  : t(
+                      "You're not logged in: your data stays in this device's browser only. You can sign up later from the Me page to back it up to an account.",
+                    )}
               </Notice>
               <div className="space-y-1">
                 <Check checked={d.terms} onChange={(v) => set('terms', v)}>
-                  I'm 18 or older and have read and accept the
+                  {t("I'm 18 or older and have read and accept the")}
                   <Link
                     to="/legal/disclaimer"
                     className="mx-1 text-emerald-strong underline dark:text-emerald"
                     target="_blank"
                   >
-                    health disclaimer
+                    {t('health disclaimer')}
                   </Link>
-                  and
+                  {t('and')}
                   <Link
                     to="/legal/privacy"
                     className="ml-1 text-emerald-strong underline dark:text-emerald"
                     target="_blank"
                   >
-                    privacy policy
+                    {t('privacy policy')}
                   </Link>
                 </Check>
                 <Check checked={d.healthConsent} onChange={(v) => set('healthConsent', v)}>
-                  I agree that EatHealthee may use the body and health details I give to work out
-                  its advice
+                  {t(
+                    'I agree that EatHealthee may use the body and health details I give to work out its advice',
+                  )}
                 </Check>
               </div>
             </Card>
@@ -396,7 +404,7 @@ export function Onboarding() {
 
           {step === 'body' && (
             <Card className="space-y-4">
-              <Field label="Date of birth" error={bodyFieldError('birthDate')}>
+              <Field label={t('Date of birth')} error={bodyFieldError('birthDate')}>
                 {(p) => (
                   <input
                     {...p}
@@ -409,7 +417,7 @@ export function Onboarding() {
                 )}
               </Field>
               <div className="grid grid-cols-2 gap-4">
-                <Field label="Height (cm)" error={bodyFieldError('heightCm')}>
+                <Field label={t('Height (cm)')} error={bodyFieldError('heightCm')}>
                   {(p) => (
                     <input
                       {...p}
@@ -422,7 +430,7 @@ export function Onboarding() {
                     />
                   )}
                 </Field>
-                <Field label="Weight (kg)" error={bodyFieldError('weightKg')}>
+                <Field label={t('Weight (kg)')} error={bodyFieldError('weightKg')}>
                   {(p) => (
                     <input
                       {...p}
@@ -458,22 +466,23 @@ export function Onboarding() {
                   checked={d.pregnantOrLactating}
                   onChange={(v) => set('pregnantOrLactating', v)}
                 >
-                  Pregnant or breastfeeding
+                  {t('Pregnant or breastfeeding')}
                 </Check>
                 <Check
                   checked={d.eatingDisorderHistory}
                   onChange={(v) => set('eatingDisorderHistory', v)}
                 >
-                  Diagnosed with, or being treated for, an eating disorder
+                  {t('Diagnosed with, or being treated for, an eating disorder')}
                 </Check>
                 <Check checked={d.kidneyDisease} onChange={(v) => set('kidneyDisease', v)}>
-                  Kidney disease
+                  {t('Kidney disease')}
                 </Check>
               </Card>
               {d.kidneyDisease && (
                 <Notice tone="warn">
-                  Your protein target will be fixed at 0.8 g per kg. Please follow your doctor's or
-                  dietitian's advice.
+                  {t(
+                    "Your protein target will be fixed at 0.8 g per kg. Please follow your doctor's or dietitian's advice.",
+                  )}
                 </Notice>
               )}
             </>
@@ -484,8 +493,10 @@ export function Onboarding() {
               value={shown(String(d.ratePctPerWeek))}
               options={RATE_OPTIONS[d.goal].map((r) => ({
                 value: String(r),
-                label: `${r}% of body weight a week`,
-                ...(weight > 0 && { sub: `about ${((r / 100) * weight).toFixed(2)} kg a week` }),
+                label: t('{r}% of body weight a week', { r }),
+                ...(weight > 0 && {
+                  sub: t('about {v1} kg a week', { v1: ((r / 100) * weight).toFixed(2) }),
+                }),
                 ...(r === RATE_PCT_PER_WEEK[d.goal].default && { icon: '⭐' }),
               }))}
               onPick={(v) => pick('ratePctPerWeek', Number(v))}
@@ -495,12 +506,12 @@ export function Onboarding() {
           {step === 'target' && (
             <Card>
               <Field
-                label="Target weight (kg)"
+                label={t('Target weight (kg)')}
                 error={
                   evaluated.kind === 'invalid' && evaluated.field === 'targetWeightKg'
                     ? d.goal === 'fat_loss'
-                      ? 'Target weight must be below your current weight.'
-                      : 'Target weight must be above your current weight.'
+                      ? t('Target weight must be below your current weight.')
+                      : t('Target weight must be above your current weight.')
                     : null
                 }
               >
@@ -540,7 +551,7 @@ export function Onboarding() {
               {rejectMessage(evaluated.result.reason).body}
               <div className="mt-3">
                 <Button variant="secondary" onClick={() => setStep('goal')}>
-                  Change goal
+                  {t('Change goal')}
                 </Button>
               </div>
             </Notice>
@@ -560,23 +571,23 @@ export function Onboarding() {
                 disabled={!(evaluated.kind === 'result' && evaluated.result.ok)}
                 onClick={finish}
               >
-                Get started
+                {t('Get started')}
               </Button>
             ) : step === 'health' && !anyHealth ? (
               <Button className="w-full" onClick={() => goNext()}>
-                None of these
+                {t('None of these')}
               </Button>
             ) : step === 'diet' && d.dietTags.length === 0 ? (
               <Button className="w-full" onClick={() => goNext()}>
-                No restrictions
+                {t('No restrictions')}
               </Button>
             ) : step === 'target' && d.targetWeightKg.trim() === '' ? (
               <Button className="w-full" onClick={() => goNext()}>
-                Skip
+                {t('Skip')}
               </Button>
             ) : (
               <Button className="w-full" disabled={!canNext} onClick={() => goNext()}>
-                Next
+                {t('Next')}
               </Button>
             )}
           </div>

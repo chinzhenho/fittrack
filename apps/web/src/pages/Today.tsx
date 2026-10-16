@@ -25,14 +25,15 @@ import {
   targetOn,
   trendPoints,
 } from '../logic/targets';
+import { locale, t, tr } from '../lib/i18n';
 
 /** Malaysia CPG Management of Obesity (2023) Asian cut-offs, in neutral wording. */
-const BMI_TEXT: Record<BmiCategory, string> = {
+const BMI_TEXT: Record<BmiCategory, string> = tr({
   underweight: 'Underweight',
   normal: 'Healthy',
   overweight: 'Overweight',
   obese: 'Obese',
-};
+});
 
 export function Today() {
   const s = useAppState();
@@ -69,12 +70,12 @@ export function Today() {
   const hour = new Date().getHours();
   const greeting =
     hour < 5
-      ? 'Up late'
+      ? t('Up late')
       : hour < 12
-        ? 'Good morning'
+        ? t('Good morning')
         : hour < 18
-          ? 'Good afternoon'
-          : 'Good evening';
+          ? t('Good afternoon')
+          : t('Good evening');
   const nextMeal = mealForHour(hour);
 
   // Weight card: the latest weigh-in, the very first weight as the start, BMI from height.
@@ -100,7 +101,7 @@ export function Today() {
     <div className="space-y-9">
       <header className="pt-3">
         <p className="text-xs font-semibold tracking-[0.08em] text-slate-500 uppercase dark:text-slate-400">
-          {new Date().toLocaleDateString('en-MY', {
+          {new Date().toLocaleDateString(locale(), {
             month: 'long',
             day: 'numeric',
             weekday: 'long',
@@ -108,18 +109,18 @@ export function Today() {
         </p>
         <h1 className="mt-1 text-[1.875rem] leading-tight font-bold tracking-tight">
           {greeting}
-          {profile.nickname ? `, ${profile.nickname}` : ''}
+          {profile.nickname ? t(', {name}', { name: profile.nickname }) : ''}
         </h1>
         <p className="mt-1 text-[0.9375rem] text-slate-500 dark:text-slate-400">
-          One small step at a time.
+          {t('One small step at a time.')}
         </p>
       </header>
 
       {needsRecompute(s, today) && (
-        <Notice title="Your weight trend has moved 2 kg or more">
-          You can recalculate your daily target from your latest trend weight.
+        <Notice title={t('Your weight trend has moved 2 kg or more')}>
+          {t('You can recalculate your daily target from your latest trend weight.')}
           <div className="mt-3">
-            <Button onClick={recompute}>Recalculate target</Button>
+            <Button onClick={recompute}>{t('Recalculate target')}</Button>
           </div>
         </Notice>
       )}
@@ -127,11 +128,13 @@ export function Today() {
       {/* The one highlighted panel: today's calories and the main action. */}
       <Card tone="hero" className="space-y-4">
         <p className="text-xs font-semibold tracking-[0.08em] text-emerald-strong uppercase dark:text-emerald">
-          Calories today
+          {t('Calories today')}
         </p>
         {hide ? (
           <p className="text-[2rem] leading-none font-bold tracking-tight">
-            {todayMeals.length} {todayMeals.length === 1 ? 'item' : 'items'} logged
+            {t(todayMeals.length === 1 ? '{n} item logged' : '{n} items logged', {
+              n: todayMeals.length,
+            })}
           </p>
         ) : (
           <div>
@@ -140,7 +143,7 @@ export function Today() {
                 {fmtInt(eaten.kcal)}
               </span>
               <span className="text-[0.9375rem] text-emerald-800 dark:text-emerald-200">
-                / {fmtInt(target.caloriesKcal)} kcal
+                / {fmtInt(target.caloriesKcal)} {t('kcal')}
               </span>
             </p>
             <Bar
@@ -157,7 +160,7 @@ export function Today() {
               <span
                 className={`font-medium ${gap.state === 'over' ? 'text-[#87551d] dark:text-amber-300' : 'text-emerald-800 dark:text-emerald-200'}`}
               >
-                {gap.label} {fmtInt(gap.kcal)} kcal
+                {gap.label} {fmtInt(gap.kcal)} {t('kcal')}
               </span>
               <span className="text-emerald-800 tabular-nums dark:text-emerald-200">
                 {Math.round((eaten.kcal / Math.max(1, target.caloriesKcal)) * 100)}%
@@ -167,28 +170,28 @@ export function Today() {
         )}
         <SnapButton
           meal={nextMeal}
-          label="Log food"
+          label={t('Log food')}
           className="flex min-h-12 w-full items-center justify-center gap-2 rounded-[14px] bg-emerald-strong px-4 text-[0.9375rem] font-semibold text-white transition hover:bg-emerald-800 active:scale-[0.99] dark:bg-emerald dark:text-black"
         >
           <Glyph name="camera" className="size-5" />
-          Log food
+          {t('Log food')}
         </SnapButton>
       </Card>
 
       {/* Today's meals: a plain list, spaced out instead of ruled. */}
-      <section aria-label="Today's meals">
+      <section aria-label={t("Today's meals")}>
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold tracking-tight">Today's meals</h2>
+          <h2 className="text-xl font-semibold tracking-tight">{t("Today's meals")}</h2>
           <Link
             to="/diary"
             className="text-sm font-medium text-emerald-strong hover:opacity-70 dark:text-emerald"
           >
-            View all →
+            {t('View all →')}
           </Link>
         </div>
         {todayMeals.length === 0 ? (
           <p className="mt-3 text-sm text-slate-500 dark:text-slate-400">
-            Nothing logged yet today. Snap or search your first meal.
+            {t('Nothing logged yet today. Snap or search your first meal.')}
           </p>
         ) : (
           <ul className="mt-2">
@@ -209,7 +212,7 @@ export function Today() {
                   </span>
                   {!hide && (
                     <span className="shrink-0 text-sm font-semibold tabular-nums">
-                      {fmtInt(i.nutrients.kcal)} kcal
+                      {fmtInt(i.nutrients.kcal)} {t('kcal')}
                     </span>
                   )}
                 </Link>
@@ -221,8 +224,8 @@ export function Today() {
 
       {/* Protein, carbs and fat as three thin bars. */}
       {!hide && (
-        <section aria-label="Nutrition" className="space-y-4">
-          <h2 className="text-xl font-semibold tracking-tight">Nutrition</h2>
+        <section aria-label={t('Nutrition')} className="space-y-4">
+          <h2 className="text-xl font-semibold tracking-tight">{t('Nutrition')}</h2>
           {(
             [
               ['Protein', eaten.proteinG, target.proteinG, 'bg-emerald-strong dark:bg-emerald'],
@@ -232,7 +235,7 @@ export function Today() {
           ).map(([name, value, max, color]) => (
             <div key={name}>
               <div className="flex justify-between text-sm">
-                <span className="font-medium">{name}</span>
+                <span className="font-medium">{t(name)}</span>
                 <span className="text-slate-500 tabular-nums dark:text-slate-400">
                   {fmtInt(value)} / {fmtInt(max)} g
                 </span>
@@ -252,15 +255,17 @@ export function Today() {
       )}
 
       {/* Weight: the number, one line of context and the quick weigh-in. */}
-      <section aria-label="Weight">
+      <section aria-label={t('Weight')}>
         <div className="flex items-center justify-between gap-3">
-          <h2 className="text-xl font-semibold tracking-tight">{hide ? 'Weigh-in' : 'Weight'}</h2>
+          <h2 className="text-xl font-semibold tracking-tight">
+            {hide ? t('Weigh-in') : t('Weight')}
+          </h2>
           {!hide && (
             <Link
               to="/progress#weights"
               className="shrink-0 text-sm font-medium text-emerald-strong hover:opacity-70 dark:text-emerald"
             >
-              History →
+              {t('History →')}
             </Link>
           )}
         </div>
@@ -271,19 +276,21 @@ export function Today() {
               <span className="text-[2rem] leading-none font-bold tracking-tight tabular-nums">
                 {current !== null ? fmt1(current) : '—'}
               </span>
-              <span className="text-sm text-slate-500 dark:text-slate-400">kg</span>
+              <span className="text-sm text-slate-500 dark:text-slate-400">{t('kg')}</span>
             </p>
             <p className="mt-1.5 text-sm text-slate-500 dark:text-slate-400">
               {bmiValue !== null && (
                 <span aria-hidden="true">
-                  BMI {fmt1(bmiValue)} · {BMI_TEXT[bmiCategory(bmiValue)]}
+                  {t('BMI')} {fmt1(bmiValue)} · {BMI_TEXT[bmiCategory(bmiValue)]}
                 </span>
               )}
               {current !== null && goalKg !== undefined && (
                 <>
                   {bmiValue !== null && ' · '}
                   <span className="font-medium text-navy dark:text-slate-100">
-                    {reached ? 'Goal reached! 🎉' : `${fmt1(Math.abs(current - goalKg))} kg to go`}
+                    {reached
+                      ? t('Goal reached! 🎉')
+                      : t('{n} kg to go', { n: fmt1(Math.abs(current - goalKg)) })}
                   </span>
                 </>
               )}
@@ -292,13 +299,13 @@ export function Today() {
                   to="/me/body"
                   className="ml-1 font-medium text-emerald-strong dark:text-emerald"
                 >
-                  Set a target weight
+                  {t('Set a target weight')}
                 </Link>
               )}
             </p>
             {bmiValue !== null && (
               <span className="sr-only">
-                BMI {fmt1(bmiValue)} {BMI_TEXT[bmiCategory(bmiValue)]}
+                {t('BMI')} {fmt1(bmiValue)} {BMI_TEXT[bmiCategory(bmiValue)]}
               </span>
             )}
           </div>
@@ -360,10 +367,13 @@ function QuickWeighIn({
       <div className="mt-4 flex items-center justify-between gap-3 rounded-[16px] bg-slate-50 px-3 py-2.5 dark:bg-white/5">
         <p className="text-sm">
           <span className="font-semibold text-emerald-strong dark:text-emerald">
-            ✓ Weighed today
+            {t('✓ Weighed today')}
           </span>
           {!hide && (
-            <span className="text-slate-600 dark:text-slate-300"> · {fmt1(todayKg)} kg</span>
+            <span className="text-slate-600 dark:text-slate-300">
+              {' '}
+              · {fmt1(todayKg)} {t('kg')}
+            </span>
           )}
         </p>
         <button
@@ -371,7 +381,7 @@ function QuickWeighIn({
           onClick={onEdit}
           className="min-h-9 rounded-full px-3 text-sm font-semibold text-emerald-strong hover:bg-emerald-50 dark:text-emerald"
         >
-          Edit
+          {t('Edit')}
         </button>
       </div>
     );
@@ -389,12 +399,12 @@ function QuickWeighIn({
         htmlFor="quick-weigh-in"
         className="text-xs font-semibold text-emerald-strong dark:text-emerald"
       >
-        Today's weigh-in
+        {t("Today's weigh-in")}
       </label>
       <div className="mt-2 flex items-center gap-2">
         <button
           type="button"
-          aria-label="Decrease by 0.1 kg"
+          aria-label={t('Decrease by 0.1 kg')}
           className={stepClass}
           onClick={() => step(-0.1)}
         >
@@ -410,11 +420,11 @@ function QuickWeighIn({
             onChange={(e) => setText(e.target.value)}
             className="w-20 rounded-[10px] bg-white py-1.5 text-center text-xl font-bold focus:ring-2 focus:ring-emerald/40 focus:outline-none dark:bg-slate-800"
           />
-          <span className="text-sm font-semibold text-slate-500">kg</span>
+          <span className="text-sm font-semibold text-slate-500">{t('kg')}</span>
         </span>
         <button
           type="button"
-          aria-label="Increase by 0.1 kg"
+          aria-label={t('Increase by 0.1 kg')}
           className={stepClass}
           onClick={() => step(0.1)}
         >
@@ -425,14 +435,14 @@ function QuickWeighIn({
           disabled={!ok}
           className="ml-auto min-h-10 rounded-full bg-emerald-strong px-4 text-sm font-semibold text-white transition active:scale-95 disabled:opacity-40 dark:bg-emerald dark:text-black"
         >
-          Save
+          {t('Save')}
         </button>
       </div>
       {!ok && text.trim() !== '' && (
-        <p className="mt-1.5 text-xs text-[#ff3b30]">Weight must be 30–300 kg.</p>
+        <p className="mt-1.5 text-xs text-[#ff3b30]">{t('Weight must be 30–300 kg.')}</p>
       )}
       <p className="mt-1.5 text-[0.6875rem] text-slate-500 dark:text-slate-400">
-        Most accurate in the morning, after the toilet and before eating.
+        {t('Most accurate in the morning, after the toilet and before eating.')}
       </p>
     </form>
   );
@@ -467,7 +477,7 @@ function WeightSheet({
       <div
         role="dialog"
         aria-modal="true"
-        aria-label="Log today's weight"
+        aria-label={t("Log today's weight")}
         onClick={(e) => e.stopPropagation()}
         className="w-full max-w-sm animate-rise space-y-4 rounded-t-3xl bg-white p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] shadow-2xl sm:rounded-3xl dark:bg-slate-800"
       >
@@ -480,15 +490,15 @@ function WeightSheet({
               ⚖️
             </span>
             <div>
-              <h2 className="font-black">Log today's weight</h2>
+              <h2 className="font-black">{t("Log today's weight")}</h2>
               <p className="text-xs text-slate-500 dark:text-slate-400">
-                Most accurate in the morning, after the toilet and before eating
+                {t('Most accurate in the morning, after the toilet and before eating')}
               </p>
             </div>
           </div>
           <button
             type="button"
-            aria-label="Close"
+            aria-label={t('Close')}
             onClick={onClose}
             className="flex size-9 items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 dark:bg-slate-700 dark:text-slate-300"
           >
@@ -498,7 +508,7 @@ function WeightSheet({
 
         <div className="space-y-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-center dark:border-slate-600 dark:bg-slate-900">
           <label htmlFor="weight-sheet-input" className="block text-xs font-bold text-slate-500">
-            Today's weight (kg)
+            {t("Today's weight (kg)")}
           </label>
           <div className="flex items-center justify-center gap-1.5">
             <button type="button" className={stepClass} onClick={() => step(-0.5)}>
@@ -524,25 +534,27 @@ function WeightSheet({
             </button>
           </div>
           <div className="flex items-center justify-between border-t border-slate-200 px-2 pt-2 text-sm dark:border-slate-700">
-            <span className="text-slate-500">BMI (height {heightCm} cm)</span>
+            <span className="text-slate-500">{t('BMI (height {h} cm)', { h: heightCm })}</span>
             <span className="font-extrabold text-emerald-700 dark:text-emerald-300">
               {b !== null ? `${fmt1(b)} (${BMI_TEXT[bmiCategory(b)]})` : '—'}
             </span>
           </div>
         </div>
         {!ok && (
-          <p className="text-sm text-red-700 dark:text-red-400">Weight must be 30 to 300 kg.</p>
+          <p className="text-sm text-red-700 dark:text-red-400">
+            {t('Weight must be 30 to 300 kg.')}
+          </p>
         )}
         <div className="grid grid-cols-2 gap-2">
           <Button variant="secondary" onClick={onClose}>
-            Cancel
+            {t('Cancel')}
           </Button>
           <Button disabled={!ok} onClick={() => onSave(kg)}>
-            Save weight
+            {t('Save weight')}
           </Button>
         </div>
         <p className="text-center text-xs text-slate-500 dark:text-slate-400">
-          Change your height in Me → Profile
+          {t('Change your height in Me → Profile')}
         </p>
       </div>
     </div>

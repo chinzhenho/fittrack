@@ -20,6 +20,7 @@ import {
   targetOn,
   trendPoints,
 } from '../logic/targets';
+import { t, tr } from '../lib/i18n';
 
 const md = (d: string) => shortDate(d);
 const signed = (n: number) => `${n > 0 ? '+' : n < 0 ? '−' : '±'}${fmt1(Math.abs(n))}`;
@@ -76,15 +77,16 @@ export function Progress() {
 
   return (
     <div className="space-y-6">
-      <PageTitle sub="How your week went, your weight and what you've achieved.">
-        Progress
+      <PageTitle sub={t("How your week went, your weight and what you've achieved.")}>
+        {t('Progress')}
       </PageTitle>
       {hide && (
         <p className="rounded-2xl bg-slate-100 px-4 py-3 text-sm text-slate-600 dark:bg-slate-800 dark:text-slate-300">
-          🙈 You've hidden calorie and weight numbers, so only habits and logging are shown. Turn
-          them back on in{' '}
+          {t(
+            "🙈 You've hidden calorie and weight numbers, so only habits and logging are shown. Turn them back on in",
+          )}{' '}
           <Link to="/me" className="font-semibold text-emerald-strong dark:text-emerald">
-            Me
+            {t('Me')}
           </Link>
           .
         </p>
@@ -109,27 +111,30 @@ function BodySection({ s, profile, today }: { s: AppState; profile: Profile; tod
 
   const action = (
     <Chips
-      label="Chart range"
+      label={t('Chart range')}
       value={range}
       onChange={setRange}
-      options={(['7', '30', '90'] as const).map((r) => ({ value: r, label: `${r} days` }))}
+      options={(['7', '30', '90'] as const).map((r) => ({ value: r, label: t('{r} days', { r }) }))}
     />
   );
 
   if (!latest) {
     return (
-      <Section id="body" tint="bg-[#ff2d55]" icon="trend" title="Your weight">
+      <Section id="body" tint="bg-[#ff2d55]" icon="trend" title={t('Your weight')}>
         <div className="rounded-2xl bg-slate-50 p-5 text-center dark:bg-slate-700/60">
           <p className="text-3xl" aria-hidden="true">
             ⚖️
           </p>
-          <p className="mt-2 font-semibold">Log your first weight to start seeing changes.</p>
+          <p className="mt-2 font-semibold">
+            {t('Log your first weight to start seeing changes.')}
+          </p>
           <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
-            Weigh in the morning, after the toilet and before breakfast, for the most accurate
-            reading.
+            {t(
+              'Weigh in the morning, after the toilet and before breakfast, for the most accurate reading.',
+            )}
           </p>
           <Button className="mt-3" onClick={() => scrollToId('weights')}>
-            + Log weight
+            {t('+ Log weight')}
           </Button>
         </div>
       </Section>
@@ -139,34 +144,49 @@ function BodySection({ s, profile, today }: { s: AppState; profile: Profile; tod
   const change = start !== null ? latest.weightKg - start : null;
   let changeText = '';
   if (change !== null) {
-    if (Math.abs(change) < 0.05) changeText = 'Same as start';
+    if (Math.abs(change) < 0.05) changeText = t('Same as start');
     else if (goal === 'fat_loss')
-      changeText = change < 0 ? `Lost ${fmt1(-change)} kg` : `+${fmt1(change)} kg since start`;
-    else if (goal === 'maintain') changeText = `${signed(change)} kg since start`;
-    else changeText = change > 0 ? `Gained ${fmt1(change)} kg` : `−${fmt1(-change)} kg since start`;
+      changeText =
+        change < 0
+          ? t('Lost {kg} kg', { kg: fmt1(-change) })
+          : t('{kg} kg since start', { kg: `+${fmt1(change)}` });
+    else if (goal === 'maintain') changeText = t('{kg} kg since start', { kg: signed(change) });
+    else
+      changeText =
+        change > 0
+          ? t('Gained {kg} kg', { kg: fmt1(change) })
+          : t('{kg} kg since start', { kg: `−${fmt1(-change)}` });
   }
   const toGoal = goalKg !== undefined && goal !== 'maintain' ? goalKg - latest.weightKg : null;
   const reached = toGoal !== null && (goal === 'fat_loss' ? toGoal >= 0 : toGoal <= 0);
 
   return (
-    <Section id="body" tint="bg-[#ff2d55]" icon="trend" title="Your weight" action={action}>
+    <Section id="body" tint="bg-[#ff2d55]" icon="trend" title={t('Your weight')} action={action}>
       <div className="mb-3 grid grid-cols-3 gap-2 text-center">
         <div className="rounded-2xl bg-slate-50 px-2 py-2 dark:bg-slate-700/60">
-          <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">Start</p>
-          <p className="font-black">{start !== null ? `${fmt1(start)} kg` : '—'}</p>
+          <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+            {t('Start')}
+          </p>
+          <p className="font-black">{start !== null ? t('{v1} kg', { v1: fmt1(start) }) : '—'}</p>
         </div>
         <div className="rounded-2xl bg-emerald-50 px-2 py-2 dark:bg-emerald/15">
-          <p className="text-[11px] font-semibold text-emerald-800 dark:text-emerald-200">Latest</p>
-          <p className="font-black">{fmt1(latest.weightKg)} kg</p>
+          <p className="text-[11px] font-semibold text-emerald-800 dark:text-emerald-200">
+            {t('Latest')}
+          </p>
+          <p className="font-black">
+            {fmt1(latest.weightKg)} {t('kg')}
+          </p>
         </div>
         <div className="rounded-2xl bg-slate-50 px-2 py-2 dark:bg-slate-700/60">
-          <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">Goal</p>
+          <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+            {t('Goal')}
+          </p>
           <p className="font-black">
             {goal === 'maintain'
-              ? 'Maintain'
+              ? t('Maintain')
               : goalKg !== undefined
-                ? `${fmt1(goalKg)} kg`
-                : 'Not set'}
+                ? t('{v1} kg', { v1: fmt1(goalKg) })
+                : t('Not set')}
           </p>
         </div>
       </div>
@@ -174,17 +194,20 @@ function BodySection({ s, profile, today }: { s: AppState; profile: Profile; tod
         {changeText && <strong>{changeText}</strong>}
         {toGoal !== null &&
           (reached ? (
-            <span> · 🎉 Goal weight reached</span>
+            <span> {t('· 🎉 Goal weight reached')}</span>
           ) : (
-            <span> · {fmt1(Math.abs(toGoal))} kg to go</span>
+            <span>
+              {' '}
+              · {fmt1(Math.abs(toGoal))} {t('kg to go')}
+            </span>
           ))}
         <span className="block text-xs text-slate-500 dark:text-slate-400">
-          Latest weigh-in: {formatDay(latest.date, today)}
+          {t('Latest weigh-in:')} {formatDay(latest.date, today)}
         </span>
       </p>
       {points.length < 2 ? (
         <p className="rounded-2xl bg-slate-50 p-4 text-center text-sm text-slate-600 dark:bg-slate-700/60 dark:text-slate-300">
-          Log one more weigh-in to draw your trend.
+          {t('Log one more weigh-in to draw your trend.')}
         </p>
       ) : (
         <>
@@ -196,7 +219,7 @@ function BodySection({ s, profile, today }: { s: AppState; profile: Profile; tod
             goalKg={goal === 'maintain' ? undefined : goalKg}
           />
           <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
-            Weight moves a little every day. Watch the direction over a few weeks.
+            {t('Weight moves a little every day. Watch the direction over a few weeks.')}
           </p>
         </>
       )}
@@ -229,8 +252,8 @@ function InsightsSection({ s, today }: { s: AppState; today: string }) {
       id="insights"
       tint="bg-[#af52de]"
       icon="sparkles"
-      title="Tips for you"
-      sub="Based on your last 7 days"
+      title={t('Tips for you')}
+      sub={t('Based on your last 7 days')}
     >
       {
         <ul className="space-y-2.5">
@@ -272,10 +295,10 @@ function InsightsSection({ s, today }: { s: AppState; today: string }) {
                       className="min-h-9 rounded-2xl px-2 text-xs font-semibold text-slate-500 hover:bg-white/60 dark:text-slate-400 dark:hover:bg-white/10"
                       onClick={() => {
                         update((x) => dismissInsight(x, insightKey(i.id, today)));
-                        toast({ text: 'Hidden for this week' });
+                        toast({ text: t('Hidden for this week') });
                       }}
                     >
-                      Hide this week
+                      {t('Hide this week')}
                     </button>
                   </div>
                 </div>
@@ -287,13 +310,16 @@ function InsightsSection({ s, today }: { s: AppState; today: string }) {
       {list.length > 1 && (
         <Button variant="ghost" className="mt-2 w-full" onClick={() => setShowAll((v) => !v)}>
           {showAll
-            ? 'Show less'
-            : `See ${list.length - 1} more ${list.length === 2 ? 'tip' : 'tips'}`}
+            ? t('Show less')
+            : t(list.length === 2 ? 'See {n} more tip' : 'See {n} more tips', {
+                n: list.length - 1,
+              })}
         </Button>
       )}
       <p className="mt-3 text-xs leading-relaxed text-slate-500 dark:text-slate-400">
-        Tips come from simple rules applied to your own logs. They are not medical advice; for
-        health concerns, talk to a doctor or dietitian.
+        {t(
+          'Tips come from simple rules applied to your own logs. They are not medical advice; for health concerns, talk to a doctor or dietitian.',
+        )}
       </p>
     </Section>
   );
@@ -316,8 +342,14 @@ function AdjustSection({ s, profile, today }: { s: AppState; profile: Profile; t
   if (adaptive.proposedTargetKcal === target.caloriesKcal) {
     body = (
       <p className="text-sm">
-        ✓ Based on your logs from {md(adaptive.windowStart)} – {md(adaptive.windowEnd)}, your
-        current target of {fmtInt(target.caloriesKcal)} kcal fits. No change needed.
+        {t(
+          '✓ Based on your logs from {from} – {to}, your current target of {kcal} kcal fits. No change needed.',
+          {
+            from: md(adaptive.windowStart),
+            to: md(adaptive.windowEnd),
+            kcal: fmtInt(target.caloriesKcal),
+          },
+        )}
       </p>
     );
   } else {
@@ -327,33 +359,44 @@ function AdjustSection({ s, profile, today }: { s: AppState; profile: Profile; t
       <div className="space-y-3 text-sm">
         <div className="flex items-center justify-center gap-3 rounded-2xl bg-slate-50 py-3 dark:bg-slate-700/60">
           <div className="text-center">
-            <p className="text-xs text-slate-500">Now</p>
+            <p className="text-xs text-slate-500">{t('Now')}</p>
             <p className="text-lg font-black">{fmtInt(target.caloriesKcal)}</p>
           </div>
           <span aria-hidden="true" className="text-xl text-slate-400">
             →
           </span>
           <div className="text-center">
-            <p className="text-xs text-slate-500">Suggested</p>
+            <p className="text-xs text-slate-500">{t('Suggested')}</p>
             <p className="text-lg font-black text-emerald-strong dark:text-emerald">
               {fmtInt(adaptive.proposedTargetKcal)}
             </p>
           </div>
-          <span className="text-xs text-slate-500">kcal / day</span>
+          <span className="text-xs text-slate-500">{t('kcal / day')}</span>
         </div>
         <p>
-          From {md(adaptive.windowStart)} – {md(adaptive.windowEnd)} ({adaptive.windowDays} days),
-          your complete days averaged {fmtInt(adaptive.meanIntakeKcal)} kcal and your trend weight
-          changed {signed(adaptive.trendChangeKg)} kg. That suggests you burn about{' '}
-          {fmtInt(adaptive.observedTdeeKcal)} kcal, so we suggest {up ? 'raising' : 'lowering'} your
-          target.
+          {t(
+            up
+              ? 'From {from} – {to} ({days} days), your complete days averaged {intake} kcal and your trend weight changed {change} kg. That suggests you burn about {tdee} kcal, so we suggest raising your target.'
+              : 'From {from} – {to} ({days} days), your complete days averaged {intake} kcal and your trend weight changed {change} kg. That suggests you burn about {tdee} kcal, so we suggest lowering your target.',
+            {
+              from: md(adaptive.windowStart),
+              to: md(adaptive.windowEnd),
+              days: adaptive.windowDays,
+              intake: fmtInt(adaptive.meanIntakeKcal),
+              change: signed(adaptive.trendChangeKg),
+              tdee: fmtInt(adaptive.observedTdeeKcal),
+            },
+          )}
         </p>
         <p className="text-xs leading-relaxed text-slate-500 dark:text-slate-400">
-          This is an estimate: missed foods, water changes or hormonal cycles all affect it.{' '}
+          {t('This is an estimate: missed foods, water changes or hormonal cycles all affect it.')}{' '}
           {floored &&
-            `It is set at your safety floor of ${fmtInt(target.calorieFloorKcal)} kcal and won't go lower. `}
-          Your target only changes if you tap "Use suggestion", and the old one stays in your
-          history.
+            t("It is set at your safety floor of {v1} kcal and won't go lower. ", {
+              v1: fmtInt(target.calorieFloorKcal),
+            })}
+          {t(
+            'Your target only changes if you tap "Use suggestion", and the old one stays in your history.',
+          )}
         </p>
         <div className="grid grid-cols-2 gap-2">
           <Button
@@ -377,20 +420,22 @@ function AdjustSection({ s, profile, today }: { s: AppState; profile: Profile; t
                 }),
               );
               toast({
-                text: `Done. Your new daily target is ${fmtInt(adaptive.proposedTargetKcal)} kcal`,
+                text: t('Done. Your new daily target is {v1} kcal', {
+                  v1: fmtInt(adaptive.proposedTargetKcal),
+                }),
               });
             }}
           >
-            Use suggestion
+            {t('Use suggestion')}
           </Button>
           <Button
             variant="secondary"
             onClick={() => {
               update((x) => keepTarget(x, today));
-              toast({ text: "Target kept. We'll review again in two weeks." });
+              toast({ text: t("Target kept. We'll review again in two weeks.") });
             }}
           >
-            Keep current target
+            {t('Keep current target')}
           </Button>
         </div>
       </div>
@@ -402,8 +447,8 @@ function AdjustSection({ s, profile, today }: { s: AppState; profile: Profile; t
       id="adjust"
       tint="bg-slate-400"
       icon="sliders"
-      title="Calorie target check"
-      sub="Is your daily calorie target right for you?"
+      title={t('Calorie target check')}
+      sub={t('Is your daily calorie target right for you?')}
     >
       {body}
     </Section>
@@ -455,14 +500,14 @@ function WeightHistorySection({ s, today }: { s: AppState; today: string }) {
       id="weights"
       tint="bg-emerald-strong"
       icon="scale"
-      title="Weight log"
-      sub="All your weigh-ins"
+      title={t('Weight log')}
+      sub={t('All your weigh-ins')}
     >
       {!s.weights.some((x) => x.date === today) && (
         <p className="mb-3 rounded-[14px] bg-emerald-strong/[0.07] px-3 py-2.5 text-sm dark:bg-white/5">
-          Today&apos;s weight goes on the{' '}
+          {t("Today's weight goes on the")}{' '}
           <Link to="/today" className="font-semibold text-emerald-strong dark:text-emerald">
-            Today page ›
+            {t('Today page ›')}
           </Link>
         </p>
       )}
@@ -486,15 +531,21 @@ function WeightHistorySection({ s, today }: { s: AppState; today: string }) {
               ...(waist.trim() !== '' && { waistCm }),
             };
             update((x) => setWeightOn(old ? removeWeight(x, old.id) : x, entry));
-            toast({ text: editingId ? 'Updated' : `Weight saved for ${formatDay(wDate, today)}` });
+            toast({
+              text: editingId
+                ? t('Updated')
+                : t('Weight saved for {v1}', { v1: formatDay(wDate, today) }),
+            });
             resetForm();
           }}
         >
           <div className="space-y-4 rounded-[18px] bg-slate-50 p-3 dark:bg-slate-700/50">
-            <p className="font-semibold">{editingId ? 'Edit weigh-in' : 'Add a past weigh-in'}</p>
+            <p className="font-semibold">
+              {editingId ? t('Edit weigh-in') : t('Add a past weigh-in')}
+            </p>
             <div>
               <label htmlFor="weigh-date" className="text-[1.0625rem] font-semibold">
-                Date
+                {t('Date')}
               </label>
               <input
                 id="weigh-date"
@@ -506,7 +557,7 @@ function WeightHistorySection({ s, today }: { s: AppState; today: string }) {
               />
             </div>
             <Stepper
-              label="Weight"
+              label={t('Weight')}
               unit="kg"
               step={0.1}
               fallback={
@@ -519,8 +570,8 @@ function WeightHistorySection({ s, today }: { s: AppState; today: string }) {
               onChange={setW}
             />
             <Stepper
-              label="Waist"
-              hint="Optional"
+              label={t('Waist')}
+              hint={t('Optional')}
               unit="cm"
               step={0.5}
               fallback={80}
@@ -530,19 +581,21 @@ function WeightHistorySection({ s, today }: { s: AppState; today: string }) {
             />
           </div>
           {w.trim() !== '' && (kg < 30 || kg > 300) && (
-            <p className="text-xs text-red-700 dark:text-red-400">Weight must be 30–300 kg.</p>
+            <p className="text-xs text-red-700 dark:text-red-400">
+              {t('Weight must be 30–300 kg.')}
+            </p>
           )}
           {!editingId && w.trim() !== '' && s.weights.some((x) => x.date === wDate) && (
             <p className="text-xs text-amber-800 dark:text-amber-300">
-              This day already has a weigh-in; saving will replace it.
+              {t('This day already has a weigh-in; saving will replace it.')}
             </p>
           )}
           <div className="flex gap-2">
             <Button variant="secondary" onClick={resetForm}>
-              Cancel
+              {t('Cancel')}
             </Button>
             <Button type="submit" className="flex-1" disabled={!valid}>
-              {editingId ? 'Save changes' : 'Save'}
+              {editingId ? t('Save changes') : t('Save')}
             </Button>
           </div>
         </form>
@@ -555,13 +608,13 @@ function WeightHistorySection({ s, today }: { s: AppState; today: string }) {
             setTimeout(() => inputRef.current?.focus(), 0);
           }}
         >
-          + Add a past weigh-in
+          {t('+ Add a past weigh-in')}
         </Button>
       )}
 
       {entries.length === 0 ? (
         <p className="py-4 text-center text-sm text-slate-500 dark:text-slate-400">
-          No weigh-ins yet.
+          {t('No weigh-ins yet.')}
         </p>
       ) : (
         months.map(({ month, rows }) => (
@@ -580,23 +633,25 @@ function WeightHistorySection({ s, today }: { s: AppState; today: string }) {
                       <span className="block">{formatDay(e.date, today)}</span>
                       {e.waistCm !== undefined && (
                         <span className="block text-xs text-slate-500 dark:text-slate-400">
-                          Waist {fmt1(e.waistCm)} cm
+                          {t('Waist')} {fmt1(e.waistCm)} {t('cm')}
                         </span>
                       )}
                     </span>
                     <span className="text-right">
-                      <span className="block font-semibold">{fmt1(e.weightKg)} kg</span>
+                      <span className="block font-semibold">
+                        {fmt1(e.weightKg)} {t('kg')}
+                      </span>
                       {diff !== null && diff !== 0 && (
                         <span
                           className={`block text-xs ${good ? 'text-emerald-strong dark:text-emerald' : 'text-slate-500 dark:text-slate-400'}`}
                         >
-                          {signed(diff)} kg
+                          {signed(diff)} {t('kg')}
                         </span>
                       )}
                     </span>
                     <button
                       type="button"
-                      aria-label={`Edit weight for ${e.date}`}
+                      aria-label={t('Edit weight for {date}', { date: e.date })}
                       className="min-h-9 rounded-full px-2.5 text-sm text-emerald-strong hover:bg-emerald-50 dark:text-emerald dark:hover:bg-emerald/10"
                       onClick={() => {
                         setEditingId(e.id);
@@ -608,18 +663,18 @@ function WeightHistorySection({ s, today }: { s: AppState; today: string }) {
                         setTimeout(() => inputRef.current?.focus({ preventScroll: true }), 0);
                       }}
                     >
-                      Edit
+                      {t('Edit')}
                     </button>
                     <button
                       type="button"
-                      aria-label={`Delete weigh-in for ${e.date}`}
+                      aria-label={t('Delete weigh-in for {date}', { date: e.date })}
                       className="flex size-9 items-center justify-center rounded-full text-slate-400 hover:bg-red-50 hover:text-[#ff3b30] dark:hover:bg-red-950"
                       onClick={() => {
                         update((x) => removeWeight(x, e.id));
                         if (editingId === e.id) resetForm();
                         toast({
-                          text: `Deleted weigh-in for ${formatDay(e.date, today)}`,
-                          actionLabel: 'Undo',
+                          text: t('Deleted weigh-in for {v1}', { v1: formatDay(e.date, today) }),
+                          actionLabel: t('Undo'),
                           onAction: () => update((x) => setWeightOn(x, e)),
                         });
                       }}
@@ -635,13 +690,13 @@ function WeightHistorySection({ s, today }: { s: AppState; today: string }) {
       )}
       {entries.length > 10 && (
         <Button variant="ghost" className="mt-1 w-full" onClick={() => setShowAll((v) => !v)}>
-          {showAll ? 'Show less' : `Show all ${entries.length}`}
+          {showAll ? t('Show less') : t('Show all {length}', { length: entries.length })}
         </Button>
       )}
       <p className="mt-3 text-xs text-slate-500 dark:text-slate-400">
-        Daily target history is in{' '}
+        {t('Daily target history is in')}{' '}
         <Link to="/me/targets" className="font-semibold text-emerald-strong dark:text-emerald">
-          Me → Daily nutrition targets
+          {t('Me → Daily nutrition targets')}
         </Link>
         .
       </p>
@@ -649,7 +704,7 @@ function WeightHistorySection({ s, today }: { s: AppState; today: string }) {
   );
 }
 
-const MONTHS_LONG = [
+const MONTHS_LONG = tr([
   'January',
   'February',
   'March',
@@ -662,5 +717,5 @@ const MONTHS_LONG = [
   'October',
   'November',
   'December',
-];
+]);
 const monthLabel = (m: string) => `${MONTHS_LONG[Number(m.slice(5, 7)) - 1]} ${m.slice(0, 4)}`;

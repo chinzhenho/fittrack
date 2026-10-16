@@ -1,5 +1,6 @@
 import { useId, useState, type ButtonHTMLAttributes, type ReactNode } from 'react';
 import { useNavigate } from 'react-router';
+import { t } from '../lib/i18n';
 
 /**
  * A page section. Plain sections sit on the page with a thin line above them (no box);
@@ -235,7 +236,7 @@ export function BackArrow() {
 /** Back to the previous page, or `fallback` when the page was opened directly. */
 export function BackButton({
   fallback = '/today',
-  label = 'Back',
+  label = t('Back'),
 }: {
   fallback?: string;
   label?: string;
@@ -286,7 +287,7 @@ export function PasswordInput({
       <button
         type="button"
         onClick={() => setShow((v) => !v)}
-        aria-label={show ? 'Hide password' : 'Show password'}
+        aria-label={show ? t('Hide password') : t('Show password')}
         aria-pressed={show}
         className="absolute top-1/2 right-1 flex size-11 -translate-y-1/2 items-center justify-center rounded-xl text-slate-500 hover:text-emerald-strong dark:text-slate-300"
         style={{ marginTop: '0.1875rem' }}
@@ -359,7 +360,7 @@ export function EmailInput({
         autoCapitalize="none"
         spellCheck={false}
         required
-        placeholder="you@example.com"
+        placeholder={t('you@example.com')}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         className={`${inputClass} pl-11`}
@@ -382,10 +383,10 @@ export function passwordStrength(pw: string): 0 | 1 | 2 | 3 {
 export function PasswordStrength({ value }: { value: string }) {
   const level = passwordStrength(value);
   const meta = [
-    { text: 'At least 8 characters', color: '' },
-    { text: 'Too short', color: 'bg-rose-500 text-rose-600' },
-    { text: 'OK', color: 'bg-amber-500 text-amber-600' },
-    { text: 'Strong', color: 'bg-emerald-500 text-emerald-700' },
+    { text: t('At least 8 characters'), color: '' },
+    { text: t('Too short'), color: 'bg-rose-500 text-rose-600' },
+    { text: t('OK'), color: 'bg-amber-500 text-amber-600' },
+    { text: t('Strong'), color: 'bg-emerald-500 text-emerald-700' },
   ][level]!;
   const bar = meta.color.split(' ')[0] ?? '';
   return (
@@ -399,7 +400,7 @@ export function PasswordStrength({ value }: { value: string }) {
       <span
         className={`ml-1 w-20 shrink-0 text-right text-xs font-semibold ${level ? (meta.color.split(' ')[1] ?? '') : 'text-slate-500'}`}
       >
-        {level ? `Password: ${meta.text.toLowerCase()}` : meta.text}
+        {level ? t('Password: {v1}', { v1: meta.text.toLowerCase() }) : meta.text}
       </span>
     </div>
   );
@@ -780,7 +781,7 @@ export function Stepper({
       <div className="mt-2 flex items-center justify-between gap-3 rounded-[16px] bg-white p-2 ring-1 ring-slate-200 dark:bg-slate-800 dark:ring-slate-600">
         <button
           type="button"
-          aria-label={`Decrease ${label}`}
+          aria-label={t('Decrease {label}', { label })}
           className={btn}
           onClick={() => bump(-step)}
         >
@@ -802,7 +803,7 @@ export function Stepper({
         </span>
         <button
           type="button"
-          aria-label={`Increase ${label}`}
+          aria-label={t('Increase {label}', { label })}
           className={btn}
           onClick={() => bump(step)}
         >

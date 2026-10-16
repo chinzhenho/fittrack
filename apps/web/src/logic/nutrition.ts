@@ -1,14 +1,15 @@
 import type { Food, MealItem, MealType, Nutrients } from '../data/types';
 import type { Goal } from '@fittrack/engine';
+import { t, tr } from '../lib/i18n';
 
 export const MEAL_TYPES: MealType[] = ['breakfast', 'lunch', 'dinner', 'snack'];
 
-export const MEAL_LABELS: Record<MealType, string> = {
+export const MEAL_LABELS: Record<MealType, string> = tr({
   breakfast: 'Breakfast',
   lunch: 'Lunch',
   dinner: 'Dinner',
   snack: 'Other',
-};
+});
 
 /** Spec 5.5: N_item = N_100g x grams / 100. Values kept unrounded; round only for display. */
 export function nutrientsFor(per100g: Nutrients, grams: number): Nutrients {
@@ -104,10 +105,10 @@ export function calorieGap(
   const left = targetKcal - eatenKcal;
   if (isGainGoal(goal)) {
     return left > 0
-      ? { label: 'Still to eat', kcal: left, state: 'need' }
-      : { label: 'Target reached, extra', kcal: -left, state: 'reached' };
+      ? { label: t('Still to eat'), kcal: left, state: 'need' }
+      : { label: t('Target reached, extra'), kcal: -left, state: 'reached' };
   }
   return left >= 0
-    ? { label: 'Left to eat', kcal: left, state: 'room' }
-    : { label: 'Over target', kcal: -left, state: 'over' };
+    ? { label: t('Left to eat'), kcal: left, state: 'room' }
+    : { label: t('Over target'), kcal: -left, state: 'over' };
 }

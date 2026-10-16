@@ -6,6 +6,7 @@ import { fmt1, fmtInt } from '../lib/format';
 import { Glyph } from './Icons';
 import { WATER_ACTIVITY, WATER_CUP_ML, waterRangeMl, type WaterActivity } from '../logic/water';
 import { Button, Card } from './ui';
+import { t } from '../lib/i18n';
 
 /** Daily drinking guide from body weight and activity (see logic/water.ts). */
 export function WaterCard({ profile, weightKg }: { profile: Profile; weightKg: number | null }) {
@@ -22,9 +23,11 @@ export function WaterCard({ profile, weightKg }: { profile: Profile; weightKg: n
           💧
         </span>
         <div>
-          <p className="text-sm font-black">Daily water guide</p>
+          <p className="text-sm font-black">{t('Daily water guide')}</p>
           <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
-            You have a kidney condition, so please follow your doctor's advice on how much to drink.
+            {t(
+              "You have a kidney condition, so please follow your doctor's advice on how much to drink.",
+            )}
           </p>
         </div>
       </Card>
@@ -37,14 +40,15 @@ export function WaterCard({ profile, weightKg }: { profile: Profile; weightKg: n
     <Card>
       <div className="flex items-center justify-between gap-3">
         <h2 className="flex items-center gap-1.5 text-xl font-semibold tracking-tight">
-          <Glyph name="drop" className="size-[18px] text-[#456da8] dark:text-[#9db8ea]" /> Water
+          <Glyph name="drop" className="size-[18px] text-[#456da8] dark:text-[#9db8ea]" />{' '}
+          {t('Water')}
         </h2>
         <button
           type="button"
           onClick={() => setAdjusting(true)}
           className="min-h-9 shrink-0 rounded-full px-3 text-sm font-medium text-emerald-strong transition hover:opacity-70 active:scale-95 dark:text-emerald"
         >
-          Adjust
+          {t('Adjust')}
         </button>
       </div>
 
@@ -53,10 +57,10 @@ export function WaterCard({ profile, weightKg }: { profile: Profile; weightKg: n
           <span className="text-[2rem] leading-none font-bold tracking-tight whitespace-nowrap tabular-nums">
             {Math.round(min / WATER_CUP_ML)}–{Math.round(max / WATER_CUP_ML)}
           </span>
-          <span className="text-sm text-slate-500 dark:text-slate-400">mugs a day</span>
+          <span className="text-sm text-slate-500 dark:text-slate-400">{t('mugs a day')}</span>
         </p>
         <p className="mt-1.5 text-sm text-slate-500 dark:text-slate-400">
-          {fmtInt(min)}–{fmtInt(max)} ml, based on {fmt1(weightKg)} kg
+          {fmtInt(min)}–{fmtInt(max)} {t('ml, based on')} {fmt1(weightKg)} {t('kg')}
         </p>
       </div>
 
@@ -98,20 +102,20 @@ function WaterSheet({
       <div
         role="dialog"
         aria-modal="true"
-        aria-label="Water guide settings"
+        aria-label={t('Water guide settings')}
         onClick={(e) => e.stopPropagation()}
         className="w-full max-w-sm animate-rise space-y-4 rounded-t-3xl bg-white p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] shadow-2xl sm:rounded-3xl dark:bg-slate-800"
       >
         <div className="flex items-center justify-between border-b border-slate-100 pb-3 dark:border-slate-700">
           <div>
-            <h2 className="font-black">Water guide settings</h2>
+            <h2 className="font-black">{t('Water guide settings')}</h2>
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              Adjust the daily guide to your lifestyle
+              {t('Adjust the daily guide to your lifestyle')}
             </p>
           </div>
           <button
             type="button"
-            aria-label="Close"
+            aria-label={t('Close')}
             onClick={onClose}
             className="flex size-9 items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 dark:bg-slate-700 dark:text-slate-300"
           >
@@ -119,13 +123,16 @@ function WaterSheet({
           </button>
         </div>
         <div className="rounded-xl bg-slate-50 px-3 py-2 text-sm dark:bg-slate-700">
-          Weight used <strong>{fmt1(weightKg)} kg</strong>
+          {t('Weight used')}{' '}
+          <strong>
+            {fmt1(weightKg)} {t('kg')}
+          </strong>
           <span className="block text-xs text-slate-500 dark:text-slate-400">
-            Your latest logged weight is used automatically
+            {t('Your latest logged weight is used automatically')}
           </span>
         </div>
         <fieldset className="space-y-2">
-          <legend className="mb-1 text-sm font-bold">Activity and environment</legend>
+          <legend className="mb-1 text-sm font-bold">{t('Activity and environment')}</legend>
           {(Object.keys(WATER_ACTIVITY) as WaterActivity[]).map((a) => {
             const f = WATER_ACTIVITY[a].mlPerKg;
             const [lo, hi] = waterRangeMl(weightKg, a);
@@ -137,11 +144,11 @@ function WaterSheet({
                 <span>
                   <span className="block font-semibold">{WATER_ACTIVITY[a].label}</span>
                   <span className="block text-xs text-slate-500 dark:text-slate-400">
-                    {f}–{f + 5} ml per kg
+                    {f}–{f + 5} {t('ml per kg')}
                   </span>
                 </span>
                 <span className="shrink-0 text-xs font-bold text-sky-700 dark:text-sky-300">
-                  {fmtInt(lo)}~{fmtInt(hi)} ml
+                  {fmtInt(lo)}~{fmtInt(hi)} {t('ml')}
                 </span>
                 <input
                   type="radio"
@@ -155,13 +162,13 @@ function WaterSheet({
           })}
         </fieldset>
         <p className="rounded-xl border border-sky-100 bg-sky-50/60 p-3 text-xs leading-relaxed text-sky-800 dark:border-sky-500/20 dark:bg-sky-500/10 dark:text-sky-100">
-          🌿 Sip little and often. No need to count every cup; drink before you feel thirsty.
+          {t('🌿 Sip little and often. No need to count every cup; drink before you feel thirsty.')}
         </p>
         <div className="grid grid-cols-2 gap-2">
           <Button variant="secondary" onClick={onClose}>
-            Cancel
+            {t('Cancel')}
           </Button>
-          <Button onClick={() => onSave(choice)}>Update guide</Button>
+          <Button onClick={() => onSave(choice)}>{t('Update guide')}</Button>
         </div>
       </div>
     </div>

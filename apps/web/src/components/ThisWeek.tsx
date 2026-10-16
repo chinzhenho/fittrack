@@ -8,8 +8,10 @@ import { mealsOn, sumNutrients } from '../logic/nutrition';
 import { targetOn } from '../logic/targets';
 import { datesBetween, mondayOf, weeklySummary } from '../logic/weekly';
 import { Card } from './ui';
+import { getLang, t, tn } from '../lib/i18n';
 
 const DAY_LETTERS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+const DAY_LETTERS_ZH = ['一', '二', '三', '四', '五', '六', '日'];
 const WEEKS_BACK = 11;
 
 /**
@@ -45,7 +47,11 @@ export function ThisWeek({ s, today, hide }: { s: AppState; today: string; hide:
     target !== null && (gaining ? kcal < target * 0.9 : kcal > target * 1.1);
 
   const title =
-    back === 0 ? 'This week' : back === 1 ? 'Last week' : `Week of ${shortDate(monday)}`;
+    back === 0
+      ? t('This week')
+      : back === 1
+        ? t('Last week')
+        : t('Week of {v1}', { v1: shortDate(monday) });
   const elapsed = days.filter((d) => !d.future).length;
 
   return (
@@ -60,7 +66,7 @@ export function ThisWeek({ s, today, hide }: { s: AppState; today: string; hide:
         <div className="flex gap-1">
           <button
             type="button"
-            aria-label="Previous week"
+            aria-label={t('Previous week')}
             disabled={back >= WEEKS_BACK}
             onClick={() => setBack((b) => b + 1)}
             className="flex size-9 items-center justify-center rounded-full bg-slate-100 text-lg text-emerald-strong disabled:opacity-30 dark:bg-slate-700 dark:text-emerald"
@@ -69,7 +75,7 @@ export function ThisWeek({ s, today, hide }: { s: AppState; today: string; hide:
           </button>
           <button
             type="button"
-            aria-label="Next week"
+            aria-label={t('Next week')}
             disabled={back === 0}
             onClick={() => setBack((b) => b - 1)}
             className="flex size-9 items-center justify-center rounded-full bg-slate-100 text-lg text-emerald-strong disabled:opacity-30 dark:bg-slate-700 dark:text-emerald"
@@ -80,12 +86,21 @@ export function ThisWeek({ s, today, hide }: { s: AppState; today: string; hide:
       </div>
 
       <p className="mt-3 text-[0.9375rem]">
-        You logged food on{' '}
-        <strong>
-          {w.loggedDays} of {elapsed} {elapsed === 1 ? 'day' : 'days'}
-        </strong>
+        {tn('You logged food on {days}', {
+          days: (
+            <strong>
+              {t(elapsed === 1 ? '{n} of {total} day' : '{n} of {total} days', {
+                n: w.loggedDays,
+                total: elapsed,
+              })}
+            </strong>
+          ),
+        })}
         {back === 0 && streak > 1 && (
-          <span className="text-[#8b571f] dark:text-[#e8b978]"> · 🔥 {streak} days in a row</span>
+          <span className="text-[#8b571f] dark:text-[#e8b978]">
+            {' '}
+            · 🔥 {streak} {t('days in a row')}
+          </span>
         )}
       </p>
 
@@ -98,7 +113,7 @@ export function ThisWeek({ s, today, hide }: { s: AppState; today: string; hide:
               style={{ bottom: `${(targetLine / maxKcal) * 100}%` }}
             >
               <span className="absolute -top-4 right-0 text-[0.625rem] text-slate-500">
-                target {fmtInt(targetLine)}
+                {t('target')} {fmtInt(targetLine)}
               </span>
             </div>
           )}
@@ -108,7 +123,7 @@ export function ThisWeek({ s, today, hide }: { s: AppState; today: string; hide:
                 <div
                   className={`w-full max-w-9 rounded-[6px] ${offTarget(d.kcal, d.target) ? 'bg-[#b5793a] dark:bg-[#e8b978]' : 'bg-emerald-500'}`}
                   style={{ height: hide ? '60%' : `${Math.max(4, (d.kcal / maxKcal) * 100)}%` }}
-                  title={hide ? undefined : `${fmtInt(d.kcal)} kcal`}
+                  title={hide ? undefined : t('{v1} kcal', { v1: fmtInt(d.kcal) })}
                 />
               ) : (
                 <div
@@ -124,7 +139,7 @@ export function ThisWeek({ s, today, hide }: { s: AppState; today: string; hide:
               key={d.date}
               className={`flex-1 text-center text-[0.6875rem] ${d.date === today ? 'font-bold text-emerald-strong dark:text-emerald' : 'text-slate-500 dark:text-slate-400'}`}
             >
-              {DAY_LETTERS[i]}
+              {(getLang() === 'zh' ? DAY_LETTERS_ZH : DAY_LETTERS)[i]}
             </span>
           ))}
         </div>
@@ -134,21 +149,25 @@ export function ThisWeek({ s, today, hide }: { s: AppState; today: string; hide:
             .map((d) => (
               <li key={d.date}>
                 {shortDate(d.date)}:{' '}
-                {d.logged ? (hide ? 'logged' : `${fmtInt(d.kcal)} kcal`) : 'not logged'}
+                {d.logged
+                  ? hide
+                    ? 'logged'
+                    : t('{v1} kcal', { v1: fmtInt(d.kcal) })
+                  : t('not logged')}
               </li>
             ))}
         </ul>
         {!hide && (
           <p className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[0.6875rem] text-slate-500 dark:text-slate-400">
             <span className="flex items-center gap-1">
-              <span className="size-2.5 rounded-sm bg-emerald-500" /> On track
+              <span className="size-2.5 rounded-sm bg-emerald-500" /> {t('On track')}
             </span>
             <span className="flex items-center gap-1">
               <span className="size-2.5 rounded-sm bg-[#b5793a] dark:bg-[#e8b978]" />
-              {gaining ? 'Under target' : 'Over target'}
+              {gaining ? t('Under target') : t('Over target')}
             </span>
             <span className="flex items-center gap-1">
-              <span className="h-1 w-2.5 rounded-full bg-slate-300" /> Not logged
+              <span className="h-1 w-2.5 rounded-full bg-slate-300" /> {t('Not logged')}
             </span>
           </p>
         )}
@@ -158,41 +177,43 @@ export function ThisWeek({ s, today, hide }: { s: AppState; today: string; hide:
       {!hide && (
         <ul className="mt-4 divide-y divide-slate-100 border-t border-slate-100 text-sm dark:divide-slate-700 dark:border-slate-700">
           <li className="flex justify-between gap-3 py-2.5">
-            <span className="text-slate-600 dark:text-slate-300">Average calories a day</span>
+            <span className="text-slate-600 dark:text-slate-300">
+              {t('Average calories a day')}
+            </span>
             <span className="text-right font-semibold">
-              {w.avgKcal !== null ? `${fmtInt(w.avgKcal)} kcal` : '—'}
+              {w.avgKcal !== null ? t('{v1} kcal', { v1: fmtInt(w.avgKcal) }) : '—'}
               {w.targetKcal !== null && (
                 <span className="block text-xs font-normal text-slate-500 dark:text-slate-400">
-                  target {fmtInt(w.targetKcal)}
+                  {t('target')} {fmtInt(w.targetKcal)}
                 </span>
               )}
             </span>
           </li>
           <li className="flex justify-between gap-3 py-2.5">
-            <span className="text-slate-600 dark:text-slate-300">Average protein a day</span>
+            <span className="text-slate-600 dark:text-slate-300">{t('Average protein a day')}</span>
             <span className="text-right font-semibold">
               {w.avgProteinG !== null ? `${fmtInt(w.avgProteinG)} g` : '—'}
               {w.targetProteinG !== null && (
                 <span className="block text-xs font-normal text-slate-500 dark:text-slate-400">
-                  target {w.targetProteinG} g
+                  {t('target')} {w.targetProteinG} g
                 </span>
               )}
             </span>
           </li>
           <li className="flex justify-between gap-3 py-2.5">
-            <span className="text-slate-600 dark:text-slate-300">Weight change</span>
+            <span className="text-slate-600 dark:text-slate-300">{t('Weight change')}</span>
             <span className="text-right font-semibold">
               {w.weight ? (
                 <>
                   {w.weight.change > 0 ? '+' : w.weight.change < 0 ? '−' : ''}
-                  {fmt1(Math.abs(w.weight.change))} kg
+                  {fmt1(Math.abs(w.weight.change))} {t('kg')}
                   <span className="block text-xs font-normal text-slate-500 dark:text-slate-400">
-                    {fmt1(w.weight.first)} → {fmt1(w.weight.last)} kg
+                    {fmt1(w.weight.first)} → {fmt1(w.weight.last)} {t('kg')}
                   </span>
                 </>
               ) : (
                 <span className="text-xs font-normal text-slate-500 dark:text-slate-400">
-                  Weigh in twice in a week to see it
+                  {t('Weigh in twice in a week to see it')}
                 </span>
               )}
             </span>
@@ -201,7 +222,7 @@ export function ThisWeek({ s, today, hide }: { s: AppState; today: string; hide:
       )}
       {!hide && w.loggedDays > 0 && (
         <p className="mt-2 text-[0.6875rem] text-slate-500 dark:text-slate-400">
-          Averages only count days you logged food; days you skipped don&apos;t count as 0.
+          {t("Averages only count days you logged food; days you skipped don't count as 0.")}
         </p>
       )}
     </Card>

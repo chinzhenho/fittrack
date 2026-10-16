@@ -10,18 +10,23 @@ import { GOAL_LABELS } from '../lib/messages';
 import { MEAL_LABELS, MEAL_TYPES, sumNutrients } from '../logic/nutrition';
 import { startWeightKg, targetOn } from '../logic/targets';
 import { datesBetween, weeklySummary } from '../logic/weekly';
+import { getLang, t, tr } from '../lib/i18n';
 
 type Range = '30' | '90' | 'all';
-const RANGE_LABELS: Record<Range, string> = {
+const RANGE_LABELS: Record<Range, string> = tr({
   '30': 'Last 30 days',
   '90': 'Last 90 days',
   all: 'Everything',
-};
+});
 
 const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const DAY_NAMES_ZH = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
 const dayLabel = (d: string) => {
   const [y, m, day] = d.split('-').map(Number) as [number, number, number];
-  return `${DAY_NAMES[new Date(y, m - 1, day).getDay()]} ${shortDate(d)}`;
+  const wd = new Date(y, m - 1, day).getDay();
+  return getLang() === 'zh'
+    ? `${shortDate(d)} ${DAY_NAMES_ZH[wd]}`
+    : `${DAY_NAMES[wd]} ${shortDate(d)}`;
 };
 
 interface DayRow {
@@ -70,7 +75,7 @@ function CaloriesChart({ rows, gaining }: { rows: DayRow[]; gaining: boolean }) 
     r.target !== null && (gaining ? r.kcal < r.target * 0.9 : r.kcal > r.target * 1.1);
   const ticks = [0, Math.round(max / 2 / 100) * 100, Math.round((max * 0.9) / 100) * 100];
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="w-full" role="img" aria-label="Calories per day">
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full" role="img" aria-label={t('Calories per day')}>
       {ticks.map((t) => (
         <g key={t}>
           <line x1={pad.l} x2={W - pad.r} y1={y(t)} y2={y(t)} stroke="#e5e5ea" strokeWidth="0.5" />
@@ -104,7 +109,7 @@ function CaloriesChart({ rows, gaining }: { rows: DayRow[]; gaining: boolean }) 
             strokeDasharray="3 2"
           />
           <text x={W - pad.r} y={y(target) - 2} fontSize="7" textAnchor="end" fill="#1d1d1f">
-            target {fmtInt(target)}
+            {t('target')} {fmtInt(target)}
           </text>
         </>
       )}
@@ -138,7 +143,7 @@ function WeightChart({
   if (pts.length === 0) {
     return (
       <p className="flex h-full min-h-24 items-center justify-center text-xs text-slate-500">
-        No weigh-ins in this period.
+        {t('No weigh-ins in this period.')}
       </p>
     );
   }
@@ -170,7 +175,7 @@ function WeightChart({
     </g>
   );
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="w-full" role="img" aria-label="Weight">
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full" role="img" aria-label={t('Weight')}>
       {[lo, (lo + hi) / 2, hi].map((t) => (
         <g key={t}>
           <line x1={pad.l} x2={W - pad.r} y1={y(t)} y2={y(t)} stroke="#e5e5ea" strokeWidth="0.5" />
@@ -179,8 +184,8 @@ function WeightChart({
           </text>
         </g>
       ))}
-      {startKg !== null && ref(startKg, 'Start', '#8e8e93')}
-      {showGoal && ref(goalKg, 'Goal', '#248a3d')}
+      {startKg !== null && ref(startKg, t('Start'), '#8e8e93')}
+      {showGoal && ref(goalKg, t('Goal'), '#248a3d')}
       <path
         d={pts.map((p, k) => `${k ? 'L' : 'M'}${x(p.i).toFixed(1)} ${y(p.w).toFixed(1)}`).join(' ')}
         fill="none"
@@ -259,14 +264,14 @@ export function Report() {
     a.download = `eathealthee-${today}.json`;
     a.click();
     URL.revokeObjectURL(url);
-    toast({ text: 'Data file download started' });
+    toast({ text: t('Data file download started') });
   };
 
   const macros: { label: string; avg: number | null; target: number | undefined; color: string }[] =
     [
-      { label: 'Protein', avg: summary.avgProteinG, target: target?.proteinG, color: '#356b4f' },
-      { label: 'Carbs', avg: avg('carbsG'), target: target?.carbsG, color: '#b5793a' },
-      { label: 'Fat', avg: avg('fatG'), target: target?.fatG, color: '#b8664f' },
+      { label: t('Protein'), avg: summary.avgProteinG, target: target?.proteinG, color: '#356b4f' },
+      { label: t('Carbs'), avg: avg('carbsG'), target: target?.carbsG, color: '#b5793a' },
+      { label: t('Fat'), avg: avg('fatG'), target: target?.fatG, color: '#b8664f' },
     ];
   const th = 'px-1 py-1 font-semibold text-slate-500 print:py-0.5';
   const td = 'px-1 py-1 print:py-[1px]';
@@ -277,13 +282,14 @@ export function Report() {
         <BackButton fallback="/me" />
         <div className="space-y-4 rounded-[22px] bg-white p-4 dark:bg-slate-800">
           <div>
-            <p className="text-[1.0625rem] font-semibold">Your report</p>
+            <p className="text-[1.0625rem] font-semibold">{t('Your report')}</p>
             <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-              30 days fit on one page. Tap Save as PDF, then choose &quot;Save as PDF&quot; (on
-              iPhone: tap Share, then Save to Files).
+              {t(
+                '30 days fit on one page. Tap Save as PDF, then choose "Save as PDF" (on iPhone: tap Share, then Save to Files).',
+              )}
             </p>
           </div>
-          <div className="flex flex-wrap gap-2" role="group" aria-label="Period">
+          <div className="flex flex-wrap gap-2" role="group" aria-label={t('Period')}>
             {(Object.keys(RANGE_LABELS) as Range[]).map((r) => (
               <button
                 key={r}
@@ -297,12 +303,12 @@ export function Report() {
             ))}
           </div>
           <CheckCards
-            label="Extra pages"
+            label={t('Extra pages')}
             options={[
               {
                 key: 'details',
-                label: 'Include each food I ate',
-                sub: 'Adds a food list after the summary page',
+                label: t('Include each food I ate'),
+                sub: t('Adds a food list after the summary page'),
                 icon: '🍽️',
                 checked: details,
               },
@@ -310,7 +316,7 @@ export function Report() {
             onToggle={(_, v) => setDetails(v)}
           />
           <Button className="w-full" onClick={() => window.print()}>
-            Save as PDF
+            {t('Save as PDF')}
           </Button>
         </div>
       </div>
@@ -321,7 +327,7 @@ export function Report() {
           <div className="flex items-center gap-2">
             <img src="/brand/icon-192.png" alt="" className="size-8 rounded-lg print:size-7" />
             <div>
-              <p className="text-base leading-tight font-bold">EatHealthee report</p>
+              <p className="text-base leading-tight font-bold">{t('EatHealthee report')}</p>
               <p className="text-xs text-slate-500">
                 {profile.nickname ? `${profile.nickname} · ` : ''}
                 {formatDateFull(start)} – {formatDateFull(today)}
@@ -333,7 +339,7 @@ export function Report() {
             {target && (
               <>
                 <br />
-                Target {fmtInt(target.caloriesKcal)} kcal/day
+                {t('Target')} {fmtInt(target.caloriesKcal)} {t('kcal/day')}
               </>
             )}
           </p>
@@ -341,22 +347,26 @@ export function Report() {
 
         <section className="grid grid-cols-2 gap-2 sm:grid-cols-4 print:grid-cols-4">
           <Tile
-            label="Days with food logged"
+            label={t('Days with food logged')}
             value={`${summary.loggedDays} / ${summary.dayCount}`}
-            note={`${summary.completeDays} complete`}
+            note={t('{n} complete', { n: summary.completeDays })}
           />
           <Tile
-            label="Average calories"
+            label={t('Average calories')}
             value={summary.avgKcal !== null ? `${fmtInt(summary.avgKcal)} kcal` : '—'}
-            note={logged.length ? `${onTrack} of ${logged.length} days on track` : 'no food logged'}
+            note={
+              logged.length
+                ? t('{n} of {total} days on track', { n: onTrack, total: logged.length })
+                : t('no food logged')
+            }
           />
           <Tile
-            label="Average protein"
+            label={t('Average protein')}
             value={summary.avgProteinG !== null ? `${fmtInt(summary.avgProteinG)} g` : '—'}
-            note={target ? `target ${target.proteinG} g` : undefined}
+            note={target ? t('target {g} g', { g: target.proteinG }) : undefined}
           />
           <Tile
-            label="Weight change"
+            label={t('Weight change')}
             value={
               summary.weight
                 ? `${summary.weight.change > 0 ? '+' : ''}${fmt1(summary.weight.change)} kg`
@@ -365,34 +375,34 @@ export function Report() {
             note={
               summary.weight
                 ? `${fmt1(summary.weight.first)} → ${fmt1(summary.weight.last)} kg`
-                : 'needs 2 weigh-ins'
+                : t('needs 2 weigh-ins')
             }
           />
         </section>
 
         <section className="grid gap-3 sm:grid-cols-2 print:grid-cols-2">
           <div className="break-inside-avoid">
-            <p className="mb-1 font-semibold">Calories per day</p>
+            <p className="mb-1 font-semibold">{t('Calories per day')}</p>
             <CaloriesChart rows={rows} gaining={gaining} />
             <p className="mt-0.5 flex gap-3 text-[0.6875rem] text-slate-500">
               <span>
                 <span className="mr-1 inline-block size-2 rounded-sm bg-[#4e8a66]" />
-                On track
+                {t('On track')}
               </span>
               <span>
                 <span className="mr-1 inline-block size-2 rounded-sm bg-[#b5793a] dark:bg-[#e8b978]" />
-                {gaining ? 'Under target' : 'Over target'}
+                {gaining ? t('Under target') : t('Over target')}
               </span>
             </p>
           </div>
           <div className="break-inside-avoid">
-            <p className="mb-1 font-semibold">Weight</p>
+            <p className="mb-1 font-semibold">{t('Weight')}</p>
             <WeightChart rows={rows} startKg={startWeightKg(s)} goalKg={profile.targetWeightKg} />
           </div>
         </section>
 
         <section className="break-inside-avoid">
-          <p className="mb-1 font-semibold">Average a day vs target</p>
+          <p className="mb-1 font-semibold">{t('Average a day vs target')}</p>
           <div className="grid grid-cols-3 gap-3">
             {macros.map((m) => (
               <div key={m.label}>
@@ -420,16 +430,16 @@ export function Report() {
         </section>
 
         <section>
-          <p className="mb-1 font-semibold">Day by day</p>
+          <p className="mb-1 font-semibold">{t('Day by day')}</p>
           <table className="w-full border-collapse tabular-nums">
             <thead>
               <tr className="border-b border-slate-300 text-[0.6875rem]">
-                <th className={`${th} text-left`}>Date</th>
-                <th className={`${th} text-right`}>kcal</th>
-                <th className={`${th} text-right`}>Protein</th>
-                <th className={`${th} text-right`}>Carbs</th>
-                <th className={`${th} text-right`}>Fat</th>
-                <th className={`${th} text-right`}>Weight</th>
+                <th className={`${th} text-left`}>{t('Date')}</th>
+                <th className={`${th} text-right`}>{t('kcal')}</th>
+                <th className={`${th} text-right`}>{t('Protein')}</th>
+                <th className={`${th} text-right`}>{t('Carbs')}</th>
+                <th className={`${th} text-right`}>{t('Fat')}</th>
+                <th className={`${th} text-right`}>{t('Weight')}</th>
               </tr>
             </thead>
             <tbody>
@@ -449,23 +459,24 @@ export function Report() {
                   <td className={`${td} text-right`}>{r.logged ? `${fmtInt(r.carbsG)} g` : ''}</td>
                   <td className={`${td} text-right`}>{r.logged ? `${fmtInt(r.fatG)} g` : ''}</td>
                   <td className={`${td} text-right`}>
-                    {r.weight !== null ? `${fmt1(r.weight)} kg` : ''}
+                    {r.weight !== null ? t('{v1} kg', { v1: fmt1(r.weight) }) : ''}
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
           <p className="mt-1 text-[0.6875rem] text-slate-500">
-            ✓ = you marked the day as complete. Averages only count days with food logged. Calories
-            and nutrients are estimates and not medical advice.
+            {t(
+              '✓ = you marked the day as complete. Averages only count days with food logged. Calories and nutrients are estimates and not medical advice.',
+            )}
           </p>
         </section>
 
         {details && (
           <section className="space-y-3 print:break-before-page">
-            <p className="font-semibold">Food you ate</p>
+            <p className="font-semibold">{t('Food you ate')}</p>
             {foodDays.length === 0 ? (
-              <p className="text-slate-500">No food logged in this period.</p>
+              <p className="text-slate-500">{t('No food logged in this period.')}</p>
             ) : (
               foodDays.map((d) => {
                 const items = MEAL_TYPES.flatMap((m) => byDay.get(d)!.filter((i) => i.meal === m));
@@ -473,7 +484,9 @@ export function Report() {
                   <div key={d} className="break-inside-avoid">
                     <p className="flex justify-between border-b border-slate-200 font-semibold">
                       <span>{dayLabel(d)}</span>
-                      <span>{fmtInt(sumNutrients(items).kcal)} kcal</span>
+                      <span>
+                        {fmtInt(sumNutrients(items).kcal)} {t('kcal')}
+                      </span>
                     </p>
                     <table className="w-full tabular-nums">
                       <tbody>
@@ -487,7 +500,7 @@ export function Report() {
                               {fmtInt(i.grams)} g
                             </td>
                             <td className="py-0.5 text-right whitespace-nowrap">
-                              {fmtInt(i.nutrients.kcal)} kcal
+                              {fmtInt(i.nutrients.kcal)} {t('kcal')}
                             </td>
                           </tr>
                         ))}
@@ -507,7 +520,7 @@ export function Report() {
           onClick={downloadJson}
           className="text-sm text-emerald-strong hover:opacity-70 dark:text-emerald"
         >
-          Download the raw data file instead (JSON, for backups)
+          {t('Download the raw data file instead (JSON, for backups)')}
         </button>
       </div>
     </div>
