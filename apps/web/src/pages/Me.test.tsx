@@ -88,7 +88,7 @@ function renderMe(hideNumbers = false, path = '/me') {
 describe('Me page sections', () => {
   it('saves the chosen language with the profile so it follows the account', () => {
     renderMe();
-    fireEvent.click(screen.getByRole('radio', { name: /简体中文/ }));
+    fireEvent.change(screen.getByLabelText('Language'), { target: { value: 'zh' } });
     expect(getLang()).toBe('zh');
     expect(getState().profile?.language).toBe('zh');
     expect(screen.getByRole('heading', { name: '我的' })).toBeTruthy();

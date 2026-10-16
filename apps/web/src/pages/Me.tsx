@@ -28,6 +28,8 @@ import {
   PageTitle,
   Stepper,
   Switch,
+  ToggleRow,
+  SelectRow,
   ChoiceCards,
   CheckCards,
 } from '../components/ui';
@@ -942,53 +944,42 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
         </ul>
       </Group>
 
-      <section aria-label={t('Appearance')}>
-        <h2 className="mb-3 text-xs font-semibold tracking-[0.08em] text-emerald-strong uppercase dark:text-emerald">
-          {t('Appearance')}
-        </h2>
-        <div className="space-y-5">
-          {/* Each language is named in itself, so it can be found in either language. */}
-          <ChoiceCards<Lang>
-            label={t('Language')}
-            columns={2}
-            value={lang}
-            options={[
-              { value: 'en', label: 'English' },
-              { value: 'zh', label: '简体中文' },
-            ]}
-            onChange={(l) => {
-              setLang(l);
-              update((x) => setLanguage(x, l));
-            }}
-          />
-          <ChoiceCards<Theme>
-            label={t('Theme')}
-            columns={3}
-            value={theme}
-            options={[
-              { value: 'light', label: t('Light') },
-              { value: 'dark', label: t('Dark') },
-              { value: 'system', label: t('Auto'), sub: t('match phone') },
-            ]}
-            onChange={setTheme}
-          />
-          <CheckCards
-            label={t('Privacy on screen')}
-            hint={t(
-              'If the numbers stress you out, or someone can see your screen. You still log as usual; the app shows your habits instead.',
-            )}
-            options={[
-              {
-                key: 'hide',
-                label: t('Hide calories and weight'),
-
-                checked: hide,
-              },
-            ]}
-            onToggle={(_, v) => update((x) => setHideNumbers(x, v))}
-          />
-        </div>
-      </section>
+      {/* Same grouped-list look as Reminders and Privacy & data below. */}
+      <List
+        title={t('Appearance')}
+        footer={t(
+          'Hiding calories and weight helps if the numbers stress you out, or someone can see your screen. You still log as usual; the app shows your habits instead.',
+        )}
+      >
+        {/* Each language is named in itself, so it can be found in either language. */}
+        <SelectRow<Lang>
+          label={t('Language')}
+          value={lang}
+          options={[
+            { value: 'en', label: 'English' },
+            { value: 'zh', label: '简体中文' },
+          ]}
+          onChange={(l) => {
+            setLang(l);
+            update((x) => setLanguage(x, l));
+          }}
+        />
+        <SelectRow<Theme>
+          label={t('Theme')}
+          value={theme}
+          options={[
+            { value: 'light', label: t('Light') },
+            { value: 'dark', label: t('Dark') },
+            { value: 'system', label: t('Auto (match phone)') },
+          ]}
+          onChange={setTheme}
+        />
+        <ToggleRow
+          label={t('Hide calories and weight')}
+          checked={hide}
+          onChange={(v) => update((x) => setHideNumbers(x, v))}
+        />
+      </List>
 
       <RemindersCard />
 

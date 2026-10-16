@@ -1111,4 +1111,7 @@ export const ZH: Record<string, string> = {
   "Optional. Only used to show progress; it doesn't change your daily calories":
     '选填。只用来显示进度，不会改变你每日的卡路里',
   'Choose any, or skip': '可以多选，或跳过',
+  'Auto (match phone)': '自动（跟随手机）',
+  'Hiding calories and weight helps if the numbers stress you out, or someone can see your screen. You still log as usual; the app shows your habits instead.':
+    '如果数字让你有压力，或别人看得到你的屏幕，可以隐藏卡路里和体重。你照样记录，应用会改为显示你的习惯。',
 };
