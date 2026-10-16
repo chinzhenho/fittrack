@@ -1,10 +1,16 @@
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { ToastProvider } from '../components/Toast';
 import { getState, replaceState } from '../data/store';
 import { emptyState, type Profile, type TargetVersion } from '../data/types';
 import { Me } from './Me';
+import type * as AvatarModule from '../components/Avatar';
+
+vi.mock('../components/Avatar', async (original) => ({
+  ...(await original<typeof AvatarModule>()),
+  makeAvatarPhoto: () => Promise.resolve('data:image/jpeg;base64,AVATAR'),
+}));
 
 const profile: Profile = {
   formulaSex: 'male',
@@ -87,12 +93,24 @@ describe('edit profile', () => {
     renderProfile();
     expect(screen.queryByLabelText('Height')).toBeNull();
     fireEvent.change(screen.getByLabelText('Nickname'), { target: { value: ' Alex ' } });
+    fireEvent.click(screen.getAllByRole('button', { name: 'Change picture' })[0]!);
     fireEvent.click(screen.getByRole('button', { name: 'Avatar 🥑' }));
     fireEvent.click(screen.getByRole('button', { name: 'Save profile' }));
     await screen.findByText('me page');
     const s = getState();
     expect(s.profile).toMatchObject({ nickname: 'Alex', avatar: '🥑' });
     expect(s.targets).toHaveLength(0);
+  });
+
+  it('a photo from the album becomes the picture after saving', async () => {
+    renderProfile();
+    fireEvent.click(screen.getAllByRole('button', { name: 'Change picture' })[0]!);
+    const photo = new File(['x'], 'me.jpg', { type: 'image/jpeg' });
+    fireEvent.change(screen.getByLabelText('Choose from album'), { target: { files: [photo] } });
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    fireEvent.click(screen.getByRole('button', { name: 'Save profile' }));
+    await screen.findByText('me page');
+    expect(getState().profile?.avatarPhoto).toBe('data:image/jpeg;base64,AVATAR');
   });
 
   it('body details: a target weight alone does not create a new calorie target', async () => {

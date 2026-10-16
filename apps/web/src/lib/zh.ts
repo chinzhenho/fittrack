@@ -1142,4 +1142,12 @@ export const ZH: Record<string, string> = {
     '所有饮食和体重记录都会被永久删除，范围：',
   'Removes your food and weight logs. Your account, profile and plan stay.':
     '删除你的饮食和体重记录。账号、个人资料和计划会保留。',
+  'Change picture': '更换头像',
+  Photo: '照片',
+  'Take a photo': '拍一张照片',
+  'Remove photo': '移除照片',
+  'Or pick an icon': '或选择一个图案',
+  'Use my initial': '使用名字首字母',
+  "What you enter during setup and use: date of birth, height, weight, waist, goal, activity level, health screening answers, diet preferences, food logs and weight logs, plus a nickname and profile photo if you add them (the photo is shrunk to a small picture on your phone first). Under Malaysia's Personal Data Protection Act 2010 (PDPA), health data is sensitive personal data, and we only use it with your explicit consent.":
+    '你在设置和使用时输入的资料：出生日期、身高、体重、腰围、目标、活动量、健康筛查答案、饮食偏好、饮食记录和体重记录，以及你填写的昵称和头像照片（照片会先在手机上缩成一张小图）。根据马来西亚《2010 年个人资料保护法令》（PDPA），健康资料属于敏感个人资料，我们只会在你明确同意后使用。',
 };

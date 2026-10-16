@@ -157,7 +157,7 @@ export function Privacy() {
       <h2>{t('What we collect')}</h2>
       <p>
         {t(
-          "What you enter during setup and use: date of birth, height, weight, waist, goal, activity level, health screening answers, diet preferences, food logs and weight logs. Under Malaysia's Personal Data Protection Act 2010 (PDPA), health data is sensitive personal data, and we only use it with your explicit consent.",
+          "What you enter during setup and use: date of birth, height, weight, waist, goal, activity level, health screening answers, diet preferences, food logs and weight logs, plus a nickname and profile photo if you add them (the photo is shrunk to a small picture on your phone first). Under Malaysia's Personal Data Protection Act 2010 (PDPA), health data is sensitive personal data, and we only use it with your explicit consent.",
         )}
       </p>
       <h2>{t('Where your data is stored')}</h2>

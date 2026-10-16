@@ -64,6 +64,8 @@ import {
 import { setTheme, useTheme, type Theme } from '../lib/theme';
 import { latestWeight, planFor, targetFromPlan, targetOn } from '../logic/targets';
 import { setLang, t, tr, useLang, type Lang } from '../lib/i18n';
+import { Avatar, avatarInitial, makeAvatarPhoto } from '../components/Avatar';
+import { createPortal } from 'react-dom';
 
 const RATE_OPTIONS: Record<Goal, number[]> = {
   fat_loss: [0.25, 0.5, 0.75, 1],
@@ -261,6 +263,116 @@ function Group({ title, children }: { title: string; children: ReactNode }) {
   );
 }
 
+/** Bottom sheet to choose the profile picture: a photo, an emoji or the initial. */
+function AvatarSheet({
+  draft,
+  email,
+  onPick,
+  onClose,
+}: {
+  draft: Profile;
+  email: string;
+  onPick: (next: Profile) => void;
+  onClose: () => void;
+}) {
+  const toast = useToast();
+  const without = (p: Profile, ...keys: ('avatar' | 'avatarPhoto')[]) => {
+    const next: Profile = { ...p };
+    for (const k of keys) delete next[k];
+    return next;
+  };
+  const fromFile = async (file: File | undefined) => {
+    if (!file) return;
+    try {
+      onPick({ ...draft, avatarPhoto: await makeAvatarPhoto(file) });
+    } catch {
+      toast({ text: t("Can't read this image. Please try another one.") });
+    }
+  };
+  const fileButton = (label: string, capture: boolean) => (
+    <label className="flex min-h-12 cursor-pointer items-center text-[1.0625rem] text-emerald-strong dark:text-emerald">
+      {label}
+      <input
+        type="file"
+        accept="image/*"
+        {...(capture && { capture: 'user' as const })}
+        className="sr-only"
+        onChange={(e) => {
+          void fromFile(e.target.files?.[0]);
+          e.target.value = '';
+        }}
+      />
+    </label>
+  );
+  return createPortal(
+    <div
+      className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/50 sm:items-center"
+      onClick={onClose}
+      role="presentation"
+    >
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label={t('Change picture')}
+        onClick={(e) => e.stopPropagation()}
+        className="w-full max-w-md animate-rise space-y-5 rounded-t-3xl bg-mist p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] sm:rounded-3xl dark:bg-slate-800"
+      >
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-semibold tracking-tight">{t('Change picture')}</h2>
+          <button
+            type="button"
+            onClick={onClose}
+            className="min-h-10 px-2 text-[1.0625rem] text-emerald-strong dark:text-emerald"
+          >
+            {t('Cancel')}
+          </button>
+        </div>
+        <List title={t('Photo')}>
+          {fileButton(t('Take a photo'), true)}
+          {fileButton(t('Choose from album'), false)}
+          {draft.avatarPhoto && (
+            <button
+              type="button"
+              onClick={() => onPick(without(draft, 'avatarPhoto'))}
+              className="min-h-12 w-full text-left text-[1.0625rem] text-[#a04438] dark:text-red-300"
+            >
+              {t('Remove photo')}
+            </button>
+          )}
+        </List>
+        <section aria-label={t('Or pick an icon')}>
+          <h3 className="mb-2 text-xs font-semibold tracking-[0.08em] text-emerald-strong uppercase dark:text-emerald">
+            {t('Or pick an icon')}
+          </h3>
+          <div className="flex flex-wrap gap-2.5">
+            <button
+              type="button"
+              aria-label={t('Use my initial')}
+              onClick={() => onPick(without(draft, 'avatar', 'avatarPhoto'))}
+              className="flex size-12 items-center justify-center rounded-full bg-emerald-50 text-xl font-semibold text-emerald-strong dark:bg-emerald/15 dark:text-emerald"
+            >
+              {avatarInitial(draft, email)}
+            </button>
+            {AVATARS.map((a) => (
+              <button
+                key={a}
+                type="button"
+                aria-label={t('Avatar {a}', { a })}
+                aria-pressed={!draft.avatarPhoto && draft.avatar === a}
+                onClick={() => onPick({ ...without(draft, 'avatarPhoto'), avatar: a })}
+                className={`flex size-12 items-center justify-center rounded-full text-2xl transition ${!draft.avatarPhoto && draft.avatar === a ? 'bg-emerald-100 ring-2 ring-emerald-strong dark:bg-emerald/20 dark:ring-emerald' : 'bg-white ring-1 ring-slate-200 hover:bg-slate-50 dark:bg-slate-700 dark:ring-white/10'}`}
+              >
+                {a}
+              </button>
+            ))}
+          </div>
+        </section>
+      </div>
+    </div>,
+    document.body,
+  );
+}
+
 function BackToMe() {
   return (
     <Link to="/me" className={backButtonClass}>
@@ -284,6 +396,7 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
     profile?.targetWeightKg !== undefined ? String(profile.targetWeightKg) : '',
   );
   const [confirming, setConfirming] = useState(false);
+  const [picking, setPicking] = useState(false);
   const [danger, setDanger] = useState<'records' | 'account' | 'device' | null>(null);
   const [deleteWord, setDeleteWord] = useState('');
   const [busy, setBusy] = useState(false);
@@ -323,6 +436,8 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
     const rest: Profile = { ...p };
     delete rest.nickname;
     delete rest.avatar;
+    delete rest.avatarPhoto;
+    delete rest.language;
     delete rest.targetWeightKg;
     delete rest.waterActivity;
     return comparable(rest);
@@ -466,7 +581,6 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
   );
 
   if (mode === 'profile') {
-    const avatarNow = draft.avatar ?? (signedIn ? (email[0] ?? '🙂').toUpperCase() : '🙂');
     return (
       <div className="space-y-8">
         <div>
@@ -474,47 +588,49 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
           <PageTitle sub={t('Your name, picture and account.')}>{t('Profile & account')}</PageTitle>
         </div>
 
-        <div className="flex items-center gap-4">
-          <span
-            aria-hidden="true"
-            className="flex size-20 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-4xl font-semibold text-emerald-strong dark:bg-emerald/15 dark:text-emerald"
+        <div className="flex flex-col items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setPicking(true)}
+            aria-label={t('Change picture')}
+            className="rounded-full transition hover:opacity-90 active:scale-95"
           >
-            {avatarNow}
-          </span>
-          <div className="min-w-0 flex-1">
-            <label htmlFor="nickname" className="text-sm text-slate-500 dark:text-slate-400">
-              {t('Nickname')}
-            </label>
-            <input
-              id="nickname"
-              maxLength={20}
-              placeholder={t('What should we call you?')}
-              value={draft.nickname ?? ''}
-              onChange={(e) => setDraft({ ...draft, nickname: e.target.value })}
-              className="mt-1 block min-h-12 w-full rounded-[14px] bg-white px-4 text-[1.125rem] font-semibold ring-1 ring-slate-200 placeholder:text-base placeholder:font-normal placeholder:text-slate-400 focus:ring-2 focus:ring-emerald focus:outline-none dark:bg-slate-800 dark:ring-slate-600"
-            />
-          </div>
+            <Avatar profile={draft} email={email} className="size-24 text-5xl" />
+          </button>
+          <button
+            type="button"
+            onClick={() => setPicking(true)}
+            className="min-h-9 text-sm font-medium text-emerald-strong dark:text-emerald"
+          >
+            {t('Change picture')}
+          </button>
         </div>
 
-        <fieldset>
-          <legend className="mb-1 text-xs font-semibold tracking-[0.08em] text-emerald-strong uppercase dark:text-emerald">
-            {t('Picture')}
-          </legend>
-          <div className="flex flex-wrap gap-2.5 pt-2" role="group" aria-label={t('Avatar')}>
-            {AVATARS.map((a) => (
-              <button
-                key={a}
-                type="button"
-                aria-label={t('Avatar {a}', { a })}
-                aria-pressed={draft.avatar === a}
-                onClick={() => setDraft({ ...draft, avatar: a })}
-                className={`flex size-12 items-center justify-center rounded-full text-2xl transition ${draft.avatar === a ? 'bg-emerald-100 ring-2 ring-emerald-strong dark:bg-emerald/20 dark:ring-emerald' : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-700'}`}
-              >
-                {a}
-              </button>
-            ))}
-          </div>
-        </fieldset>
+        <div>
+          <label htmlFor="nickname" className="text-sm text-slate-500 dark:text-slate-400">
+            {t('Nickname')}
+          </label>
+          <input
+            id="nickname"
+            maxLength={20}
+            placeholder={t('What should we call you?')}
+            value={draft.nickname ?? ''}
+            onChange={(e) => setDraft({ ...draft, nickname: e.target.value })}
+            className="mt-1 block min-h-12 w-full rounded-[14px] bg-white px-4 text-[1.125rem] font-semibold ring-1 ring-slate-200 placeholder:text-base placeholder:font-normal placeholder:text-slate-400 focus:ring-2 focus:ring-emerald focus:outline-none dark:bg-slate-800 dark:ring-slate-600"
+          />
+        </div>
+
+        {picking && (
+          <AvatarSheet
+            draft={draft}
+            email={email}
+            onPick={(next) => {
+              setDraft(next);
+              setPicking(false);
+            }}
+            onClose={() => setPicking(false)}
+          />
+        )}
 
         {saveBar(t('Save profile'))}
 
@@ -767,7 +883,6 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
     );
   }
 
-  const initial = profile.avatar ?? (signedIn ? (email[0] ?? '?').toUpperCase() : '🙂');
   const hide = profile.hideNumbers;
 
   return (
@@ -780,12 +895,7 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
           aria-label={t('Edit profile')}
           className="flex items-center gap-4 py-2 transition hover:opacity-80"
         >
-          <span
-            aria-hidden="true"
-            className="flex size-16 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-3xl font-semibold text-emerald-strong dark:bg-emerald/15 dark:text-emerald"
-          >
-            {initial}
-          </span>
+          <Avatar profile={profile} email={email} className="size-16 text-3xl" />
           <span className="min-w-0 flex-1">
             <span className="block truncate text-[1.375rem] leading-tight font-semibold">
               {profile.nickname ?? (signedIn ? t('No nickname yet') : t('Guest'))}
