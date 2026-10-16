@@ -59,6 +59,8 @@ export interface Profile {
   };
   hideNumbers: boolean;
   consentedAt: string;
+  /** App language chosen in Me; saved with the profile so it follows the account. */
+  language?: 'en' | 'zh';
 }
 
 /** One version of the nutrition target (spec 10.1 nutrition_targets): never overwritten. */

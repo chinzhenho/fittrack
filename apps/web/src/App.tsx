@@ -1,11 +1,11 @@
-import type { ReactNode } from 'react';
+import { useEffect, type ReactNode } from 'react';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router';
 import { AppShell } from './components/AppShell';
 import { ToastProvider } from './components/Toast';
 import { useAuth } from './data/auth';
 import { useAppState } from './data/store';
 import { useSync } from './data/sync';
-import { useLang } from './lib/i18n';
+import { getLang, setLang, useLang } from './lib/i18n';
 import { AddFood } from './pages/AddFood';
 import { Loading, Login, ResetPassword, Signup, UpdatePassword, Welcome } from './pages/Auth';
 import { Diary } from './pages/Diary';
@@ -94,6 +94,10 @@ export function AppRoutes() {
 export function App() {
   // Switching language redraws every page in the new language.
   const lang = useLang();
+  const saved = useAppState().profile?.language;
+  useEffect(() => {
+    if (saved && saved !== getLang()) setLang(saved);
+  }, [saved]);
   return (
     <BrowserRouter>
       <ToastProvider>

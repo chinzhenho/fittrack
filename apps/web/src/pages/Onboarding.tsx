@@ -32,7 +32,7 @@ import {
 } from '../lib/messages';
 import { planFor, targetFromPlan } from '../logic/targets';
 import { PlanSummary } from './PlanSummary';
-import { t } from '../lib/i18n';
+import { getLang, t } from '../lib/i18n';
 
 const RATE_OPTIONS: Record<Goal, number[]> = {
   fat_loss: [0.25, 0.5, 0.75, 1],
@@ -106,6 +106,7 @@ export function toProfile(d: Draft, today: string, now: string): Profile {
     },
     hideNumbers: false,
     consentedAt: now,
+    language: getLang(),
   };
 }
 
@@ -293,8 +294,13 @@ export function Onboarding() {
     <div className="min-h-dvh">
       <header className="sticky top-0 z-10 bg-mist/95 backdrop-blur dark:bg-slate-900/95">
         <div className="mx-auto flex max-w-xl items-center gap-2 px-2 py-2">
-          {index > 0 ? (
-            <button type="button" onClick={goBack} className={backButtonClass}>
+          {/* First step: guests can go back to the welcome page. */}
+          {index > 0 || !signedIn ? (
+            <button
+              type="button"
+              onClick={index > 0 ? goBack : () => navigate('/welcome')}
+              className={backButtonClass}
+            >
               <BackArrow />
               {t('Back')}
             </button>

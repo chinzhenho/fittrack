@@ -35,6 +35,10 @@ export function addTarget(s: AppState, target: TargetVersion): AppState {
   return { ...s, targets: [...s.targets, target] };
 }
 
+export function setLanguage(s: AppState, language: 'en' | 'zh'): AppState {
+  return s.profile ? { ...s, profile: { ...s.profile, language } } : s;
+}
+
 export function setHideNumbers(s: AppState, hide: boolean): AppState {
   return s.profile ? { ...s, profile: { ...s.profile, hideNumbers: hide } } : s;
 }

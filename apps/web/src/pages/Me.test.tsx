@@ -2,7 +2,8 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { ToastProvider } from '../components/Toast';
-import { replaceState } from '../data/store';
+import { getState, replaceState } from '../data/store';
+import { getLang, setLang } from '../lib/i18n';
 import { emptyState, type Profile } from '../data/types';
 import { Me } from './Me';
 import type * as AuthModule from '../data/auth';
@@ -85,6 +86,15 @@ function renderMe(hideNumbers = false, path = '/me') {
 }
 
 describe('Me page sections', () => {
+  it('saves the chosen language with the profile so it follows the account', () => {
+    renderMe();
+    fireEvent.click(screen.getByRole('radio', { name: /简体中文/ }));
+    expect(getLang()).toBe('zh');
+    expect(getState().profile?.language).toBe('zh');
+    expect(screen.getByRole('heading', { name: '我的' })).toBeTruthy();
+    setLang('en');
+  });
+
   it('shows the profile header with nickname, email, goal and calorie target', () => {
     renderMe();
     expect(screen.getByText('Alex')).toBeTruthy();

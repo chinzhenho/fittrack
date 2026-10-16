@@ -31,7 +31,13 @@ import {
   ChoiceCards,
   CheckCards,
 } from '../components/ui';
-import { addTarget, saveProfile, setHideNumbers, updateProfileDetails } from '../data/actions';
+import {
+  addTarget,
+  saveProfile,
+  setHideNumbers,
+  setLanguage,
+  updateProfileDetails,
+} from '../data/actions';
 import { useAuth } from '../data/auth';
 import {
   deleteAccount,
@@ -950,7 +956,10 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
               { value: 'en', label: 'English', icon: '🇬🇧' },
               { value: 'zh', label: '简体中文', icon: '🇨🇳' },
             ]}
-            onChange={setLang}
+            onChange={(l) => {
+              setLang(l);
+              update((x) => setLanguage(x, l));
+            }}
           />
           <ChoiceCards<Theme>
             label={t('Theme')}
