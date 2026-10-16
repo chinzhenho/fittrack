@@ -263,18 +263,15 @@ function InsightsSection({ s, today }: { s: AppState; today: string }) {
           {shown.map((i) => (
             <li key={i.id} className={`rounded-2xl border p-3.5 ${TONE_STYLE[i.tone].cls}`}>
               <div className="flex items-start gap-2.5">
-                <span aria-hidden="true" className="text-lg leading-6">
-                  {TONE_STYLE[i.tone].icon}
-                </span>
                 <div className="min-w-0 flex-1">
-                  <p className="text-[11px] font-bold tracking-wide text-slate-500 dark:text-slate-400">
+                  <p className="text-xs font-semibold tracking-wide text-slate-500 dark:text-slate-400">
                     {CATEGORY_LABELS[i.category]}
                   </p>
                   <p className="font-bold">{i.title}</p>
                   <p className="mt-1 text-sm leading-relaxed text-slate-700 dark:text-slate-200">
                     {i.body}
                   </p>
-                  <p className="mt-1.5 text-xs text-slate-500 dark:text-slate-400">📊 {i.data}</p>
+                  <p className="mt-1.5 text-xs text-slate-500 dark:text-slate-400">{i.data}</p>
                   <div className="mt-2 flex flex-wrap items-center gap-2">
                     {i.action &&
                       (i.action.to.startsWith('#') ? (

@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from 'react';
-import { Glyph, IconTile, type IconName } from './Icons';
+import { Glyph, type IconName } from './Icons';
 import { useToast } from './Toast';
 import { Bar, Button, Card } from './ui';
 import { joinMonthlyChallenge } from '../data/actions';
@@ -45,9 +45,8 @@ export function Section({
     <Card className="scroll-mt-20">
       <div id={id} className="mb-4 flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
         <div className="flex min-w-0 items-center gap-2.5">
-          <IconTile name={icon} tint={tint} />
           <div className="min-w-0">
-            <h2 className="text-[1.25rem] leading-tight font-bold">{title}</h2>
+            <h2 className="text-xl leading-tight font-semibold tracking-tight">{title}</h2>
             {sub && (
               <p className="text-xs whitespace-nowrap text-slate-500 dark:text-slate-400">{sub}</p>
             )}
@@ -310,7 +309,6 @@ export function Achievements({ s, today, hide }: { s: AppState; today: string; h
         <ul className="divide-y divide-slate-100 dark:divide-slate-700">
           {records.map((r) => (
             <li key={r.id} className="flex items-center gap-3 py-2.5">
-              <IconTile name={r.icon} tint="bg-[#ff9500]" size="sm" />
               <span className="min-w-0 flex-1">
                 <span className="block text-sm">{r.title}</span>
                 <span className="block text-xs text-slate-500 dark:text-slate-400">

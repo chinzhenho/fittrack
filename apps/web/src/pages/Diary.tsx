@@ -1,7 +1,7 @@
 import { addDays } from '@fittrack/engine';
 import { useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router';
-import { FoodThumb, Glyph, IconTile } from '../components/Icons';
+import { FoodThumb, Glyph } from '../components/Icons';
 import { MEAL_STYLE } from '../components/mealStyle';
 import { MonthCalendar } from '../components/MonthCalendar';
 import { SnapButton } from '../components/SnapButton';
@@ -179,7 +179,6 @@ export function Diary() {
         return (
           <Card key={meal}>
             <div className="flex items-center gap-3">
-              <IconTile name={MEAL_STYLE[meal].glyph} tint={MEAL_STYLE[meal].tile} />
               <div className="min-w-0 flex-1">
                 <h2 className="text-lg font-semibold">{MEAL_LABELS[meal]}</h2>
                 <p className="text-sm text-slate-600 dark:text-slate-300">

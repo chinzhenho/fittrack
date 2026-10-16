@@ -435,16 +435,10 @@ function PhotoCard({
     : 0;
 
   return (
-    <section className="space-y-3 rounded-3xl bg-gradient-to-br from-emerald-50 to-teal-50 p-5 ring-1 ring-emerald-200 dark:from-emerald-950 dark:to-slate-800 dark:ring-emerald/30">
-      <div className="flex items-start gap-3">
-        <span
-          aria-hidden="true"
-          className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-white text-2xl shadow-sm dark:bg-slate-700"
-        >
-          📷
-        </span>
+    <section className="space-y-3 rounded-[20px] bg-emerald-50 p-5 dark:bg-emerald/10">
+      <div>
         <div>
-          <h2 className="text-lg font-semibold">{t('AI photo calories')}</h2>
+          <h2 className="text-xl font-semibold tracking-tight">{t('AI photo calories')}</h2>
           <p className="text-sm text-slate-700 dark:text-slate-300">
             {t(
               'Snap your whole meal. AI spots each food and estimates the portion and calories; you check before it is logged.',
@@ -556,7 +550,7 @@ function PhotoCard({
             onClick={() => setCamera(true)}
             className="inline-flex min-h-12 flex-1 items-center justify-center gap-2 rounded-2xl bg-emerald-strong px-4 text-sm font-semibold whitespace-nowrap text-white shadow-sm hover:bg-emerald-800 disabled:opacity-50 dark:bg-emerald dark:text-slate-950"
           >
-            {t('📸 Take photo')}
+            {t('Take photo')}
           </button>
           {fileButton(t('Choose from album'), false)}
         </div>

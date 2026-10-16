@@ -657,11 +657,6 @@ export function ChoiceCards<T extends string>({
               onChange={() => onChange(o.value)}
               className="peer sr-only"
             />
-            {o.icon && (
-              <span aria-hidden="true" className="text-xl leading-none">
-                {o.icon}
-              </span>
-            )}
             <span className="min-w-0 pr-5">
               <span className="block text-[0.9375rem] leading-snug font-semibold">{o.label}</span>
               {o.sub && (
@@ -715,11 +710,6 @@ export function CheckCards({
               onChange={(e) => onToggle(o.key, e.target.checked)}
               className="peer sr-only"
             />
-            {o.icon && (
-              <span aria-hidden="true" className="text-xl leading-none">
-                {o.icon}
-              </span>
-            )}
             <span className="min-w-0 pr-5">
               <span className="block text-sm leading-snug font-semibold">{o.label}</span>
               {o.sub && (
