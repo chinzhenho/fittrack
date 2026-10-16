@@ -103,6 +103,11 @@ describe('Me page sections', () => {
     expect(screen.getByRole('link', { name: 'Edit profile' }).getAttribute('href')).toBe(
       '/me/profile',
     );
+    // Account rows live on Me itself.
+    expect(screen.getByRole('link', { name: /Change password/ }).getAttribute('href')).toBe(
+      '/update-password',
+    );
+    expect(screen.getByRole('button', { name: 'Log out' })).toBeTruthy();
   });
 
   it('scenario G: hiding numbers removes calories from the page', () => {
@@ -126,8 +131,8 @@ describe('Me page sections', () => {
     deleteAccount.mockResolvedValueOnce(
       'Delete failed. Check your connection and try again. Your account and data were not deleted.',
     );
-    renderMe(false, '/me/profile');
-    fireEvent.click(screen.getByRole('button', { name: 'Delete account' }));
+    renderMe();
+    fireEvent.click(screen.getByRole('button', { name: /^Delete account/ }));
     const confirm = screen.getByRole('button', {
       name: 'Delete account forever',
     }) as HTMLButtonElement;
@@ -142,8 +147,8 @@ describe('Me page sections', () => {
 
   it('scenario F: deleting the account leaves for the welcome page', async () => {
     deleteAccount.mockResolvedValueOnce(null);
-    renderMe(false, '/me/profile');
-    fireEvent.click(screen.getByRole('button', { name: 'Delete account' }));
+    renderMe();
+    fireEvent.click(screen.getByRole('button', { name: /^Delete account/ }));
     fireEvent.change(screen.getByLabelText('Type DELETE to confirm'), {
       target: { value: 'DELETE' },
     });
@@ -201,10 +206,10 @@ describe('Me page', () => {
       },
     });
     render(
-      <MemoryRouter initialEntries={['/me/profile']}>
+      <MemoryRouter initialEntries={['/me']}>
         <ToastProvider>
           <Routes>
-            <Route path="/me/profile" element={<Me mode="profile" />} />
+            <Route path="/me" element={<Me />} />
             <Route path="/welcome" element={<p>welcome page</p>} />
           </Routes>
         </ToastProvider>

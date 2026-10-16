@@ -1137,4 +1137,9 @@ export const ZH: Record<string, string> = {
     '删除你的账号、登录资料和所有数据，无法恢复。',
   'Removes everything saved on this device, and you start over.':
     '删除这部设备上保存的所有内容，然后重新开始。',
+  'To log out or delete your account, go back to Me.': '要登出或删除账号，请回到「我的」页面。',
+  'All food and weight logs will be permanently deleted from':
+    '所有饮食和体重记录都会被永久删除，范围：',
+  'Removes your food and weight logs. Your account, profile and plan stay.':
+    '删除你的饮食和体重记录。账号、个人资料和计划会保留。',
 };

@@ -428,7 +428,7 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
     setError(null);
   };
 
-  // Delete-account confirmation, shown on Profile & account and in Me → Delete data.
+  // Delete-account confirmation in Me → Delete data.
   const deleteAccountPanel = (
     <Notice tone="warn" title={t('Permanently delete your account?')}>
       {t(
@@ -468,23 +468,21 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
   if (mode === 'profile') {
     const avatarNow = draft.avatar ?? (signedIn ? (email[0] ?? '🙂').toUpperCase() : '🙂');
     return (
-      <div className="space-y-4">
-        <BackToMe />
-        <PageTitle sub={t('Your name, picture and account.')}>{t('Profile & account')}</PageTitle>
+      <div className="space-y-8">
+        <div>
+          <BackToMe />
+          <PageTitle sub={t('Your name, picture and account.')}>{t('Profile & account')}</PageTitle>
+        </div>
 
-        <div className="flex flex-col items-center gap-2 pb-1">
+        <div className="flex items-center gap-4">
           <span
             aria-hidden="true"
-            className="flex size-24 items-center justify-center rounded-full bg-gradient-to-b from-slate-100 to-slate-200 text-5xl font-semibold text-slate-600 dark:from-slate-600 dark:to-slate-700 dark:text-slate-100"
+            className="flex size-20 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-4xl font-semibold text-emerald-strong dark:bg-emerald/15 dark:text-emerald"
           >
             {avatarNow}
           </span>
-          {signedIn && <p className="text-sm text-slate-500 dark:text-slate-400">{email}</p>}
-        </div>
-
-        <Card className="space-y-6">
-          <div>
-            <label htmlFor="nickname" className="text-[1.0625rem] font-semibold">
+          <div className="min-w-0 flex-1">
+            <label htmlFor="nickname" className="text-sm text-slate-500 dark:text-slate-400">
               {t('Nickname')}
             </label>
             <input
@@ -493,43 +491,32 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
               placeholder={t('What should we call you?')}
               value={draft.nickname ?? ''}
               onChange={(e) => setDraft({ ...draft, nickname: e.target.value })}
-              className="mt-2 block min-h-14 w-full rounded-[16px] bg-white px-4 text-[1.25rem] font-semibold ring-1 ring-slate-200 placeholder:text-base placeholder:font-normal placeholder:text-slate-400 focus:ring-2 focus:ring-emerald focus:outline-none dark:bg-slate-800 dark:ring-slate-600"
+              className="mt-1 block min-h-12 w-full rounded-[14px] bg-white px-4 text-[1.125rem] font-semibold ring-1 ring-slate-200 placeholder:text-base placeholder:font-normal placeholder:text-slate-400 focus:ring-2 focus:ring-emerald focus:outline-none dark:bg-slate-800 dark:ring-slate-600"
             />
           </div>
-          <fieldset>
-            <legend className="text-[1.0625rem] font-semibold">{t('Picture')}</legend>
-            <div className="mt-2 grid grid-cols-6 gap-2" role="group" aria-label={t('Avatar')}>
-              {AVATARS.map((a) => (
-                <button
-                  key={a}
-                  type="button"
-                  aria-label={t('Avatar {a}', { a })}
-                  aria-pressed={draft.avatar === a}
-                  onClick={() => setDraft({ ...draft, avatar: a })}
-                  className={`flex aspect-square items-center justify-center rounded-full text-2xl transition ${draft.avatar === a ? 'bg-emerald-100 ring-2 ring-emerald-strong dark:bg-emerald/20 dark:ring-emerald' : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-700'}`}
-                >
-                  {a}
-                </button>
-              ))}
-            </div>
-          </fieldset>
-        </Card>
+        </div>
+
+        <fieldset>
+          <legend className="mb-1 text-xs font-semibold tracking-[0.08em] text-emerald-strong uppercase dark:text-emerald">
+            {t('Picture')}
+          </legend>
+          <div className="flex flex-wrap gap-2.5 pt-2" role="group" aria-label={t('Avatar')}>
+            {AVATARS.map((a) => (
+              <button
+                key={a}
+                type="button"
+                aria-label={t('Avatar {a}', { a })}
+                aria-pressed={draft.avatar === a}
+                onClick={() => setDraft({ ...draft, avatar: a })}
+                className={`flex size-12 items-center justify-center rounded-full text-2xl transition ${draft.avatar === a ? 'bg-emerald-100 ring-2 ring-emerald-strong dark:bg-emerald/20 dark:ring-emerald' : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-700'}`}
+              >
+                {a}
+              </button>
+            ))}
+          </div>
+        </fieldset>
 
         {saveBar(t('Save profile'))}
-
-        {signedIn && (
-          <List title={t('Account')}>
-            <div className="flex min-h-12 items-center justify-between gap-3 py-2">
-              <span className="text-[1.0625rem]">{t('Email')}</span>
-              <span className="truncate text-[1.0625rem] text-slate-500 dark:text-slate-400">
-                {email}
-              </span>
-            </div>
-            <Link to="/update-password" className={linkRowClass}>
-              <LinkRowContent label={t('Change password')} />
-            </Link>
-          </List>
-        )}
 
         {!signedIn && (
           <List
@@ -548,46 +535,6 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
             <Link to="/login" className={linkRowClass}>
               <LinkRowContent label={t('Log in')} />
             </Link>
-          </List>
-        )}
-
-        {signedIn && (
-          <List
-            footer={t(
-              'Your logs are synced before logging out, so you can get them back on any device.',
-            )}
-          >
-            <button
-              type="button"
-              disabled={busy}
-              onClick={async () => {
-                setBusy(true);
-                await signOut();
-                navigate('/welcome', { replace: true });
-              }}
-              className="min-h-12 w-full text-center text-[1.0625rem] text-[#ff3b30] disabled:opacity-50"
-            >
-              {busy ? t('Logging out…') : t('Log out')}
-            </button>
-          </List>
-        )}
-
-        {signedIn && (
-          <List>
-            {danger === 'account' ? (
-              <div className="py-3">{deleteAccountPanel}</div>
-            ) : (
-              <button
-                type="button"
-                className="min-h-12 w-full text-center text-[1.0625rem] text-[#ff3b30]"
-                onClick={() => {
-                  closeDanger();
-                  setDanger('account');
-                }}
-              >
-                {t('Delete account')}
-              </button>
-            )}
           </List>
         )}
       </div>
@@ -992,13 +939,44 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
         </ul>
       </Group>
 
+      {signedIn && (
+        <List
+          title={t('Account')}
+          footer={t(
+            'Your logs are synced before logging out, so you can get them back on any device.',
+          )}
+        >
+          <div className="flex min-h-12 items-center justify-between gap-3 py-2">
+            <span className="text-[1.0625rem]">{t('Email')}</span>
+            <span className="truncate text-[1.0625rem] text-slate-500 dark:text-slate-400">
+              {email}
+            </span>
+          </div>
+          <Link to="/update-password" className={linkRowClass}>
+            <LinkRowContent label={t('Change password')} />
+          </Link>
+          <button
+            type="button"
+            disabled={busy}
+            onClick={async () => {
+              setBusy(true);
+              await signOut();
+              navigate('/welcome', { replace: true });
+            }}
+            className="min-h-12 w-full text-left text-[1.0625rem] text-emerald-strong disabled:opacity-50 dark:text-emerald"
+          >
+            {busy ? t('Logging out…') : t('Log out')}
+          </button>
+        </List>
+      )}
+
       <Group title={t('Delete data')}>
         <ul>
           <li>
             {danger === 'records' ? (
               <div className="p-2">
                 <Notice tone="warn" title={t('Delete all your logs?')}>
-                  {t('All food, weight and water logs will be permanently deleted from')}{' '}
+                  {t('All food and weight logs will be permanently deleted from')}{' '}
                   {signedIn ? t('your account and this device') : t('this device')}
                   {t(
                     ". Your profile and plan stay. This can't be undone, so download your data first if you want a copy.",
@@ -1042,9 +1020,7 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
                     {t('Delete all my logs')}
                   </span>
                   <span className="block text-sm text-slate-500 dark:text-slate-400">
-                    {t(
-                      'Removes your food, weight and water logs. Your account, profile and plan stay.',
-                    )}
+                    {t('Removes your food and weight logs. Your account, profile and plan stay.')}
                   </span>
                 </span>
               </button>
