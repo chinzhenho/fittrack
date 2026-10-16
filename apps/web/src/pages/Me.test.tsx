@@ -151,6 +151,17 @@ describe('Me page sections', () => {
     expect(await screen.findByText('welcome page')).toBeTruthy();
   });
 
+  it('can delete the account from Me → Delete data too', async () => {
+    deleteAccount.mockResolvedValueOnce(null);
+    renderMe();
+    fireEvent.click(screen.getByRole('button', { name: /^Delete account/ }));
+    fireEvent.change(screen.getByLabelText('Type DELETE to confirm'), {
+      target: { value: 'DELETE' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Delete account forever' }));
+    expect(await screen.findByText('welcome page')).toBeTruthy();
+  });
+
   it('scenario H: a failed record deletion keeps the dialog open with the error', async () => {
     deleteHealthRecords.mockResolvedValueOnce(
       'Delete failed. Check your connection and try again. Your records were not deleted.',

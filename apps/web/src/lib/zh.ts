@@ -1130,4 +1130,5 @@ export const ZH: Record<string, string> = {
   "Your data is only on this device. Sign up so you don't lose it if you change phones.":
     '你的数据只在这部设备上。注册账号，换手机时就不会丢失。',
   'Delete data': '删除数据',
+  'Your account and all its data, for good': '永久删除账号和所有数据',
 };

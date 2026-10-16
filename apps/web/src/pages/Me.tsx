@@ -428,6 +428,43 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
     setError(null);
   };
 
+  // Delete-account confirmation, shown on Profile & account and in Me → Delete data.
+  const deleteAccountPanel = (
+    <Notice tone="warn" title={t('Permanently delete your account?')}>
+      {t(
+        "Your login email, password, all food and weight logs in the cloud, plan and settings will be permanently deleted and can't be recovered. Download your data first if you want a copy (Me → Privacy & data).",
+      )}
+      <Field label={t('Type DELETE to confirm')}>
+        {(p) => (
+          <input
+            {...p}
+            value={deleteWord}
+            onChange={(e) => setDeleteWord(e.target.value)}
+            className={inputClass}
+            autoComplete="off"
+          />
+        )}
+      </Field>
+      {error && (
+        <p role="alert" className="mt-2 font-semibold text-red-700 dark:text-red-400">
+          {error}
+        </p>
+      )}
+      <div className="mt-3 flex gap-2">
+        <Button
+          variant="danger"
+          disabled={busy || deleteWord.trim() !== 'DELETE'}
+          onClick={() => void run(deleteAccount, () => navigate('/welcome', { replace: true }))}
+        >
+          {busy ? t('Deleting…') : t('Delete account forever')}
+        </Button>
+        <Button variant="secondary" disabled={busy} onClick={closeDanger}>
+          {t('Cancel')}
+        </Button>
+      </div>
+    </Notice>
+  );
+
   if (mode === 'profile') {
     const avatarNow = draft.avatar ?? (signedIn ? (email[0] ?? '🙂').toUpperCase() : '🙂');
     return (
@@ -538,43 +575,7 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
         {signedIn && (
           <List>
             {danger === 'account' ? (
-              <div className="py-3">
-                <Notice tone="warn" title={t('Permanently delete your account?')}>
-                  {t(
-                    "Your login email, password, all food and weight logs in the cloud, plan and settings will be permanently deleted and can't be recovered. Download your data first if you want a copy (Me → Privacy & data).",
-                  )}
-                  <Field label={t('Type DELETE to confirm')}>
-                    {(p) => (
-                      <input
-                        {...p}
-                        value={deleteWord}
-                        onChange={(e) => setDeleteWord(e.target.value)}
-                        className={inputClass}
-                        autoComplete="off"
-                      />
-                    )}
-                  </Field>
-                  {error && (
-                    <p role="alert" className="mt-2 font-semibold text-red-700 dark:text-red-400">
-                      {error}
-                    </p>
-                  )}
-                  <div className="mt-3 flex gap-2">
-                    <Button
-                      variant="danger"
-                      disabled={busy || deleteWord.trim() !== 'DELETE'}
-                      onClick={() =>
-                        void run(deleteAccount, () => navigate('/welcome', { replace: true }))
-                      }
-                    >
-                      {busy ? t('Deleting…') : t('Delete account forever')}
-                    </Button>
-                    <Button variant="secondary" disabled={busy} onClick={closeDanger}>
-                      {t('Cancel')}
-                    </Button>
-                  </div>
-                </Notice>
-              </div>
+              <div className="py-3">{deleteAccountPanel}</div>
             ) : (
               <button
                 type="button"
@@ -1093,12 +1094,32 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
               )}
             </li>
           )}
+          {signedIn && (
+            <li>
+              {danger === 'account' ? (
+                <div className="py-2">{deleteAccountPanel}</div>
+              ) : (
+                <button
+                  type="button"
+                  className={rowButtonClass}
+                  onClick={() => {
+                    closeDanger();
+                    setDanger('account');
+                  }}
+                >
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-[1.0625rem] text-[#a04438] dark:text-red-300">
+                      {t('Delete account')}
+                    </span>
+                    <span className="block text-sm text-slate-500 dark:text-slate-400">
+                      {t('Your account and all its data, for good')}
+                    </span>
+                  </span>
+                </button>
+              )}
+            </li>
+          )}
         </ul>
-        {signedIn && (
-          <p className="py-3 text-sm text-slate-500 dark:text-slate-400">
-            {t('To delete your account, tap your name at the top of this page.')}
-          </p>
-        )}
       </Group>
 
       <p className="text-center text-xs text-slate-500 dark:text-slate-400">
