@@ -90,7 +90,7 @@ export function HowWeCalculate() {
       <h2>{t('Trend weight and target suggestions')}</h2>
       <p>
         {t(
-          'Trend weight is an exponentially weighted moving average of your daily weigh-ins (α = 0.1). With enough data (at least 80% of days ticked as complete and at least 10 weigh-ins in 3 weeks), we estimate what you really burn from your average intake and trend change, and suggest a change of at most ±150 kcal at a time. You decide whether to accept it.',
+          'Trend weight is an exponentially weighted moving average of your daily weigh-ins (α = 0.1). With enough data (at least 80% of days fully logged and at least 10 weigh-ins in 3 weeks), we estimate what you really burn from your average intake and trend change, and suggest a change of at most ±150 kcal at a time. You decide whether to accept it.',
         )}
       </p>
       <h2>{t('Water guide')}</h2>
@@ -268,9 +268,9 @@ function faq(): { q: string; a: ReactNode }[] {
       ),
     },
     {
-      q: t('What is a "complete day"? Do I have to tick it?'),
+      q: t('What is a "complete day"? Do I need to do anything?'),
       a: t(
-        'When you have logged everything you ate in a day, tick "I logged everything I ate this day" at the bottom of the Diary. Only those complete days are used to check calories against your target and to suggest target changes, so half-logged days do not skew the results. You can use the app without ticking it.',
+        'No. Once a day is over, it counts as complete if you logged food that day. If a day has much less than you usually eat (under half), the app asks whether you ate less or forgot some food. Days with forgotten food are left out of target checks, so half-logged days do not pull your target down.',
       ),
     },
     {

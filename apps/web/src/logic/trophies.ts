@@ -5,6 +5,7 @@ import { loggedDates } from './achievements';
 import { mealsOn, sumNutrients } from './nutrition';
 import { startWeightKg, targetOn, trendPoints } from './targets';
 import { datesBetween, mondayOf } from './weekly';
+import { isCompleteDay } from './dayStatus';
 import { getLang, t, tr } from '../lib/i18n';
 
 // Strava-style achievements: tiered medals, a monthly challenge, personal records and
@@ -41,10 +42,9 @@ export interface TrophyFamily {
 
 export const MONTHLY_GOAL_DAYS = 20;
 
-/** Food-logged dates the user ticked as complete ("I logged everything"). */
+/** Food-logged dates that count as fully logged (see logic/dayStatus). */
 function completeDates(s: AppState): string[] {
-  const logged = new Set(loggedDates(s));
-  return [...new Set(s.completeDays)].filter((d) => logged.has(d)).sort();
+  return loggedDates(s).filter((d) => isCompleteDay(s, d));
 }
 
 function proteinDates(s: AppState): string[] {

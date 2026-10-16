@@ -7,7 +7,9 @@ import { MonthCalendar } from '../components/MonthCalendar';
 import { SnapButton } from '../components/SnapButton';
 import { useToast } from '../components/Toast';
 import { Bar, Button, Card, CheckCards, ChoiceCards, PageTitle, Stepper } from '../components/ui';
-import { editMeal, removeMeal, restoreMeal, setDayComplete } from '../data/actions';
+import { editMeal, removeMeal, restoreMeal } from '../data/actions';
+import { DayCheck } from '../components/DayCheck';
+import { dayStatus, isCompleteDay } from '../logic/dayStatus';
 import { update, useAppState } from '../data/store';
 import type { MealItem, MealType } from '../data/types';
 import { formatDateFull, formatDay, localToday } from '../lib/dates';
@@ -25,7 +27,6 @@ export function Diary() {
   const total = sumNutrients(items);
   const target = targetOn(s.targets, date);
   const hide = s.profile?.hideNumbers ?? false;
-  const complete = s.completeDays.includes(date);
   const gap =
     target && s.profile ? calorieGap(s.profile.goal, total.kcal, target.caloriesKcal) : null;
 
@@ -86,7 +87,7 @@ export function Diary() {
             value={date}
             max={today}
             logged={new Set(s.meals.map((m) => m.date))}
-            complete={new Set(s.completeDays)}
+            complete={new Set(s.meals.map((m) => m.date).filter((d) => isCompleteDay(s, d, today)))}
             onPick={(d) => {
               go(d);
               setPicking(false);
@@ -216,23 +217,12 @@ export function Diary() {
         );
       })}
 
-      <Card>
-        <CheckCards
-          label={t('Done for the day?')}
-          hint={t(
-            'Tick this when every meal is logged. Only complete days are used to check what you really burn and to suggest target changes.',
-          )}
-          options={[
-            {
-              key: 'complete',
-              label: t('I logged everything I ate this day'),
-              icon: '✅',
-              checked: complete,
-            },
-          ]}
-          onToggle={(_, v) => update((x) => setDayComplete(x, date, v))}
-        />
-      </Card>
+      <DayCheck
+        s={s}
+        dates={dayStatus(s, date, today) === 'check' ? [date] : []}
+        today={today}
+        hide={hide}
+      />
     </div>
   );
 }

@@ -161,7 +161,10 @@ export interface AppState {
   customFoods: Food[];
   meals: MealItem[];
   weights: WeightEntry[];
+  /** Days confirmed as fully logged (ticked before, or "I ate less" on a low day). */
   completeDays: string[];
+  /** Days the user said were not fully logged; left out of target checks. */
+  partialDays: string[];
   restDays: string[];
   skippedTasks: Record<string, string[]>;
   sessions: WorkoutSession[];
@@ -186,6 +189,7 @@ export const emptyState: AppState = {
   meals: [],
   weights: [],
   completeDays: [],
+  partialDays: [],
   restDays: [],
   skippedTasks: {},
   sessions: [],

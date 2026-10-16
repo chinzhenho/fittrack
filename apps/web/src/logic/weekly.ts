@@ -3,6 +3,8 @@ import type { AppState } from '../data/types';
 import { mealsOn, sumNutrients } from './nutrition';
 import { targetOn } from './targets';
 import { tr } from '../lib/i18n';
+import { localToday } from '../lib/dates';
+import { isCompleteDay } from './dayStatus';
 
 // Weekly summary for the progress page. Rules (shown to the user in the UI):
 // - A "complete" day is one the user marked as fully recorded (Diary checkbox). Only
@@ -71,7 +73,12 @@ export interface WeeklySummary {
 
 export const WEEKLY_LOG_GOAL = 5;
 
-export function weeklySummary(s: AppState, start: string, end: string): WeeklySummary {
+export function weeklySummary(
+  s: AppState,
+  start: string,
+  end: string,
+  today = localToday(),
+): WeeklySummary {
   const days = datesBetween(start, end);
   let loggedDays = 0;
   let complete = 0;
@@ -88,7 +95,7 @@ export function weeklySummary(s: AppState, start: string, end: string): WeeklySu
     const n = sumNutrients(meals);
     kcalSum += n.kcal;
     proteinSum += n.proteinG;
-    if (!s.completeDays.includes(d)) continue;
+    if (!isCompleteDay(s, d, today)) continue;
     complete++;
     completeKcal += n.kcal;
     const t = targetOn(s.targets, d);

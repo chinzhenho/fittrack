@@ -33,6 +33,7 @@ export function mergeStates(a: AppState, b: AppState): AppState {
     meals: byId(older.meals, newer.meals),
     weights: byId(older.weights, newer.weights),
     completeDays: union(older.completeDays, newer.completeDays),
+    partialDays: union(older.partialDays ?? [], newer.partialDays ?? []),
     restDays: union(older.restDays, newer.restDays),
     skippedTasks: skipped,
     sessions: byId(older.sessions, newer.sessions),

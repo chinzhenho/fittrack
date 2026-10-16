@@ -96,11 +96,13 @@ describe('weekly summary', () => {
     let s = eat(base(), '2026-10-12', 1800);
     s = eat(s, '2026-10-14', 600);
     s = weigh(s, '2026-10-13', 80);
-    const w = weeklySummary(s, '2026-10-12', TODAY);
+    const w = weeklySummary(s, '2026-10-12', TODAY, TODAY);
     expect(w.loggedDays).toBe(2);
     expect(w.avgKcal).toBe(1200);
-    expect(w.completeDays).toBe(0);
-    expect(w.proteinJudgedDays).toBe(0);
+    // Past days count as complete automatically; the 600 kcal day is under half the
+    // usual intake, so it waits for the "did you eat less?" answer.
+    expect(w.completeDays).toBe(1);
+    expect(w.proteinJudgedDays).toBe(1);
     // A single weigh-in is not a change.
     expect(w.weight).toBeNull();
     expect(w.weighIns).toBe(1);
@@ -111,9 +113,9 @@ describe('weekly summary', () => {
     s = complete(s, ['2026-10-12'], 2000); // in range
     s = complete(s, ['2026-10-13'], 1000); // below the floor
     s = complete(s, ['2026-10-14'], 2500); // over 110%
-    s = eat(s, '2026-10-15', 2000); // not marked complete: not judged
+    s = eat(s, '2026-10-15', 2000); // today: the day isn't over, so not judged
     s = weigh(weigh(s, '2026-10-12', 80), '2026-10-15', 79.4);
-    const w = weeklySummary(s, '2026-10-12', TODAY);
+    const w = weeklySummary(s, '2026-10-12', TODAY, TODAY);
     expect(w.completeDays).toBe(3);
     expect(w.withinTargetDays).toBe(1);
     expect(w.proteinJudgedDays).toBe(3);
@@ -125,7 +127,7 @@ describe('weekly summary', () => {
 
   it('never rewards eating far below the target', () => {
     const s = complete(base(), ['2026-10-12'], 1300);
-    expect(weeklySummary(s, '2026-10-12', TODAY).withinTargetDays).toBe(0);
+    expect(weeklySummary(s, '2026-10-12', TODAY, TODAY).withinTargetDays).toBe(0);
   });
 });
 

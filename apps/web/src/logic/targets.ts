@@ -10,6 +10,7 @@ import {
 } from '@fittrack/engine';
 import type { AppState, Profile, TargetVersion, WeightEntry } from '../data/types';
 import { sumNutrients } from './nutrition';
+import { isCompleteDay } from './dayStatus';
 
 export function latestWeight(weights: WeightEntry[]): WeightEntry | null {
   if (weights.length === 0) return null;
@@ -90,7 +91,7 @@ export function adaptiveFor(state: AppState, today: string): AdaptiveResult | nu
   const days = dates.map((date) => ({
     date,
     intakeKcal: sumNutrients(state.meals.filter((m) => m.date === date)).kcal,
-    loggingComplete: state.completeDays.includes(date),
+    loggingComplete: isCompleteDay(state, date, today),
   }));
   return evaluateAdaptive({
     windowEnd: today,

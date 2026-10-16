@@ -21,6 +21,8 @@ import {
   trendPoints,
 } from '../logic/targets';
 import { t, tr } from '../lib/i18n';
+import { DayCheck } from '../components/DayCheck';
+import { daysToCheck } from '../logic/dayStatus';
 
 const md = (d: string) => shortDate(d);
 const signed = (n: number) => `${n > 0 ? '+' : n < 0 ? '−' : '±'}${fmt1(Math.abs(n))}`;
@@ -91,6 +93,7 @@ export function Progress() {
           .
         </p>
       )}
+      <DayCheck s={s} dates={daysToCheck(s, today)} today={today} hide={hide} />
       <ThisWeek s={s} today={today} hide={hide} />
       {!hide && <BodySection s={s} profile={profile} today={today} />}
       <InsightsSection s={s} today={today} />

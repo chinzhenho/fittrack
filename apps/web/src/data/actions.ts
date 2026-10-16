@@ -127,6 +127,18 @@ export function setDayComplete(s: AppState, date: string, complete: boolean): Ap
   return { ...s, completeDays: toggle(s.completeDays, date, complete) };
 }
 
+/**
+ * Answer to "did you eat less, or forget some food?" for a low day: eating less
+ * counts the day; forgotten food leaves it out of target checks.
+ */
+export function answerDayCheck(s: AppState, date: string, ateLess: boolean): AppState {
+  return {
+    ...s,
+    completeDays: toggle(s.completeDays, date, ateLess),
+    partialDays: toggle(s.partialDays ?? [], date, !ateLess),
+  };
+}
+
 export function addWeight(s: AppState, entry: WeightEntry): AppState {
   return { ...s, weights: [...s.weights, entry] };
 }
@@ -170,6 +182,7 @@ export function clearHealthRecords(s: AppState): AppState {
     meals: [],
     weights: [],
     completeDays: [],
+    partialDays: [],
     water: [],
     challenges: [],
     dismissedInsights: [],

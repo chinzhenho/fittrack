@@ -11,6 +11,7 @@ import { MEAL_LABELS, MEAL_TYPES, sumNutrients } from '../logic/nutrition';
 import { startWeightKg, targetOn } from '../logic/targets';
 import { datesBetween, weeklySummary } from '../logic/weekly';
 import { getLang, t, tr } from '../lib/i18n';
+import { isCompleteDay } from '../logic/dayStatus';
 
 type Range = '30' | '90' | 'all';
 const RANGE_LABELS: Record<Range, string> = tr({
@@ -51,7 +52,7 @@ function dayRows(s: AppState, start: string, end: string): DayRow[] {
     return {
       date,
       logged: meals.length > 0,
-      complete: s.completeDays.includes(date),
+      complete: isCompleteDay(s, date),
       kcal: n.kcal,
       proteinG: n.proteinG,
       carbsG: n.carbsG,
@@ -467,7 +468,7 @@ export function Report() {
           </table>
           <p className="mt-1 text-[0.6875rem] text-slate-500">
             {t(
-              '✓ = you marked the day as complete. Averages only count days with food logged. Calories and nutrients are estimates and not medical advice.',
+              '✓ = a fully logged day. Averages only count days with food logged. Calories and nutrients are estimates and not medical advice.',
             )}
           </p>
         </section>

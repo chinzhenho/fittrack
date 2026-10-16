@@ -293,7 +293,7 @@ export const ZH: Record<string, string> = {
   Recent: '最近',
   'Hide all medals': '收起所有奖章',
   'All medals': '所有奖章',
-  'days in a row': '天连续',
+  'days in a row': '天（连续）',
   Bronze: '铜牌',
   Silver: '银牌',
   Gold: '金牌',
@@ -366,8 +366,6 @@ export const ZH: Record<string, string> = {
   'Average protein': '平均蛋白质',
   'Average a day vs target': '每天平均 vs 目标',
   'Day by day': '每日明细',
-  '✓ = you marked the day as complete. Averages only count days with food logged. Calories and nutrients are estimates and not medical advice.':
-    '✓ = 你标记为完整记录的日子。平均值只计算有记录饮食的日子。卡路里和营养数据都是估算值，不是医疗意见。',
   'Food you ate': '你吃过的食物',
   'No food logged in this period.': '这段时间没有饮食记录。',
   'Download the raw data file instead (JSON, for backups)':
@@ -884,8 +882,6 @@ export const ZH: Record<string, string> = {
   'Energy: protein and carbs 4 kcal/g, fat 9 kcal/g.':
     '能量：蛋白质和碳水 4 kcal/g，脂肪 9 kcal/g。',
   'Trend weight and target suggestions': '趋势体重和目标建议',
-  'Trend weight is an exponentially weighted moving average of your daily weigh-ins (α = 0.1). With enough data (at least 80% of days ticked as complete and at least 10 weigh-ins in 3 weeks), we estimate what you really burn from your average intake and trend change, and suggest a change of at most ±150 kcal at a time. You decide whether to accept it.':
-    '趋势体重是你每日称重的指数加权移动平均（α = 0.1）。数据足够时（3 周内至少 80% 的日子标记为完整，并至少称重 10 次），我们会根据你的平均摄取量和趋势变化，估算你真正的消耗，每次最多建议调整 ±150 kcal。要不要接受由你决定。',
   'Water guide': '喝水建议',
   'Based on body weight: about 35–40 ml per kg for normal activity, 30–35 ml for mostly sitting in air-conditioning, and 40–45 ml if you are active or sweat a lot (choose with "Adjust" on the Today page). It is a practical guide, not a strict number; drink more in hot weather. With kidney or heart conditions, follow your doctor\'s advice.':
     '根据体重计算：一般活动量每公斤约 35–40 ml，大多坐在冷气房约 30–35 ml，活动多或很会出汗约 40–45 ml（可在今天页面按「调整」选择）。这是实用的参考，不是严格的数字；天气热时请多喝。有肾脏或心脏问题时，请遵从医生的建议。',
@@ -953,9 +949,6 @@ export const ZH: Record<string, string> = {
   'Why does my weight go up and down every day?': '为什么我的体重每天都上下起伏？',
   'Water, salt, portion size, digestion and hormonal cycles can move your weight 1–2 kg in a day. That is why Progress uses a smoothed trend line to show long-term change.':
     '水分、盐分、分量、消化和荷尔蒙周期，都可能让体重一天变化 1–2 kg。所以「进度」用平滑的趋势线来显示长期变化。',
-  'What is a "complete day"? Do I have to tick it?': '什么是「完整记录日」？一定要勾选吗？',
-  'When you have logged everything you ate in a day, tick "I logged everything I ate this day" at the bottom of the Diary. Only those complete days are used to check calories against your target and to suggest target changes, so half-logged days do not skew the results. You can use the app without ticking it.':
-    '当你记录了一天吃的所有东西后，在日记底部勾选「我已记录这一天吃的所有东西」。只有这些完整记录的日子，才会用来对照你的卡路里目标和建议调整目标，这样只记了一半的日子就不会影响结果。不勾选也可以照常使用。',
   'How accurate are AI photo estimates?': 'AI 拍照估算有多准？',
   'The AI first identifies each food. When it matches our database (Singapore SG FoodID, USDA), the database values are used; otherwise the AI estimates. Portions and hidden oil or sugar are hard to see in a photo, so check and adjust amounts before saving. Typing a short note before you snap (for example "half rice") helps.':
     'AI 会先认出每样食物。如果和我们的数据库（新加坡 SG FoodID、USDA）相符，就用数据库的数值；否则由 AI 估算。分量和看不见的油、糖很难从照片看出来，所以保存前请检查和调整分量。拍照前写个简短备注（例如「半碗饭」）会有帮助。',
@@ -1114,4 +1107,22 @@ export const ZH: Record<string, string> = {
   'Auto (match phone)': '自动（跟随手机）',
   'Hiding calories and weight helps if the numbers stress you out, or someone can see your screen. You still log as usual; the app shows your habits instead.':
     '如果数字让你有压力，或别人看得到你的屏幕，可以隐藏卡路里和体重。你照样记录，应用会改为显示你的习惯。',
+  'Check your logs': '检查你的记录',
+  '{day}: did you eat less than usual?': '{day}：你吃得比平常少吗？',
+  'You logged much less than usual that day.': '你那天记录的比平常少很多。',
+  'You logged {kcal} kcal, much less than usual.': '你记录了 {kcal} kcal，比平常少很多。',
+  'If some food is missing, we leave the day out so your target stays right.':
+    '如果有食物漏记了，我们就不把那天算进去，让你的目标保持准确。',
+  'Got it. That day is left out of target checks.': '好的，那天不会用来检查目标。',
+  'Got it. That day counts as fully logged.': '好的，那天算作完整记录。',
+  'I forgot some food': '我漏记了一些',
+  'I ate less': '我真的吃少了',
+  'Trend weight is an exponentially weighted moving average of your daily weigh-ins (α = 0.1). With enough data (at least 80% of days fully logged and at least 10 weigh-ins in 3 weeks), we estimate what you really burn from your average intake and trend change, and suggest a change of at most ±150 kcal at a time. You decide whether to accept it.':
+    '趋势体重是你每日称重的指数加权移动平均（α = 0.1）。数据足够时（3 周内至少 80% 的日子完整记录，并至少称重 10 次），我们会根据你的平均摄取量和趋势变化，估算你真正的消耗，每次最多建议调整 ±150 kcal。要不要接受由你决定。',
+  'What is a "complete day"? Do I need to do anything?': '什么是「完整记录日」？我需要做什么吗？',
+  'No. Once a day is over, it counts as complete if you logged food that day. If a day has much less than you usually eat (under half), the app asks whether you ate less or forgot some food. Days with forgotten food are left out of target checks, so half-logged days do not pull your target down.':
+    '不需要。一天过去后，只要那天有饮食记录，就会自动算作完整记录日。如果某天记录的比你平常吃的少很多（不到一半），应用会问你是真的吃少了，还是漏记了一些食物。漏记的日子不会用来检查目标，所以只记了一半的日子不会把你的目标拉低。',
+  '✓ = a fully logged day. Averages only count days with food logged. Calories and nutrients are estimates and not medical advice.':
+    '✓ = 完整记录的日子。平均值只计算有记录饮食的日子。卡路里和营养数据都是估算值，不是医疗意见。',
+  '{n} days in a row': '连续 {n} 天',
 };

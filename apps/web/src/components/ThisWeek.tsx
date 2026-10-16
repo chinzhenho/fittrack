@@ -24,7 +24,7 @@ export function ThisWeek({ s, today, hide }: { s: AppState; today: string; hide:
   const monday = addDays(thisMonday, -7 * back);
   const sunday = addDays(monday, 6);
   const end = sunday < today ? sunday : today;
-  const w = weeklySummary(s, monday, end);
+  const w = weeklySummary(s, monday, end, today);
   const streak = currentStreak(loggedDates(s), today);
   const goal = s.profile?.goal;
   const gaining = goal === 'muscle_gain' || goal === 'weight_gain';
@@ -99,7 +99,7 @@ export function ThisWeek({ s, today, hide }: { s: AppState; today: string; hide:
         {back === 0 && streak > 1 && (
           <span className="text-[#8b571f] dark:text-[#e8b978]">
             {' '}
-            · 🔥 {streak} {t('days in a row')}
+            · 🔥 {t('{n} days in a row', { n: streak })}
           </span>
         )}
       </p>

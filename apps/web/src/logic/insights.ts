@@ -47,7 +47,7 @@ export function insightsFor(s: AppState, today: string): Insight[] {
   const profile = s.profile;
   if (!profile) return [];
   const start = addDays(today, -6);
-  const w = weeklySummary(s, start, today);
+  const w = weeklySummary(s, start, today, today);
   const out: Insight[] = [];
   const goal = profile.goal;
 
@@ -78,26 +78,6 @@ export function insightsFor(s: AppState, today: string): Insight[] {
       data: t('Last 7 days: food logged on {loggedDays} days', { loggedDays: w.loggedDays }),
       numeric: false,
       priority: 8,
-    });
-  }
-
-  // Few days marked complete: the calorie judgement and target suggestions need them.
-  if (w.loggedDays >= 3 && w.completeDays < w.loggedDays / 2) {
-    out.push({
-      id: 'mark_complete',
-      category: 'recording',
-      tone: 'tip',
-      title: t('Tick "I logged everything" in the Diary'),
-      body: t(
-        'When a day has all your meals logged, tick "I logged everything I ate this day" at the bottom of the Diary. We use these complete days to check your calories and your target, so half-logged days don\'t throw it off.',
-      ),
-      data: t('Last 7 days: food logged on {loggedDays} days, {completeDays} ticked as complete', {
-        loggedDays: w.loggedDays,
-        completeDays: w.completeDays,
-      }),
-      action: { label: t('Go to Diary'), to: '/diary' },
-      numeric: false,
-      priority: 2,
     });
   }
 
