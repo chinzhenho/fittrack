@@ -953,8 +953,8 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
             columns={2}
             value={lang}
             options={[
-              { value: 'en', label: 'English', icon: '🇬🇧' },
-              { value: 'zh', label: '简体中文', icon: '🇨🇳' },
+              { value: 'en', label: 'English', icon: 'Aa' },
+              { value: 'zh', label: '简体中文', icon: '文' },
             ]}
             onChange={(l) => {
               setLang(l);
