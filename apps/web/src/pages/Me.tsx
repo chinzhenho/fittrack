@@ -953,8 +953,8 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
             columns={2}
             value={lang}
             options={[
-              { value: 'en', label: 'English', icon: 'Aa' },
-              { value: 'zh', label: '简体中文', icon: '文' },
+              { value: 'en', label: 'English' },
+              { value: 'zh', label: '简体中文' },
             ]}
             onChange={(l) => {
               setLang(l);
@@ -966,9 +966,9 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
             columns={3}
             value={theme}
             options={[
-              { value: 'light', label: t('Light'), icon: '☀️' },
-              { value: 'dark', label: t('Dark'), icon: '🌙' },
-              { value: 'system', label: t('Auto'), icon: '📱', sub: t('match phone') },
+              { value: 'light', label: t('Light') },
+              { value: 'dark', label: t('Dark') },
+              { value: 'system', label: t('Auto'), sub: t('match phone') },
             ]}
             onChange={setTheme}
           />
@@ -981,7 +981,7 @@ export function Me({ mode = 'home' }: { mode?: Mode }) {
               {
                 key: 'hide',
                 label: t('Hide calories and weight'),
-                icon: '🙈',
+
                 checked: hide,
               },
             ]}
