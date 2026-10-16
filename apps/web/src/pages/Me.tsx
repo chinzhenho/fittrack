@@ -64,7 +64,8 @@ import {
 import { setTheme, useTheme, type Theme } from '../lib/theme';
 import { latestWeight, planFor, targetFromPlan, targetOn } from '../logic/targets';
 import { setLang, t, tr, useLang, type Lang } from '../lib/i18n';
-import { Avatar, avatarInitial, makeAvatarPhoto } from '../components/Avatar';
+import { Avatar, avatarInitial } from '../components/Avatar';
+import { AvatarCropper } from '../components/AvatarCropper';
 import { createPortal } from 'react-dom';
 
 const RATE_OPTIONS: Record<Goal, number[]> = {
@@ -88,7 +89,7 @@ const REASON_LABELS: Record<TargetVersion['reason'], string> = tr({
   adaptive: 'Adjusted',
 });
 
-const AVATARS = ['😊', '😎', '🥳', '🤗', '🤓', '😇', '🐱', '🐶', '🐼', '🐨', '🦊', '🐰'];
+const AVATARS = ['😊', '😄', '😎', '🐱', '🐶', '🐼', '🐨', '🦊', '🐰', '🐻', '🐯', '🐧'];
 
 type Mode = 'home' | 'plan' | 'profile' | 'body' | 'targets';
 
@@ -281,13 +282,10 @@ function AvatarSheet({
     for (const k of keys) delete next[k];
     return next;
   };
-  const fromFile = async (file: File | undefined) => {
-    if (!file) return;
-    try {
-      onPick({ ...draft, avatarPhoto: await makeAvatarPhoto(file) });
-    } catch {
-      toast({ text: t("Can't read this image. Please try another one.") });
-    }
+  // A new photo opens the round editor first (move and zoom, like Instagram).
+  const [cropping, setCropping] = useState<File | null>(null);
+  const fromFile = (file: File | undefined) => {
+    if (file) setCropping(file);
   };
   const fileButton = (label: string, capture: boolean) => (
     <label className="flex min-h-12 cursor-pointer items-center text-[1.0625rem] text-emerald-strong dark:text-emerald">
@@ -298,7 +296,7 @@ function AvatarSheet({
         {...(capture && { capture: 'user' as const })}
         className="sr-only"
         onChange={(e) => {
-          void fromFile(e.target.files?.[0]);
+          fromFile(e.target.files?.[0]);
           e.target.value = '';
         }}
       />
@@ -368,6 +366,16 @@ function AvatarSheet({
           </div>
         </section>
       </div>
+      {cropping && (
+        <AvatarCropper
+          file={cropping}
+          onCancel={() => setCropping(null)}
+          onDone={(avatarPhoto) => {
+            setCropping(null);
+            onPick({ ...draft, avatarPhoto });
+          }}
+        />
+      )}
     </div>,
     document.body,
   );

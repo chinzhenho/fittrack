@@ -5,11 +5,14 @@ import { ToastProvider } from '../components/Toast';
 import { getState, replaceState } from '../data/store';
 import { emptyState, type Profile, type TargetVersion } from '../data/types';
 import { Me } from './Me';
-import type * as AvatarModule from '../components/Avatar';
 
-vi.mock('../components/Avatar', async (original) => ({
-  ...(await original<typeof AvatarModule>()),
-  makeAvatarPhoto: () => Promise.resolve('data:image/jpeg;base64,AVATAR'),
+// jsdom can't load images or draw on a canvas: the editor answers straight away.
+vi.mock('../components/AvatarCropper', () => ({
+  AvatarCropper: ({ onDone }: { onDone: (url: string) => void }) => (
+    <button type="button" onClick={() => onDone('data:image/jpeg;base64,AVATAR')}>
+      Done
+    </button>
+  ),
 }));
 
 const profile: Profile = {
@@ -107,6 +110,7 @@ describe('edit profile', () => {
     fireEvent.click(screen.getAllByRole('button', { name: 'Change picture' })[0]!);
     const photo = new File(['x'], 'me.jpg', { type: 'image/jpeg' });
     fireEvent.change(screen.getByLabelText('Choose from album'), { target: { files: [photo] } });
+    fireEvent.click(screen.getByRole('button', { name: 'Done' })); // the round editor
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
     fireEvent.click(screen.getByRole('button', { name: 'Save profile' }));
     await screen.findByText('me page');

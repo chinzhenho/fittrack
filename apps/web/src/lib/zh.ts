@@ -1150,4 +1150,8 @@ export const ZH: Record<string, string> = {
   'Use my initial': '使用名字首字母',
   "What you enter during setup and use: date of birth, height, weight, waist, goal, activity level, health screening answers, diet preferences, food logs and weight logs, plus a nickname and profile photo if you add them (the photo is shrunk to a small picture on your phone first). Under Malaysia's Personal Data Protection Act 2010 (PDPA), health data is sensitive personal data, and we only use it with your explicit consent.":
     '你在设置和使用时输入的资料：出生日期、身高、体重、腰围、目标、活动量、健康筛查答案、饮食偏好、饮食记录和体重记录，以及你填写的昵称和头像照片（照片会先在手机上缩成一张小图）。根据马来西亚《2010 年个人资料保护法令》（PDPA），健康资料属于敏感个人资料，我们只会在你明确同意后使用。',
+  'Move and zoom': '移动和缩放',
+  Done: '完成',
+  Zoom: '缩放',
+  'Drag to move, pinch or slide to zoom': '拖动可以移动，双指捏合或拉动滑杆可以缩放',
 };
