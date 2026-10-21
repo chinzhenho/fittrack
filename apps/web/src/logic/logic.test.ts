@@ -1,14 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { addWeight, editMeal, logFood, setWeightOn } from '../data/actions';
+import { editMeal, logFood, setWeightOn } from '../data/actions';
 import { BUILT_IN_FOODS, SEED_FOODS } from '../data/foods';
 import { emptyState, type AppState, type Profile } from '../data/types';
-import {
-  nutrientsFor,
-  recentFoodIds,
-  searchFoods,
-  sumNutrients,
-  validateCustomFood,
-} from './nutrition';
+import { nutrientsFor, sumNutrients, validateCustomFood } from './nutrition';
 import { needsRecompute, startWeightKg, targetOn } from './targets';
 
 const rice = SEED_FOODS.find((f) => f.id === 'usda-168878')!;
@@ -22,15 +16,11 @@ const profile: Profile = {
   goal: 'fat_loss',
   ratePctPerWeek: 0.5,
   goalStartDate: '2026-10-01',
-  lifestyleMode: 'home',
-  minutesPerDay: 15,
-  experience: 'beginner',
   dietTags: [],
   screening: {
     pregnantOrLactating: false,
     eatingDisorderHistory: false,
     kidneyDisease: false,
-    exerciseCaution: false,
   },
   hideNumbers: false,
   consentedAt: '2026-10-01T00:00:00.000Z',
@@ -68,14 +58,6 @@ describe('nutrition', () => {
     expect(total.kcal).toBeCloseTo(260 + 165, 10);
     expect(total.proteinG).toBeCloseTo(5.38 + 31, 10);
     expect(s.meals[0]?.sourceRef).toBe('USDA FDC 168878');
-    expect(recentFoodIds(s.meals)).toEqual(['usda-171477', 'usda-168878']);
-  });
-
-  it('searches Chinese, English and Malay names', () => {
-    expect(searchFoods(SEED_FOODS, 'tauhu').map((f) => f.id)).toEqual(['usda-172475']);
-    expect(searchFoods(SEED_FOODS, '白饭').map((f) => f.id)).toEqual(['usda-168878']);
-    expect(searchFoods(SEED_FOODS, 'CHICKEN').map((f) => f.id)).toEqual(['usda-171477']);
-    expect(searchFoods(SEED_FOODS, '  ').length).toBe(SEED_FOODS.length);
   });
 
   it('validates label values per 100 g', () => {
@@ -114,7 +96,7 @@ describe('nutrition', () => {
       measuredAt: date,
       weightKg: kg,
     });
-    let s = addWeight(emptyState, w('a', '2026-10-11', 70));
+    let s = setWeightOn(emptyState, w('a', '2026-10-11', 70));
     s = setWeightOn(s, w('b', '2026-10-12', 69.5));
     s = setWeightOn(s, w('c', '2026-10-12', 69.2));
     expect(s.weights.map((x) => [x.id, x.weightKg])).toEqual([
@@ -209,7 +191,7 @@ describe('targets', () => {
 
   it('suggests recomputing after a 2 kg trend change', () => {
     let s: AppState = { ...base, targets: [t('a', '2026-10-01', '1')] };
-    s = addWeight(s, {
+    s = setWeightOn(s, {
       id: 'w1',
       date: '2026-10-01',
       measuredAt: '2026-10-01T01:00:00Z',
@@ -218,7 +200,7 @@ describe('targets', () => {
     expect(needsRecompute(s, '2026-10-01')).toBe(false);
     for (let i = 2; i <= 30; i++) {
       const d = `2026-10-${String(i).padStart(2, '0')}`;
-      s = addWeight(s, { id: `w${i}`, date: d, measuredAt: `${d}T01:00:00Z`, weightKg: 72 });
+      s = setWeightOn(s, { id: `w${i}`, date: d, measuredAt: `${d}T01:00:00Z`, weightKg: 72 });
     }
     expect(needsRecompute(s, '2026-10-30')).toBe(true);
   });

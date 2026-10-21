@@ -1,9 +1,6 @@
 import type { ActivityLevel, FormulaSex, Goal } from '@fittrack/engine';
-
-export type LifestyleMode = 'nutrition_first' | 'home' | 'gym' | 'outdoor' | 'mixed';
 export type MealType = 'breakfast' | 'lunch' | 'dinner' | 'snack';
 export type DietTag = 'halal' | 'vegetarian' | 'no_beef' | 'no_pork';
-export type Experience = 'beginner' | 'occasional' | 'regular';
 
 export interface Nutrients {
   kcal: number;
@@ -49,15 +46,11 @@ export interface Profile {
   ratePctPerWeek: number;
   targetWeightKg?: number;
   goalStartDate: string;
-  lifestyleMode: LifestyleMode;
-  minutesPerDay: number;
-  experience: Experience;
   dietTags: DietTag[];
   screening: {
     pregnantOrLactating: boolean;
     eatingDisorderHistory: boolean;
     kidneyDisease: boolean;
-    exerciseCaution: boolean;
   };
   hideNumbers: boolean;
   consentedAt: string;
@@ -106,52 +99,6 @@ export interface WeightEntry {
   waistCm?: number;
 }
 
-export interface LoggedSet {
-  exerciseId: string;
-  reps?: number;
-  weightKg?: number;
-  durationS?: number;
-  done: boolean;
-}
-
-export interface WorkoutSession {
-  id: string;
-  date: string;
-  templateId: string;
-  startedAt: string;
-  endedAt?: string;
-  sets: LoggedSet[];
-  painExerciseIds: string[];
-}
-
-export interface ActivityLog {
-  id: string;
-  date: string;
-  type: 'walk' | 'run' | 'cycle' | 'other';
-  minutes: number;
-}
-
-/** One drink logged on the water tracker. */
-export interface WaterEntry {
-  id: string;
-  date: string;
-  ml: number;
-  at: string;
-}
-
-/**
- * Legacy (the weekly challenge feature was removed 2026-10-15); kept so older saved
- * data still loads and syncs. A weekly challenge the user accepted. Never deleted: skipping sets `skipped`, and the
- * newest record for a week wins, so syncing two devices cannot resurrect a skipped one.
- */
-export interface ChallengeRecord {
-  id: string;
-  challenge: string;
-  weekStart: string;
-  acceptedAt: string;
-  skipped?: boolean;
-}
-
 export interface AppState {
   schemaVersion: 1;
   /** ISO time of the last local change; decides which copy is newer when syncing. */
@@ -167,12 +114,6 @@ export interface AppState {
   completeDays: string[];
   /** Days the user said were not fully logged; left out of target checks. */
   partialDays: string[];
-  restDays: string[];
-  skippedTasks: Record<string, string[]>;
-  sessions: WorkoutSession[];
-  activities: ActivityLog[];
-  water: WaterEntry[];
-  challenges: ChallengeRecord[];
   /** Insight keys ("insightId:weekMonday") the user chose to hide. */
   dismissedInsights: string[];
   /** Dates on which the user chose to keep the current target over a suggestion. */
@@ -192,12 +133,6 @@ export const emptyState: AppState = {
   weights: [],
   completeDays: [],
   partialDays: [],
-  restDays: [],
-  skippedTasks: {},
-  sessions: [],
-  activities: [],
-  water: [],
-  challenges: [],
   dismissedInsights: [],
   adaptiveKeptOn: [],
   monthlyJoined: [],

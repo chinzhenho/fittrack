@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { addTarget, addWeight, dismissInsight, logFood, setDayComplete } from '../data/actions';
+import { addTarget, answerDayCheck, dismissInsight, logFood, setWeightOn } from '../data/actions';
 import { emptyState, type AppState, type Food, type MealType, type Profile } from '../data/types';
 import { insightKey, insightsFor } from './insights';
-import { mondayOf, periodRange, weeklySummary } from './weekly';
+import { mondayOf, weeklySummary } from './weekly';
 
 // 100 g = 100 kcal and 10 g protein, so grams map straight to numbers.
 const food: Food = {
@@ -23,15 +23,11 @@ const profile = (goal: Profile['goal'] = 'fat_loss'): Profile => ({
   goal,
   ratePctPerWeek: goal === 'maintain' ? 0 : 0.5,
   goalStartDate: '2026-09-01',
-  lifestyleMode: 'home',
-  minutesPerDay: 15,
-  experience: 'beginner',
   dietTags: [],
   screening: {
     pregnantOrLactating: false,
     eatingDisorderHistory: false,
     kidneyDisease: false,
-    exerciseCaution: false,
   },
   hideNumbers: false,
   consentedAt: '2026-09-01T00:00:00Z',
@@ -64,21 +60,18 @@ function eat(s: AppState, date: string, grams: number, meal: MealType = 'lunch')
   return logFood(s, { id: `m${n++}`, date, meal, food, grams, now: `${date}T12:00:00Z` });
 }
 const weigh = (s: AppState, date: string, kg: number) =>
-  addWeight(s, { id: `w${date}`, date, measuredAt: `${date}T07:00:00Z`, weightKg: kg });
+  setWeightOn(s, { id: `w${date}`, date, measuredAt: `${date}T07:00:00Z`, weightKg: kg });
 const complete = (s: AppState, dates: string[], grams: number, meal: MealType = 'breakfast') =>
-  dates.reduce((x, d) => setDayComplete(eat(x, d, grams, meal), d, true), s);
+  dates.reduce((x, d) => answerDayCheck(eat(x, d, grams, meal), d, true), s);
 
 // 2026-10-12 is a Monday; "today" in these tests is Thursday 2026-10-15.
 const TODAY = '2026-10-15';
 const MON_TUE_WED = ['2026-10-12', '2026-10-13', '2026-10-14'];
 
 describe('weekly periods', () => {
-  it('uses Monday to Sunday weeks and never goes past today', () => {
+  it('uses Monday to Sunday weeks', () => {
     expect(mondayOf('2026-10-12')).toBe('2026-10-12');
     expect(mondayOf('2026-10-18')).toBe('2026-10-12'); // Sunday belongs to the week before
-    expect(periodRange('this_week', TODAY)).toEqual({ start: '2026-10-12', end: TODAY });
-    expect(periodRange('last_week', TODAY)).toEqual({ start: '2026-10-05', end: '2026-10-11' });
-    expect(periodRange('last_7', TODAY)).toEqual({ start: '2026-10-09', end: TODAY });
   });
 });
 

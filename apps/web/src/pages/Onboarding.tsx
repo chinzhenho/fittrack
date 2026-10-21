@@ -20,7 +20,7 @@ import {
 import { completeOnboarding } from '../data/actions';
 import { useAuth } from '../data/auth';
 import { newId, update } from '../data/store';
-import type { DietTag, Experience, LifestyleMode, Profile } from '../data/types';
+import type { DietTag, Profile } from '../data/types';
 import { localToday } from '../lib/dates';
 import {
   ACTIVITY_LABELS,
@@ -45,9 +45,6 @@ interface Draft {
   terms: boolean;
   healthConsent: boolean;
   goal: Goal;
-  mode: LifestyleMode;
-  minutesPerDay: number;
-  experience: Experience;
   formulaSex: FormulaSex;
   birthDate: string;
   heightCm: string;
@@ -56,7 +53,6 @@ interface Draft {
   pregnantOrLactating: boolean;
   eatingDisorderHistory: boolean;
   kidneyDisease: boolean;
-  exerciseCaution: boolean;
   ratePctPerWeek: number;
   targetWeightKg: string;
   dietTags: DietTag[];
@@ -66,9 +62,6 @@ const initial: Draft = {
   terms: false,
   healthConsent: false,
   goal: 'maintain',
-  mode: 'nutrition_first',
-  minutesPerDay: 15,
-  experience: 'beginner',
   formulaSex: 'female',
   birthDate: '',
   heightCm: '',
@@ -77,7 +70,6 @@ const initial: Draft = {
   pregnantOrLactating: false,
   eatingDisorderHistory: false,
   kidneyDisease: false,
-  exerciseCaution: false,
   ratePctPerWeek: 0,
   targetWeightKg: '',
   dietTags: [],
@@ -94,15 +86,11 @@ export function toProfile(d: Draft, today: string, now: string): Profile {
     ...(d.targetWeightKg.trim() !== '' &&
       d.goal !== 'maintain' && { targetWeightKg: Number(d.targetWeightKg) }),
     goalStartDate: today,
-    lifestyleMode: d.mode,
-    minutesPerDay: d.minutesPerDay,
-    experience: d.experience,
     dietTags: d.dietTags,
     screening: {
       pregnantOrLactating: d.pregnantOrLactating,
       eatingDisorderHistory: d.eatingDisorderHistory,
       kidneyDisease: d.kidneyDisease,
-      exerciseCaution: d.exerciseCaution,
     },
     hideNumbers: false,
     consentedAt: now,

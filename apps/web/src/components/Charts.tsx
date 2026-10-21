@@ -4,44 +4,6 @@ import { useEffect, useRef, useState } from 'react';
 import { localToday, shortDate } from '../lib/dates';
 import { t } from '../lib/i18n';
 
-export function Ring({
-  value,
-  max,
-  label,
-  trackClass = 'stroke-slate-100 dark:stroke-slate-700',
-  barClass = 'stroke-emerald',
-  size = 'size-32',
-}: {
-  value: number;
-  max: number;
-  label: string;
-  trackClass?: string;
-  barClass?: string;
-  size?: string;
-}) {
-  const r = 52;
-  const c = 2 * Math.PI * r;
-  const pct = max > 0 ? Math.min(1, value / max) : 0;
-  return (
-    <svg viewBox="0 0 120 120" className={`${size} shrink-0`} role="img" aria-label={label}>
-      <circle cx="60" cy="60" r={r} fill="none" strokeWidth="12" className={trackClass} />
-      {pct > 0 && (
-        <circle
-          cx="60"
-          cy="60"
-          r={r}
-          fill="none"
-          strokeWidth="12"
-          strokeLinecap="round"
-          strokeDasharray={`${pct * c} ${c}`}
-          transform="rotate(-90 60 60)"
-          className={barClass}
-        />
-      )}
-    </svg>
-  );
-}
-
 const md = (d: string) => shortDate(d);
 
 function useWidth<T extends HTMLElement>() {

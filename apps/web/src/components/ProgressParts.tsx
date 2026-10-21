@@ -23,19 +23,15 @@ import {
 } from '../logic/trophies';
 import { getLang, t } from '../lib/i18n';
 
-/** Apple-style card with a small tinted icon, title and optional action on the right. */
+/** A page section with a title, optional subtitle and an action on the right. */
 export function Section({
   id,
-  icon,
-  tint = 'bg-emerald-500',
   title,
   sub,
   action,
   children,
 }: {
   id: string;
-  icon: IconName;
-  tint?: string;
   title: string;
   sub?: ReactNode;
   action?: ReactNode;
@@ -179,8 +175,6 @@ export function Achievements({ s, today, hide }: { s: AppState; today: string; h
   return (
     <Section
       id="achievements"
-      icon="trophy"
-      tint="bg-[#ffcc00]"
       title={t('Achievements')}
       sub={t('{v1} medals earned', { v1: earned.length + monthTrophies.length })}
     >

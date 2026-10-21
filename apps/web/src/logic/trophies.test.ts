@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import {
   addTarget,
-  addWeight,
   joinMonthlyChallenge,
   logFood,
   removeMeal,
-  setDayComplete,
+  setWeightOn,
+  answerDayCheck,
 } from '../data/actions';
 import { emptyState, type AppState, type Food, type Profile } from '../data/types';
 import { datesBetween } from './weekly';
@@ -13,14 +13,11 @@ import {
   achievementFeed,
   monthlyChallenge,
   monthlyTrophies,
-  monthStats,
   nextTier,
   personalRecords,
-  previousMonth,
   streakReachedOn,
   topTier,
   trophyFamilies,
-  weekStreak,
 } from './trophies';
 
 const food: Food = {
@@ -42,15 +39,11 @@ const profile: Profile = {
   ratePctPerWeek: 0.5,
   targetWeightKg: 78,
   goalStartDate: '2026-09-01',
-  lifestyleMode: 'home',
-  minutesPerDay: 15,
-  experience: 'beginner',
   dietTags: [],
   screening: {
     pregnantOrLactating: false,
     eatingDisorderHistory: false,
     kidneyDisease: false,
-    exerciseCaution: false,
   },
   hideNumbers: false,
   consentedAt: '2026-09-01T00:00:00Z',
@@ -117,7 +110,7 @@ describe('medals', () => {
     let s = base();
     let kg = 80;
     for (const d of datesBetween('2026-09-01', '2026-10-10')) {
-      s = addWeight(s, { id: d, date: d, measuredAt: `${d}T07:00:00Z`, weightKg: kg });
+      s = setWeightOn(s, { id: d, date: d, measuredAt: `${d}T07:00:00Z`, weightKg: kg });
       kg -= 0.1;
     }
     const goal = trophyFamilies(s).find((f) => f.id === 'kg')!;
@@ -162,12 +155,12 @@ describe('monthly challenge', () => {
   });
 });
 
-describe('records, streaks and stats', () => {
+describe('personal records', () => {
   it('finds personal records and marks recent ones as new', () => {
     let s = eat(base(), ['2026-10-12', '2026-10-13', '2026-10-14']);
-    s = setDayComplete(setDayComplete(s, '2026-10-12', true), '2026-10-13', true);
-    s = addWeight(s, { id: 'a', date: '2026-10-01', measuredAt: 'a', weightKg: 80 });
-    s = addWeight(s, { id: 'b', date: '2026-10-14', measuredAt: 'b', weightKg: 79.2 });
+    s = answerDayCheck(answerDayCheck(s, '2026-10-12', true), '2026-10-13', true);
+    s = setWeightOn(s, { id: 'a', date: '2026-10-01', measuredAt: 'a', weightKg: 80 });
+    s = setWeightOn(s, { id: 'b', date: '2026-10-14', measuredAt: 'b', weightKg: 79.2 });
     const prs = personalRecords(s, TODAY);
     expect(prs.find((p) => p.id === 'streak')).toMatchObject({ value: '3 days', isNew: true });
     expect(prs.some((p) => p.id === 'week')).toBe(false);
@@ -175,26 +168,5 @@ describe('records, streaks and stats', () => {
       value: '79.2 kg',
       on: '2026-10-14',
     });
-  });
-
-  it('counts week streaks of 3+ logged days without breaking on Monday', () => {
-    // Weeks of Sep 28 and Oct 5 have 3 days each; this week (Oct 12) has 1 so far.
-    const s = eat(base(), [
-      '2026-09-28',
-      '2026-09-29',
-      '2026-09-30',
-      '2026-10-05',
-      '2026-10-06',
-      '2026-10-07',
-      '2026-10-12',
-    ]);
-    expect(weekStreak(s, TODAY)).toBe(2);
-  });
-
-  it('compares this month with last month', () => {
-    const s = eat(base(), ['2026-09-30', '2026-10-01', '2026-10-02']);
-    expect(monthStats(s, '2026-10')).toMatchObject({ daysLogged: 2, meals: 2 });
-    expect(monthStats(s, previousMonth('2026-10')).daysLogged).toBe(1);
-    expect(previousMonth('2026-01')).toBe('2025-12');
   });
 });

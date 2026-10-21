@@ -1,4 +1,3 @@
-import type { WaterEntry } from '../data/types';
 import { tr } from '../lib/i18n';
 
 // Daily drinking guide by body weight, the common practical rule of roughly
@@ -19,8 +18,4 @@ export const WATER_CUP_ML = 250;
 export function waterRangeMl(weightKg: number, activity: WaterActivity): [number, number] {
   const f = WATER_ACTIVITY[activity].mlPerKg;
   return [Math.round(weightKg * f), Math.round(weightKg * (f + 5))];
-}
-
-export function waterOn(entries: WaterEntry[], date: string): number {
-  return entries.filter((w) => w.date === date).reduce((t, w) => t + w.ml, 0);
 }

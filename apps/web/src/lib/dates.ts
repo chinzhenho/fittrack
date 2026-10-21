@@ -20,10 +20,6 @@ export function formatDay(date: string, today = localToday()): string {
   return formatDateFull(date);
 }
 
-export function lastNDays(end: string, n: number): string[] {
-  return Array.from({ length: n }, (_, i) => addDays(end, i - n + 1));
-}
-
 /** Full date, e.g. "Tue, 13 Oct" or "10月13日 周二", without the Today/Yesterday shortcut. */
 export function formatDateFull(date: string): string {
   const [y, m, d] = date.split('-').map(Number) as [number, number, number];

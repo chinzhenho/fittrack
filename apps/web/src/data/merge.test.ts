@@ -57,7 +57,6 @@ describe('mergeStates', () => {
       profile: newerProfile,
       weights: [w('2', 72), w('3', 73)],
       completeDays: ['2026-10-11'],
-      skippedTasks: { '2026-10-12': ['log_weight'] },
     });
     const m = mergeStates(newer, older);
     expect(m.profile).toBe(newerProfile);
@@ -67,7 +66,6 @@ describe('mergeStates', () => {
       ['3', 73],
     ]);
     expect(m.completeDays).toEqual(['2026-10-10', '2026-10-11']);
-    expect(m.skippedTasks).toEqual({ '2026-10-12': ['log_weight'] });
     expect(m.updatedAt).toBe('2026-10-12');
   });
 });

@@ -1,29 +1,5 @@
 import type { Profile } from '../data/types';
 
-/** Square, centre-cropped JPEG small enough to keep in the synced profile (~5–10 KB). */
-export async function makeAvatarPhoto(file: Blob, size = 160): Promise<string> {
-  const bitmap = await createImageBitmap(file, { imageOrientation: 'from-image' });
-  const side = Math.min(bitmap.width, bitmap.height);
-  const canvas = document.createElement('canvas');
-  canvas.width = size;
-  canvas.height = size;
-  canvas
-    .getContext('2d')
-    ?.drawImage(
-      bitmap,
-      (bitmap.width - side) / 2,
-      (bitmap.height - side) / 2,
-      side,
-      side,
-      0,
-      0,
-      size,
-      size,
-    );
-  bitmap.close();
-  return canvas.toDataURL('image/jpeg', 0.8);
-}
-
 /** First letter of the nickname, else of the email, else a smile. */
 export function avatarInitial(profile: Pick<Profile, 'nickname'>, email = ''): string {
   const source = profile.nickname?.trim() || email;

@@ -6,7 +6,6 @@ import type {
   MealType,
   Profile,
   TargetVersion,
-  WaterEntry,
   WeightEntry,
 } from './types';
 
@@ -123,10 +122,6 @@ function toggle(list: string[], value: string, on: boolean): string[] {
   return on ? [...without, value] : without;
 }
 
-export function setDayComplete(s: AppState, date: string, complete: boolean): AppState {
-  return { ...s, completeDays: toggle(s.completeDays, date, complete) };
-}
-
 /**
  * Answer to "did you eat less, or forget some food?" for a low day: eating less
  * counts the day; forgotten food leaves it out of target checks.
@@ -139,10 +134,6 @@ export function answerDayCheck(s: AppState, date: string, ateLess: boolean): App
   };
 }
 
-export function addWeight(s: AppState, entry: WeightEntry): AppState {
-  return { ...s, weights: [...s.weights, entry] };
-}
-
 /** Records the weight for one day, replacing any earlier entry on that day. */
 export function setWeightOn(s: AppState, entry: WeightEntry): AppState {
   return { ...s, weights: [...s.weights.filter((w) => w.date !== entry.date), entry] };
@@ -150,14 +141,6 @@ export function setWeightOn(s: AppState, entry: WeightEntry): AppState {
 
 export function removeWeight(s: AppState, id: string): AppState {
   return { ...s, weights: s.weights.filter((w) => w.id !== id) };
-}
-
-export function addWater(s: AppState, entry: WaterEntry): AppState {
-  return { ...s, water: [...s.water, entry] };
-}
-
-export function removeWater(s: AppState, id: string): AppState {
-  return { ...s, water: s.water.filter((w) => w.id !== id) };
 }
 
 export function dismissInsight(s: AppState, key: string): AppState {
@@ -183,15 +166,9 @@ export function clearHealthRecords(s: AppState): AppState {
     weights: [],
     completeDays: [],
     partialDays: [],
-    water: [],
-    challenges: [],
     dismissedInsights: [],
     adaptiveKeptOn: [],
     monthlyJoined: [],
-    restDays: [],
-    skippedTasks: {},
-    sessions: [],
-    activities: [],
   };
 }
 

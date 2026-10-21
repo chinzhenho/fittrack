@@ -1,4 +1,4 @@
-import type { Food, MealItem, MealType, Nutrients } from '../data/types';
+import type { MealItem, MealType, Nutrients } from '../data/types';
 import type { Goal } from '@fittrack/engine';
 import { t, tr } from '../lib/i18n';
 
@@ -40,25 +40,6 @@ export function sumNutrients(items: { nutrients: Nutrients }[]): Nutrients {
 
 export function mealsOn(meals: MealItem[], date: string): MealItem[] {
   return meals.filter((m) => m.date === date);
-}
-
-export function searchFoods(foods: Food[], query: string): Food[] {
-  const q = query.trim().toLowerCase();
-  if (!q) return foods;
-  return foods.filter((f) =>
-    [f.name, f.nameEn, ...f.aliases].some((n) => n.toLowerCase().includes(q)),
-  );
-}
-
-/** Most recently logged distinct foods, newest first. */
-export function recentFoodIds(meals: MealItem[], limit = 8): string[] {
-  const seen = new Set<string>();
-  const sorted = [...meals].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-  for (const m of sorted) {
-    seen.add(m.foodId);
-    if (seen.size >= limit) break;
-  }
-  return [...seen];
 }
 
 export type CustomFoodError = 'name' | 'kcal' | 'macro' | 'macroSum' | 'sodium';

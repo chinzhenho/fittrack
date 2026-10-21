@@ -1,12 +1,11 @@
 import { addDays } from '@fittrack/engine';
 import { useMemo, useState } from 'react';
-import { Link, useSearchParams } from 'react-router';
+import { useSearchParams } from 'react-router';
 import { FoodThumb, Glyph } from '../components/Icons';
-import { MEAL_STYLE } from '../components/mealStyle';
 import { MonthCalendar } from '../components/MonthCalendar';
 import { SnapButton } from '../components/SnapButton';
 import { useToast } from '../components/Toast';
-import { Bar, Button, Card, CheckCards, ChoiceCards, PageTitle, Stepper } from '../components/ui';
+import { Bar, Button, Card, ChoiceCards, PageTitle, Stepper } from '../components/ui';
 import { editMeal, removeMeal, restoreMeal } from '../data/actions';
 import { DayCheck } from '../components/DayCheck';
 import { dayStatus, isCompleteDay } from '../logic/dayStatus';

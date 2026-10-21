@@ -6,7 +6,7 @@ import type {
   PlanWarning,
   RejectReason,
 } from '@fittrack/engine';
-import type { DietTag, LifestyleMode } from '../data/types';
+import type { DietTag } from '../data/types';
 import { t, tr } from './i18n';
 
 // Plan copy in English; tr()/t() show it in Simplified Chinese when chosen (lib/i18n).
@@ -31,14 +31,6 @@ export const ACTIVITY_LABELS: Record<ActivityLevel, { name: string; hint: string
   moderate: { name: 'Moderate', hint: 'Exercise 3–5 days a week, or a job with lots of walking' },
   very: { name: 'Very active', hint: 'Exercise 6–7 days a week, or physical work' },
   extra: { name: 'Extra active', hint: 'Physical work plus daily training' },
-});
-
-export const MODE_LABELS: Record<LifestyleMode, { name: string; hint: string }> = tr({
-  nutrition_first: { name: 'No exercise yet', hint: 'Start with food and habits' },
-  home: { name: 'Home workouts', hint: 'No equipment needed' },
-  gym: { name: 'Gym', hint: 'Using gym equipment' },
-  outdoor: { name: 'Outdoors', hint: 'Walking, running or cycling' },
-  mixed: { name: 'Mixed', hint: 'Flexible, day by day' },
 });
 
 export const DIET_LABELS: Record<DietTag, string> = tr({

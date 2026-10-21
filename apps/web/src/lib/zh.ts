@@ -225,10 +225,6 @@ export const ZH: Record<string, string> = {
   '{n} items · {kcal} kcal': '{n} 项 · {kcal} kcal',
   'Add to {v1}': '加到{v1}',
   Add: '添加',
-  'Done for the day?': '今天记录完了吗？',
-  'Tick this when every meal is logged. Only complete days are used to check what you really burn and to suggest target changes.':
-    '每一餐都记录好后请打勾。只有完整记录的日子，才会用来计算你真正的消耗和建议调整目标。',
-  'I logged everything I ate this day': '我已记录这一天吃的所有东西',
   'Deleted {name}': '已删除 {name}',
   'Edit {name}': '编辑 {name}',
   'About {v1} kcal': '约 {v1} kcal',
@@ -455,16 +451,6 @@ export const ZH: Record<string, string> = {
   'Exercise 6–7 days a week, or physical work': '每周运动 6–7 天，或体力工作',
   'Extra active': '非常活跃',
   'Physical work plus daily training': '体力工作，加上每天训练',
-  'No exercise yet': '暂时不运动',
-  'Start with food and habits': '先从饮食和习惯开始',
-  'Home workouts': '在家运动',
-  'No equipment needed': '不需要器材',
-  Gym: '健身房',
-  'Using gym equipment': '使用健身器材',
-  Outdoors: '户外',
-  'Walking, running or cycling': '走路、跑步或骑脚车',
-  Mixed: '混合',
-  'Flexible, day by day': '每天弹性安排',
   Halal: '清真',
   Vegetarian: '素食',
   'No beef': '不吃牛肉',
@@ -545,8 +531,6 @@ export const ZH: Record<string, string> = {
   'Profile & account': '个人资料与账号',
   Nickname: '昵称',
   'What should we call you?': '我们该怎么称呼你？',
-  Picture: '头像',
-  Avatar: '头像',
   'Avatar {a}': '头像 {a}',
   Account: '账号',
   'Without an account your data is only on this device. Sign up to back it up and use it on any phone.':
@@ -620,25 +604,13 @@ export const ZH: Record<string, string> = {
   Language: '语言',
   Theme: '主题',
   Dark: '深色',
-  Auto: '自动',
-  'match phone': '跟随手机',
-  'Privacy on screen': '屏幕隐私',
-  'If the numbers stress you out, or someone can see your screen. You still log as usual; the app shows your habits instead.':
-    '如果数字让你有压力，或别人看得到你的屏幕，可以隐藏。你照样记录，应用会改为显示你的习惯。',
   'Hide calories and weight': '隐藏卡路里和体重',
   'Privacy & data': '隐私与数据',
-  'Where your data is': '你的数据在哪里',
-  'In your account (servers in Singapore) and on this device. Only you can see it.':
-    '在你的账号（服务器在新加坡）和这部设备上。只有你能看到。',
-  "Only on this device. Sign up so you don't lose it if you change phones.":
-    '只在这部设备上。注册账号，换手机时就不会丢失。',
   "This browser can't save data (maybe private browsing).":
     '这个浏览器无法保存数据（可能是无痕模式）。',
   'Download my data': '下载我的数据',
   'A clear report of your logs, saved as PDF': '一份清楚的记录报告，保存为 PDF',
   'Delete all your logs?': '要删除你所有的记录吗？',
-  'All food, weight and water logs will be permanently deleted from':
-    '所有饮食、体重和喝水记录都会被永久删除，范围：',
   'your account and this device': '你的账号和这部设备',
   'this device': '这部设备',
   ". Your profile and plan stay. This can't be undone, so download your data first if you want a copy.":
@@ -647,15 +619,11 @@ export const ZH: Record<string, string> = {
   'Delete logs': '删除记录',
   'Delete all health records': '删除所有健康记录',
   'Delete all my logs': '删除我所有的记录',
-  'Start fresh but keep your profile and plan': '重新开始，但保留个人资料和计划',
   'Delete everything on this device?': '要删除这部设备上的所有内容吗？',
   "Your profile, plan and all logs will be permanently deleted, and you'll start again from the welcome page.":
     '你的个人资料、计划和所有记录都会被永久删除，并会从欢迎页重新开始。',
   'Delete everything': '全部删除',
   'Delete everything on this device': '删除这部设备上的所有内容',
-  'Logs, profile and plan': '记录、个人资料和计划',
-  'To delete your account, tap your name at the top of this page.':
-    '要删除账号，请点这个页面最上面的名字。',
   'Help & info': '帮助与资讯',
   'App version': '应用版本',
   'No daily target yet. Please finish setting up your profile first.':
@@ -725,12 +693,6 @@ export const ZH: Record<string, string> = {
   "You're logging consistently": '你一直坚持记录',
   "You've logged almost every day recently. That's the most important step to understanding your eating habits.":
     '你最近几乎每天都有记录。这是了解自己饮食习惯最重要的一步。',
-  'Tick "I logged everything" in the Diary': '在日记里勾选「我已全部记录」',
-  'When a day has all your meals logged, tick "I logged everything I ate this day" at the bottom of the Diary. We use these complete days to check your calories and your target, so half-logged days don\'t throw it off.':
-    '当一天的餐点都记录好后，请在日记底部勾选「我已记录这一天吃的所有东西」。我们用这些完整记录的日子来检查你的卡路里和目标，这样只记了一半的日子就不会影响结果。',
-  'Last 7 days: food logged on {loggedDays} days, {completeDays} ticked as complete':
-    '最近 7 天：有 {loggedDays} 天记录饮食，其中 {completeDays} 天标记为完整',
-  'Go to Diary': '前往日记',
   'Protein is often low': '蛋白质常常不够',
   'Try adding a protein to each meal, such as eggs, tofu, fish, chicken or a glass of milk.':
     '试着每餐加一份蛋白质，例如鸡蛋、豆腐、鱼、鸡肉或一杯牛奶。',
@@ -821,7 +783,6 @@ export const ZH: Record<string, string> = {
   "Telling the AI what the photo can't show makes it more accurate.":
     '告诉 AI 照片看不出来的东西，结果会更准确。',
   'Analyse photo': '分析照片',
-  '📸 Take photo': '📸 拍照',
   'AI is identifying your food…': 'AI 正在识别你的食物…',
   'AI is taking a careful look. About 10–30 seconds…': 'AI 正在仔细看，大约 10–30 秒…',
   'Try again': '再试一次',
@@ -850,7 +811,6 @@ export const ZH: Record<string, string> = {
   // Plan periods
   'This week': '本周',
   'Last week': '上周',
-  'Last 7 days': '最近 7 天',
 
   // Info pages
   'AI photo calories': 'AI 拍照算卡路里',
@@ -902,8 +862,6 @@ export const ZH: Record<string, string> = {
   'This policy explains how the current version of EatHealthee handles your data.':
     '本政策说明目前版本的 EatHealthee 如何处理你的数据。',
   'What we collect': '我们收集什么',
-  "What you enter during setup and use: date of birth, height, weight, waist, goal, activity level, health screening answers, diet preferences, food logs and weight logs. Under Malaysia's Personal Data Protection Act 2010 (PDPA), health data is sensitive personal data, and we only use it with your explicit consent.":
-    '你在设置和使用时输入的资料：出生日期、身高、体重、腰围、目标、活动量、健康筛查答案、饮食偏好、饮食记录和体重记录。根据马来西亚《2010 年个人资料保护法令》（PDPA），健康资料属于敏感个人资料，我们只会在你明确同意后使用。',
   'Where your data is stored': '你的数据存放在哪里',
   'Without an account:': '没有账号时：',
   "everything stays in this device's browser and is never sent to a server. Clearing browser data, private browsing or changing devices will lose it.":
@@ -1130,14 +1088,10 @@ export const ZH: Record<string, string> = {
   "Your data is only on this device. Sign up so you don't lose it if you change phones.":
     '你的数据只在这部设备上。注册账号，换手机时就不会丢失。',
   'Delete data': '删除数据',
-  'Your account and all its data, for good': '永久删除账号和所有数据',
-  'Removes your food, weight and water logs. Your account, profile and plan stay.':
-    '删除你的饮食、体重和喝水记录。账号、个人资料和计划会保留。',
   "Removes your account, login and all your data. This can't be undone.":
     '删除你的账号、登录资料和所有数据，无法恢复。',
   'Removes everything saved on this device, and you start over.':
     '删除这部设备上保存的所有内容，然后重新开始。',
-  'To log out or delete your account, go back to Me.': '要登出或删除账号，请回到「我的」页面。',
   'All food and weight logs will be permanently deleted from':
     '所有饮食和体重记录都会被永久删除，范围：',
   'Removes your food and weight logs. Your account, profile and plan stay.':

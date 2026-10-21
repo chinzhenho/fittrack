@@ -123,7 +123,7 @@ function BodySection({ s, profile, today }: { s: AppState; profile: Profile; tod
 
   if (!latest) {
     return (
-      <Section id="body" tint="bg-[#ff2d55]" icon="trend" title={t('Your weight')}>
+      <Section id="body" title={t('Your weight')}>
         <div className="rounded-2xl bg-slate-50 p-5 text-center dark:bg-slate-700/60">
           <p className="text-3xl" aria-hidden="true">
             ⚖️
@@ -164,7 +164,7 @@ function BodySection({ s, profile, today }: { s: AppState; profile: Profile; tod
   const reached = toGoal !== null && (goal === 'fat_loss' ? toGoal >= 0 : toGoal <= 0);
 
   return (
-    <Section id="body" tint="bg-[#ff2d55]" icon="trend" title={t('Your weight')} action={action}>
+    <Section id="body" title={t('Your weight')} action={action}>
       <div className="mb-3 grid grid-cols-3 gap-2 text-center">
         <div className="rounded-2xl bg-slate-50 px-2 py-2 dark:bg-slate-700/60">
           <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
@@ -251,13 +251,7 @@ function InsightsSection({ s, today }: { s: AppState; today: string }) {
   if (list.length === 0) return null;
 
   return (
-    <Section
-      id="insights"
-      tint="bg-[#af52de]"
-      icon="sparkles"
-      title={t('Tips for you')}
-      sub={t('Based on your last 7 days')}
-    >
+    <Section id="insights" title={t('Tips for you')} sub={t('Based on your last 7 days')}>
       {
         <ul className="space-y-2.5">
           {shown.map((i) => (
@@ -445,8 +439,6 @@ function AdjustSection({ s, profile, today }: { s: AppState; profile: Profile; t
   return (
     <Section
       id="adjust"
-      tint="bg-slate-400"
-      icon="sliders"
       title={t('Calorie target check')}
       sub={t('Is your daily calorie target right for you?')}
     >
@@ -496,13 +488,7 @@ function WeightHistorySection({ s, today }: { s: AppState; today: string }) {
   }
 
   return (
-    <Section
-      id="weights"
-      tint="bg-emerald-strong"
-      icon="scale"
-      title={t('Weight log')}
-      sub={t('All your weigh-ins')}
-    >
+    <Section id="weights" title={t('Weight log')} sub={t('All your weigh-ins')}>
       {!s.weights.some((x) => x.date === today) && (
         <p className="mb-3 rounded-[14px] bg-emerald-strong/[0.07] px-3 py-2.5 text-sm dark:bg-white/5">
           {t("Today's weight goes on the")}{' '}

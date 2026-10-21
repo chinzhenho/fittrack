@@ -22,30 +22,3 @@ export function currentStreak(dates: string[], today: string): number {
   }
   return n;
 }
-
-export function longestStreak(dates: string[]): number {
-  let best = 0;
-  let run = 0;
-  let prev: string | null = null;
-  for (const d of dates) {
-    run = prev !== null && addDays(prev, 1) === d ? run + 1 : 1;
-    best = Math.max(best, run);
-    prev = d;
-  }
-  return best;
-}
-
-export interface ProgressSummary {
-  streak: number;
-  longest: number;
-  daysLogged: number;
-}
-
-export function progressSummary(s: AppState, today: string): ProgressSummary {
-  const dates = loggedDates(s);
-  return {
-    streak: currentStreak(dates, today),
-    longest: longestStreak(dates),
-    daysLogged: dates.length,
-  };
-}

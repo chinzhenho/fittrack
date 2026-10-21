@@ -101,47 +101,6 @@ export function Field({
   );
 }
 
-export function Segmented<T extends string>({
-  label,
-  hint,
-  value,
-  options,
-  onChange,
-}: {
-  label: string;
-  hint?: string;
-  value: T;
-  options: { value: T; label: string; sub?: string }[];
-  onChange: (value: T) => void;
-}) {
-  const name = useId();
-  return (
-    <fieldset>
-      <legend className="text-sm font-medium">{label}</legend>
-      {hint && <p className="text-xs text-slate-600 dark:text-slate-300">{hint}</p>}
-      <div className="mt-2 flex flex-wrap gap-2">
-        {options.map((o) => (
-          <label
-            key={o.value}
-            className="flex min-h-11 cursor-pointer flex-col justify-center rounded-[14px] bg-[#767680]/[0.12] px-4 py-2 text-[0.9375rem] transition hover:bg-[#767680]/20 has-checked:bg-emerald-strong has-checked:font-semibold has-checked:text-white has-focus-visible:outline-2 has-focus-visible:outline-emerald dark:bg-[#767680]/[0.24] dark:has-checked:bg-emerald dark:has-checked:text-black"
-          >
-            <input
-              type="radio"
-              name={name}
-              value={o.value}
-              checked={value === o.value}
-              onChange={() => onChange(o.value)}
-              className="sr-only"
-            />
-            <span>{o.label}</span>
-            {o.sub && <span className="text-xs font-normal opacity-75">{o.sub}</span>}
-          </label>
-        ))}
-      </div>
-    </fieldset>
-  );
-}
-
 export function Check({
   checked,
   onChange,

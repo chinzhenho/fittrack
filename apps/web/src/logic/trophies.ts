@@ -4,7 +4,7 @@ import type { AppState } from '../data/types';
 import { loggedDates } from './achievements';
 import { mealsOn, sumNutrients } from './nutrition';
 import { startWeightKg, targetOn, trendPoints } from './targets';
-import { datesBetween, mondayOf } from './weekly';
+import { datesBetween } from './weekly';
 import { isCompleteDay } from './dayStatus';
 import { getLang, t, tr } from '../lib/i18n';
 
@@ -404,51 +404,6 @@ export function personalRecords(s: AppState, today: string): PersonalRecord[] {
     });
   }
   return out;
-}
-
-// Streaks and month stats -----------------------------------------------------------
-
-export const WEEK_STREAK_DAYS = 3;
-
-/**
- * Consecutive Mon–Sun weeks with at least 3 days logged. The current week counts once
- * it reaches 3 days; until then the streak runs up to last week, so it does not break
- * on a Monday morning.
- */
-export function weekStreak(s: AppState, today: string): number {
-  const logged = new Set(loggedDates(s));
-  const count = (week: string) =>
-    datesBetween(week, addDays(week, 6)).filter((d) => logged.has(d)).length;
-  let week = mondayOf(today);
-  if (count(week) < WEEK_STREAK_DAYS) week = addDays(week, -7);
-  let n = 0;
-  while (count(week) >= WEEK_STREAK_DAYS) {
-    n++;
-    week = addDays(week, -7);
-  }
-  return n;
-}
-
-export interface MonthStats {
-  daysLogged: number;
-  meals: number;
-  fullyLogged: number;
-  weighIns: number;
-}
-
-export function monthStats(s: AppState, month: string): MonthStats {
-  const inMonth = (d: string) => monthKey(d) === month;
-  return {
-    daysLogged: loggedDates(s).filter(inMonth).length,
-    meals: s.meals.filter((m) => inMonth(m.date)).length,
-    fullyLogged: completeDates(s).filter(inMonth).length,
-    weighIns: weighDates(s).filter(inMonth).length,
-  };
-}
-
-export function previousMonth(month: string): string {
-  const [y, m] = month.split('-').map(Number) as [number, number];
-  return m === 1 ? `${y - 1}-12` : `${y}-${String(m - 1).padStart(2, '0')}`;
 }
 
 // Feed ------------------------------------------------------------------------------

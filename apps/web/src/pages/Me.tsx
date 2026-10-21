@@ -276,7 +276,6 @@ function AvatarSheet({
   onPick: (next: Profile) => void;
   onClose: () => void;
 }) {
-  const toast = useToast();
   const without = (p: Profile, ...keys: ('avatar' | 'avatarPhoto')[]) => {
     const next: Profile = { ...p };
     for (const k of keys) delete next[k];

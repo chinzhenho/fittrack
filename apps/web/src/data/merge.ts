@@ -19,10 +19,6 @@ function union(a: string[], b: string[]): string[] {
 
 export function mergeStates(a: AppState, b: AppState): AppState {
   const [older, newer] = a.updatedAt <= b.updatedAt ? [a, b] : [b, a];
-  const skipped: Record<string, string[]> = { ...older.skippedTasks };
-  for (const [date, ids] of Object.entries(newer.skippedTasks)) {
-    skipped[date] = union(skipped[date] ?? [], ids);
-  }
   return {
     schemaVersion: 1,
     updatedAt: newer.updatedAt,
@@ -34,12 +30,6 @@ export function mergeStates(a: AppState, b: AppState): AppState {
     weights: byId(older.weights, newer.weights),
     completeDays: union(older.completeDays, newer.completeDays),
     partialDays: union(older.partialDays ?? [], newer.partialDays ?? []),
-    restDays: union(older.restDays, newer.restDays),
-    skippedTasks: skipped,
-    sessions: byId(older.sessions, newer.sessions),
-    activities: byId(older.activities, newer.activities),
-    water: byId(older.water ?? [], newer.water ?? []),
-    challenges: byId(older.challenges ?? [], newer.challenges ?? []),
     dismissedInsights: union(older.dismissedInsights ?? [], newer.dismissedInsights ?? []),
     adaptiveKeptOn: union(older.adaptiveKeptOn ?? [], newer.adaptiveKeptOn ?? []),
     monthlyJoined: union(older.monthlyJoined ?? [], newer.monthlyJoined ?? []),

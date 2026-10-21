@@ -2,37 +2,13 @@ import { addDays } from '@fittrack/engine';
 import type { AppState } from '../data/types';
 import { mealsOn, sumNutrients } from './nutrition';
 import { targetOn } from './targets';
-import { tr } from '../lib/i18n';
 import { localToday } from '../lib/dates';
 import { isCompleteDay } from './dayStatus';
-
-// Weekly summary for the progress page. Rules (shown to the user in the UI):
-// - A "complete" day is one the user marked as fully recorded (Diary checkbox). Only
-//   complete days are judged for protein and the calorie range, because a day with a
-//   single logged snack says nothing about real intake.
-// - Averages use days that have records; days without records are never counted as 0.
-// - "Within target" means 90-110% of that day's calorie target and never below the
-//   safety floor, so eating far less than planned is not rewarded.
-export type Period = 'this_week' | 'last_week' | 'last_7';
-
-export const PERIOD_LABELS: Record<Period, string> = tr({
-  this_week: 'This week',
-  last_week: 'Last week',
-  last_7: 'Last 7 days',
-});
 
 /** Monday of the week containing `date` (local calendar dates). */
 export function mondayOf(date: string): string {
   const day = new Date(`${date}T00:00:00`).getDay(); // 0 = Sunday
   return addDays(date, -((day + 6) % 7));
-}
-
-/** Inclusive start and end dates; `end` never goes past today. */
-export function periodRange(period: Period, today: string): { start: string; end: string } {
-  if (period === 'last_7') return { start: addDays(today, -6), end: today };
-  const monday = mondayOf(today);
-  if (period === 'last_week') return { start: addDays(monday, -7), end: addDays(monday, -1) };
-  return { start: monday, end: today };
 }
 
 export function datesBetween(start: string, end: string): string[] {
@@ -70,8 +46,6 @@ export interface WeeklySummary {
   } | null;
   weighIns: number;
 }
-
-export const WEEKLY_LOG_GOAL = 5;
 
 export function weeklySummary(
   s: AppState,
