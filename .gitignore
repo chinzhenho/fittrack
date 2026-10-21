@@ -21,3 +21,6 @@ Thumbs.db
 
 # Wrangler local dev state
 .wrangler/
+
+# Local tool settings (not part of the app)
+.claude/
