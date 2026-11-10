@@ -3,8 +3,10 @@
 //
 // POST /api/food-photo  { image: base64 JPEG, hint?: string }  with the user's Supabase
 // access token. `hint` is the user's own short note about the meal (e.g. "half rice").
-// 1. The token is checked by Supabase and the daily limit is checked without counting
-//    (public.photo_quota_left; the limit is set so high it is effectively unlimited). The photo is only counted
+// 1. The token is checked by Supabase and the limits are checked before any AI call
+//    (public.photo_quota_left): 50 answered photos a person a day, 5 tries a person a
+//    minute, 1,000 tries for the whole site a day (under the free AI quotas, so the AI is
+//    never used past them). The photo is only counted against the person's 50
 //    (public.use_photo_quota) once the AI has answered, so a busy AI costs no snap.
 //    Until photo_quota_left exists in the database, photos are counted up front.
 // 2. Vision models are tried in order until one answers: the Gemini models listed in
@@ -137,7 +139,8 @@ async function foodPhoto(request: Request, env: Env): Promise<Response> {
 }
 
 type QuotaResult =
-  { kind: 'ok'; value: number } | { kind: 'login' | 'limit' | 'missing' | 'error' };
+  | { kind: 'ok'; value: number }
+  | { kind: 'login' | 'limit' | 'rate' | 'site' | 'missing' | 'error' };
 
 /** Calls a quota function in Supabase as the signed-in user. */
 async function quotaCall(
@@ -158,6 +161,9 @@ async function quotaCall(
   if (!res.ok) {
     const err = (await res.json().catch(() => ({}))) as { code?: string; message?: string };
     if (err.code === 'PGRST202') return { kind: 'missing' };
+    // Messages raised by the SQL functions (supabase/migrations/*_photo_limits.sql).
+    if (err.message?.includes('site daily limit')) return { kind: 'site' };
+    if (err.message?.includes('rate limit')) return { kind: 'rate' };
     if (err.message?.includes('limit')) return { kind: 'limit' };
     if (err.message?.includes('not signed in')) return { kind: 'login' };
     return { kind: 'error' };
@@ -169,6 +175,8 @@ async function quotaCall(
 function quotaError(r: QuotaResult): Response {
   if (r.kind === 'login') return json(401, { error: 'login' });
   if (r.kind === 'limit') return json(429, { error: 'quota' });
+  if (r.kind === 'rate') return json(429, { error: 'rate' });
+  if (r.kind === 'site') return json(503, { error: 'site_limit' });
   return json(503, { error: 'unavailable' });
 }
 

@@ -449,7 +449,7 @@ function PhotoCard({
 
       {!signedIn ? (
         <div className="rounded-2xl bg-white p-4 text-sm dark:bg-slate-700">
-          <p>{t('AI snaps are free but need an account.')}</p>
+          <p>{t('AI snaps are free but need an account (up to 50 a day).')}</p>
           <div className="mt-3 flex gap-2">
             <Link
               to="/login"

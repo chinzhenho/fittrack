@@ -6,11 +6,15 @@ import { tr } from '../lib/i18n';
 // The photo is shrunk to at most 1024 px and re-encoded as JPEG first (~100-200 KB),
 // which also strips location and other metadata.
 
-export type AiPhotoError = 'login' | 'quota' | 'unavailable' | 'network' | 'bad_image';
+export type AiPhotoError =
+  'login' | 'quota' | 'rate' | 'site_limit' | 'unavailable' | 'network' | 'bad_image';
 
 export const AI_ERROR_TEXT: Record<AiPhotoError, string> = tr({
   login: 'Please log in to use AI food snaps (free).',
-  quota: "AI snaps aren't available right now. Please add food manually for now.",
+  quota: "You've used today's 50 AI snaps. They reset tomorrow; you can add food manually for now.",
+  rate: 'Too many photos in a minute. Please wait a minute and try again.',
+  site_limit:
+    "AI snaps have reached today's limit for everyone. They're back tomorrow; you can add food manually for now.",
   unavailable: 'The AI is busy right now. Try again, or add food manually.',
   network: 'Connection problem. Please check and try again.',
   bad_image: "Can't read this image. Please try another one.",
@@ -71,7 +75,14 @@ export async function analyzeFoodPhoto(
   if (res.ok && body.result) {
     return { ok: true, result: body.result, remaining: body.remaining ?? 0 };
   }
-  const known: AiPhotoError[] = ['login', 'quota', 'unavailable', 'bad_image'];
+  const known: AiPhotoError[] = [
+    'login',
+    'quota',
+    'rate',
+    'site_limit',
+    'unavailable',
+    'bad_image',
+  ];
   return {
     ok: false,
     error: body.error && known.includes(body.error) ? body.error : 'unavailable',

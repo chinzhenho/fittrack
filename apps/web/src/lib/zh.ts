@@ -1108,4 +1108,12 @@ export const ZH: Record<string, string> = {
   Done: '完成',
   Zoom: '缩放',
   'Drag to move, pinch or slide to zoom': '拖动可以移动，双指捏合或拉动滑杆可以缩放',
+  "You've used today's 50 AI snaps. They reset tomorrow; you can add food manually for now.":
+    '你今天的 50 次 AI 拍照已经用完了，明天会重置。现在可以先手动添加食物。',
+  'Too many photos in a minute. Please wait a minute and try again.':
+    '一分钟内拍太多张了。请等一分钟再试。',
+  "AI snaps have reached today's limit for everyone. They're back tomorrow; you can add food manually for now.":
+    '今天全站的 AI 拍照次数已经用完了，明天会恢复。现在可以先手动添加食物。',
+  'AI snaps are free but need an account (up to 50 a day).':
+    'AI 拍照识别免费，但需要账号（每天最多 50 次）。',
 };
