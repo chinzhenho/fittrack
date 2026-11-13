@@ -59,8 +59,11 @@ export function authErrorMessage(
     return t('This email is already registered. Please log in.');
   if (code === 'weak_password' || msg.includes('password should'))
     return t('Password too weak: use at least 8 characters, mixing letters and numbers.');
+  // Supabase: "For security purposes, you can only request this after 47 seconds."
+  const wait = /after (\d+) seconds?/.exec(msg)?.[1];
+  if (wait) return t('Please wait {n} seconds, then try again.', { n: wait });
   if (code === 'over_email_send_rate_limit' || msg.includes('rate limit'))
-    return t('Too many emails sent. Please try again later.');
+    return t('Too many emails sent. Please try again in an hour.');
   if (code === 'same_password') return t('The new password must be different from the old one.');
   if (code === 'email_address_invalid' || msg.includes('is invalid'))
     return t("This email address can't be used. Please check it, or try another one.");

@@ -417,7 +417,8 @@ export const ZH: Record<string, string> = {
   'This email is already registered. Please log in.': '这个电邮已注册过。请直接登录。',
   'Password too weak: use at least 8 characters, mixing letters and numbers.':
     '密码太弱：请使用至少 8 个字符，并混合字母和数字。',
-  'Too many emails sent. Please try again later.': '发送的邮件太多了。请稍后再试。',
+  'Too many emails sent. Please try again in an hour.': '发送的邮件太多了，请一小时后再试。',
+  'Please wait {n} seconds, then try again.': '请等 {n} 秒后再试。',
   'The new password must be different from the old one.': '新密码必须和旧密码不同。',
   "This email address can't be used. Please check it, or try another one.":
     '这个电邮地址无法使用。请检查一下，或换一个试试。',
