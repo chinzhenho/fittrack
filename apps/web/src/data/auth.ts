@@ -68,6 +68,8 @@ export function authErrorMessage(
     return t("We can't send email to this address yet. Please try again later.");
   if (msg.includes('sending confirmation') || msg.includes('sending magic link'))
     return t("We couldn't send the confirmation email. Please try again later.");
+  if (code === 'captcha_failed' || msg.includes('captcha'))
+    return t("We couldn't confirm you're human. Please try again.");
   if (code === 'signup_disabled') return t('New sign-ups are closed at the moment.');
   if (msg.includes('failed to fetch') || msg.includes('network'))
     return t("Can't reach the server. Please check your connection.");

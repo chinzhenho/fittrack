@@ -13,6 +13,7 @@ import {
 import { authErrorMessage, clearRecovering, isRecovering, useAuth } from '../data/auth';
 import { supabase } from '../data/supabase';
 import { IconTile, type IconName } from '../components/Icons';
+import { useHumanCheck } from '../components/Turnstile';
 import { setLang, t, tr, useLang } from '../lib/i18n';
 
 function Brand() {
@@ -324,6 +325,7 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export function Login() {
   const f = useEmailPassword();
+  const human = useHumanCheck();
   const navigate = useNavigate();
   const auth = useAuth();
   if (auth.status === 'signedIn') return <Navigate to="/" replace />;
@@ -335,10 +337,13 @@ export function Login() {
     const { error } = await supabase.auth.signInWithPassword({
       email: f.email.trim(),
       password: f.password,
+      options: { captchaToken: human.token ?? '' },
     });
     f.setBusy(false);
-    if (error) f.setError(authErrorMessage(error));
-    else navigate('/', { replace: true });
+    if (error) {
+      f.setError(authErrorMessage(error));
+      human.reset(); // each check works once
+    } else navigate('/', { replace: true });
   };
 
   return (
@@ -381,7 +386,8 @@ export function Login() {
             {f.error}
           </p>
         )}
-        <Button type="submit" className={submitClass} disabled={f.busy}>
+        {human.widget}
+        <Button type="submit" className={submitClass} disabled={f.busy || !human.token}>
           {f.busy ? t('Logging in…') : t('Log in')}
           {!f.busy && <ArrowRight />}
         </Button>
@@ -395,6 +401,7 @@ export function Signup() {
   const [confirm, setConfirm] = useState('');
   const [agree, setAgree] = useState(false);
   const [sentTo, setSentTo] = useState('');
+  const human = useHumanCheck();
   const auth = useAuth();
   if (auth.status === 'signedIn') return <Navigate to="/" replace />;
 
@@ -411,10 +418,16 @@ export function Signup() {
     const { data, error } = await supabase.auth.signUp({
       email,
       password: f.password,
-      options: { emailRedirectTo: `${window.location.origin}/` },
+      options: {
+        emailRedirectTo: `${window.location.origin}/`,
+        captchaToken: human.token ?? '',
+      },
     });
     f.setBusy(false);
-    if (error) return f.setError(authErrorMessage(error));
+    if (error) {
+      human.reset(); // each check works once
+      return f.setError(authErrorMessage(error));
+    }
     // Supabase returns a user with no identities when the email is already registered.
     if (data.user && data.user.identities?.length === 0)
       return f.setError(authErrorMessage({ code: 'user_already_exists' }));
@@ -488,6 +501,7 @@ export function Signup() {
             {t('privacy policy')}
           </Link>
         </Check>
+        {human.widget}
         {f.error && (
           <p role="alert" className="text-sm text-red-700 dark:text-red-400">
             {f.error}
@@ -496,7 +510,7 @@ export function Signup() {
         <Button
           type="submit"
           className={submitClass}
-          disabled={f.busy || !emailOk || !passwordOk || !matches || !agree}
+          disabled={f.busy || !emailOk || !passwordOk || !matches || !agree || !human.token}
         >
           {f.busy ? t('Signing up…') : t('Sign up and start')}
           {!f.busy && <ArrowRight />}
@@ -511,6 +525,7 @@ export function ResetPassword() {
   const [sent, setSent] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const human = useHumanCheck();
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
@@ -518,11 +533,14 @@ export function ResetPassword() {
     setError('');
     const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
       redirectTo: `${window.location.origin}/update-password`,
+      captchaToken: human.token ?? '',
     });
     setBusy(false);
     // Same message whether or not the email exists, so accounts cannot be probed.
-    if (error && error.code === 'over_email_send_rate_limit') setError(authErrorMessage(error));
-    else setSent(true);
+    if (error && (error.code === 'over_email_send_rate_limit' || error.code === 'captcha_failed')) {
+      setError(authErrorMessage(error));
+      human.reset(); // each check works once
+    } else setSent(true);
   };
 
   return (
@@ -541,6 +559,7 @@ export function ResetPassword() {
           <Field label={t('Your account email')}>
             {(p) => <EmailInput {...p} value={email} onChange={setEmail} />}
           </Field>
+          {human.widget}
           {error && (
             <p role="alert" className="text-sm text-red-700 dark:text-red-400">
               {error}
@@ -549,7 +568,7 @@ export function ResetPassword() {
           <Button
             type="submit"
             className={submitClass}
-            disabled={busy || !EMAIL_RE.test(email.trim())}
+            disabled={busy || !EMAIL_RE.test(email.trim()) || !human.token}
           >
             {t('Send reset link')}
           </Button>

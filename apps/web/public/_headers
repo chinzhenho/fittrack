@@ -2,7 +2,7 @@
 # The script hash is the theme snippet in index.html; src/securityHeaders.test.ts
 # fails if the two drift apart.
 /*
-  Content-Security-Policy: default-src 'self'; script-src 'self' 'sha256-gXddtkr1leLeIUuyBaCSfOWceW4uy9rTJeevOgffLtM='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' https://kcxcpxxoqgjyvowwprmf.supabase.co wss://kcxcpxxoqgjyvowwprmf.supabase.co; font-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'sha256-gXddtkr1leLeIUuyBaCSfOWceW4uy9rTJeevOgffLtM=' https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' https://kcxcpxxoqgjyvowwprmf.supabase.co wss://kcxcpxxoqgjyvowwprmf.supabase.co; font-src 'self'; frame-src https://challenges.cloudflare.com; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests
   Strict-Transport-Security: max-age=31536000; includeSubDomains
   X-Content-Type-Options: nosniff
   X-Frame-Options: DENY

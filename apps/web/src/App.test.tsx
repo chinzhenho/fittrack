@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { AppRoutes } from './App';
@@ -36,6 +36,15 @@ describe('app flow', () => {
   });
 
   it('validates the sign-up form before contacting the server', async () => {
+    // Stand-in for Cloudflare's human check; the test passes it by hand.
+    let pass: (token: string) => void = () => {};
+    window.turnstile = {
+      render: (_el, options) => {
+        pass = options.callback as (token: string) => void;
+        return 'widget';
+      },
+      remove: () => {},
+    };
     renderAt('/signup');
     const submit = (await screen.findByRole('button', {
       name: /Sign up and start/,
@@ -53,7 +62,10 @@ describe('app flow', () => {
     change('Enter it again', 'longenough1');
     expect(submit.disabled).toBe(true); // consent not given yet
     fireEvent.click(screen.getByLabelText(/I agree to store my body/));
+    expect(submit.disabled).toBe(true); // human check not passed yet
+    act(() => pass('token'));
     expect(submit.disabled).toBe(false);
+    delete window.turnstile;
   });
 
   it('requires consent before continuing', () => {

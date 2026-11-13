@@ -429,6 +429,10 @@ export const ZH: Record<string, string> = {
   "Can't reach the server. Please check your connection.": '无法连接服务器。请检查你的网络。',
   'Something went wrong ({code}). Please try again later.': '出了点问题（{code}）。请稍后再试。',
   'Something went wrong. Please try again later.': '出了点问题。请稍后再试。',
+  "We couldn't confirm you're human. Please try again.": '无法确认你是真人，请再试一次。',
+  "We couldn't check that you're human. Check your connection, then":
+    '无法进行真人验证。请检查网络，然后',
+  'try again': '再试一次',
   'Delete failed. Check your connection and try again. Your records were not deleted.':
     '删除失败。请检查网络后再试。你的记录没有被删除。',
   'Not logged in.': '还没登录。',
