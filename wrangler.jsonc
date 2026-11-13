@@ -15,9 +15,17 @@
   },
   "ai": { "binding": "AI" },
   "observability": { "enabled": true },
+  // Every day at 03:00 UTC: a tiny Supabase query so the free project is never paused
+  // for being inactive.
+  "triggers": { "crons": ["0 3 * * *"] },
   "vars": {
     // Free-tier Gemini models, tried in order; each has its own daily quota.
     "GEMINI_MODELS": "gemini-3.8-flash,gemini-3.6-flash,gemini-3-flash-preview,gemini-3.5-flash-lite,gemini-3.1-flash-lite",
+    // Most calls a day per model, set just under each free quota (Gemini free tier:
+    // 20 a day for the Flash models, 500 for Flash-Lite; Workers AI: 10,000 neurons a
+    // day shared, kept low on purpose). A model missing here is never called.
+    // Check AI Studio and the Cloudflare dashboard if Google or Cloudflare change them.
+    "AI_DAILY_LIMITS": "{\"gemini-3.8-flash\":18,\"gemini-3.6-flash\":18,\"gemini-3-flash-preview\":18,\"gemini-3.5-flash-lite\":480,\"gemini-3.1-flash-lite\":480,\"@cf/qwen/qwen3.8-27b\":40,\"@cf/google/gemma-4-26b-a4b-it\":40}",
     // Public by design (same values the website uses); access is enforced by RLS.
     "SUPABASE_URL": "https://kcxcpxxoqgjyvowwprmf.supabase.co",
     "SUPABASE_KEY": "sb_publishable_V9ALXZhbTPK0fIzG8cljBA_iesumBOM",

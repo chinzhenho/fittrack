@@ -11,7 +11,9 @@
 //    Until photo_quota_left exists in the database, photos are counted up front.
 // 2. Vision models are tried in order until one answers: the Gemini models listed in
 //    GEMINI_MODELS (each has its own free daily quota), then Workers AI models (share
-//    the account's free 10,000 neurons a day). Only models whose published input schema
+//    the account's free 10,000 neurons a day). Before each model, public.use_ai_model
+//    counts the call against AI_DAILY_LIMITS (set just under each free quota, in the
+//    provider's own day), so no model is ever used past its free quota. Only models whose published input schema
 //    takes an image are listed: a text-only model would invent a meal it cannot see.
 //    A 55 s overall deadline stops the chain.
 // 3. The answer is validated (normalizeAiResult) before it reaches the browser.
@@ -29,6 +31,8 @@ interface Env {
   AI?: { run(model: string, input: unknown): Promise<unknown> };
   GEMINI_API_KEY?: string;
   GEMINI_MODELS?: string;
+  /** JSON {model: most calls a day}; models not listed are never called. */
+  AI_DAILY_LIMITS?: string;
   SUPABASE_URL: string;
   SUPABASE_KEY: string;
 }
@@ -72,7 +76,65 @@ export default {
     if (url.pathname.startsWith('/api/')) return json(404, { error: 'not_found' });
     return env.ASSETS.fetch(request);
   },
+  /** Daily cron (wrangler.jsonc): keeps the free Supabase project from being paused. */
+  async scheduled(_event: unknown, env: Env): Promise<void> {
+    const res = await fetch(`${env.SUPABASE_URL}/rest/v1/rpc/keep_alive`, {
+      method: 'POST',
+      headers: { apikey: env.SUPABASE_KEY, 'content-type': 'application/json' },
+      body: '{}',
+    });
+    if (!res.ok) console.warn(`keep_alive ${res.status}`);
+  },
 };
+
+/** Daily call limits per model from AI_DAILY_LIMITS. */
+function dailyLimits(env: Env): Record<string, number> {
+  try {
+    const parsed = JSON.parse(env.AI_DAILY_LIMITS ?? '{}') as Record<string, unknown>;
+    return Object.fromEntries(
+      Object.entries(parsed).filter(
+        (e): e is [string, number] => typeof e[1] === 'number' && e[1] >= 1,
+      ),
+    );
+  } catch {
+    return {};
+  }
+}
+
+/**
+ * Asks Supabase (public.use_ai_model) to count one call to `model` for today in the
+ * provider's own day: Gemini quotas reset at midnight Pacific time, Workers AI at
+ * midnight UTC. False when the model has reached its limit (or has none set), so the
+ * Worker never calls a model past its free quota. Before the SQL exists in the
+ * database, models are tried as before and the providers' own quotas stop them.
+ */
+async function reserveModel(
+  env: Env,
+  token: string,
+  model: string,
+  limits: Record<string, number>,
+): Promise<boolean> {
+  const limit = limits[model];
+  if (!limit) return false;
+  const res = await fetch(`${env.SUPABASE_URL}/rest/v1/rpc/use_ai_model`, {
+    method: 'POST',
+    headers: {
+      apikey: env.SUPABASE_KEY,
+      authorization: `Bearer ${token}`,
+      'content-type': 'application/json',
+    },
+    body: JSON.stringify({
+      p_model: model,
+      p_daily_limit: limit,
+      p_time_zone: model.startsWith('@cf/') ? 'UTC' : 'America/Los_Angeles',
+    }),
+  });
+  if (!res.ok) {
+    const err = (await res.json().catch(() => ({}))) as { code?: string };
+    return err.code === 'PGRST202'; // function not created yet
+  }
+  return (await res.json()) === true;
+}
 
 async function foodPhoto(request: Request, env: Env): Promise<Response> {
   if (request.method !== 'POST') return json(405, { error: 'method' });
@@ -123,15 +185,18 @@ async function foodPhoto(request: Request, env: Env): Promise<Response> {
     .split(',')
     .map((m) => m.trim())
     .filter(Boolean);
+  const limits = dailyLimits(env);
   const started = Date.now();
   const timeLeft = () => DEADLINE_MS - (Date.now() - started);
   for (const model of env.GEMINI_API_KEY ? models : []) {
     if (timeLeft() < 5_000) break;
+    if (!(await reserveModel(env, token, model, limits))) continue; // at its free limit
     const result = await tryGemini(env.GEMINI_API_KEY ?? '', model, image, prompt, timeLeft());
     if (result) return answer(result);
   }
   for (const model of env.AI ? WORKERS_AI_MODELS : []) {
     if (timeLeft() < 5_000 || !env.AI) break;
+    if (!(await reserveModel(env, token, model.id, limits))) continue;
     const result = await tryWorkersAi(env.AI, model, image, prompt);
     if (result) return answer(result);
   }

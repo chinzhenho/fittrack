@@ -5,6 +5,7 @@ const env = {
   ASSETS: { fetch: () => Promise.resolve(new Response('')) },
   GEMINI_API_KEY: 'k',
   GEMINI_MODELS: 'gemini-test',
+  AI_DAILY_LIMITS: '{"gemini-test":18}',
   SUPABASE_URL: 'https://db.example',
   SUPABASE_KEY: 'anon',
 };
@@ -28,7 +29,16 @@ const AI_JSON = JSON.stringify({
 /** Fake Supabase and Gemini; records which quota functions were called. */
 type Left = number | 'missing' | { raise: string };
 
-function fakeFetch({ left, geminiOk }: { left: Left; geminiOk: boolean }): {
+function fakeFetch({
+  left,
+  geminiOk,
+  model = true,
+}: {
+  left: Left;
+  geminiOk: boolean;
+  /** Answer of use_ai_model: true, false (at its limit) or 'missing' (no SQL yet). */
+  model?: boolean | 'missing';
+}): {
   calls: string[];
 } {
   const calls: string[] = [];
@@ -46,6 +56,18 @@ function fakeFetch({ left, geminiOk }: { left: Left; geminiOk: boolean }): {
           ? Response.json({ code: 'PGRST202', message: 'not found' }, { status: 404 })
           : Response.json(left),
       );
+    }
+    if (url.includes('/rpc/use_ai_model')) {
+      calls.push('model');
+      return Promise.resolve(
+        model === 'missing'
+          ? Response.json({ code: 'PGRST202', message: 'not found' }, { status: 404 })
+          : Response.json(model),
+      );
+    }
+    if (url.includes('/rpc/keep_alive')) {
+      calls.push('keep_alive');
+      return Promise.resolve(Response.json(true));
     }
     if (url.includes('/rpc/use_photo_quota')) {
       calls.push('use');
@@ -79,14 +101,14 @@ describe('food photo quota', () => {
     const res = await post();
     expect(res.status).toBe(200);
     expect(await res.json()).toMatchObject({ remaining: 4 });
-    expect(calls).toEqual(['left', 'gemini', 'use']);
+    expect(calls).toEqual(['left', 'model', 'gemini', 'use']);
   });
 
   it('does not count a photo when the AI is busy', async () => {
     const { calls } = fakeFetch({ left: 5, geminiOk: false });
     const res = await post();
     expect(res.status).toBe(503);
-    expect(calls).toEqual(['left', 'gemini']);
+    expect(calls).toEqual(['left', 'model', 'gemini']);
   });
 
   it('refuses before calling the AI when no snaps are left', async () => {
@@ -108,10 +130,46 @@ describe('food photo quota', () => {
     expect(calls).toEqual(['left']); // the AI is never asked
   });
 
+  it('never calls a model that reached its free daily limit', async () => {
+    const { calls } = fakeFetch({ left: 5, geminiOk: true, model: false });
+    const res = await post();
+    expect(res.status).toBe(503);
+    expect(calls).toEqual(['left', 'model']); // no 'gemini': the model was skipped
+  });
+
+  it('never calls a model without a configured limit', async () => {
+    const { calls } = fakeFetch({ left: 5, geminiOk: true });
+    const res = await worker.fetch(
+      new Request('https://app.example/api/food-photo', {
+        method: 'POST',
+        headers: { authorization: 'Bearer t', 'content-type': 'application/json' },
+        body: JSON.stringify({ image: 'aGk=' }),
+      }),
+      { ...env, AI_DAILY_LIMITS: '{}' },
+    );
+    expect(res.status).toBe(503);
+    expect(calls).toEqual(['left']);
+  });
+
+  it('tries the models as before while the per-model SQL is not set up', async () => {
+    const { calls } = fakeFetch({ left: 5, geminiOk: true, model: 'missing' });
+    const res = await post();
+    expect(res.status).toBe(200);
+    expect(calls).toEqual(['left', 'model', 'gemini', 'use']);
+  });
+
   it('counts up front when the database has no photo_quota_left yet', async () => {
     const { calls } = fakeFetch({ left: 'missing', geminiOk: true });
     const res = await post();
     expect(res.status).toBe(200);
-    expect(calls).toEqual(['left', 'use', 'gemini']);
+    expect(calls).toEqual(['left', 'use', 'model', 'gemini']);
+  });
+});
+
+describe('daily keep-alive', () => {
+  it('runs a tiny Supabase query so the free project is not paused', async () => {
+    const { calls } = fakeFetch({ left: 5, geminiOk: true });
+    await worker.scheduled({}, env);
+    expect(calls).toEqual(['keep_alive']);
   });
 });
