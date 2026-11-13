@@ -53,7 +53,6 @@ describe('app flow', () => {
     change('Create a password', 'short');
     expect(screen.getByText('Enter a valid email.')).toBeTruthy();
     expect(screen.getByText('Use at least 8 characters.')).toBeTruthy();
-    expect(screen.getByText('Password: too short')).toBeTruthy();
     expect(submit.disabled).toBe(true);
     change('Email', 'a@example.com');
     change('Create a password', 'longenough1');

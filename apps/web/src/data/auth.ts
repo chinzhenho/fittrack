@@ -58,7 +58,7 @@ export function authErrorMessage(
   if (code === 'user_already_exists' || msg.includes('already registered'))
     return t('This email is already registered. Please log in.');
   if (code === 'weak_password' || msg.includes('password should'))
-    return t('Password too weak: use at least 8 characters, mixing letters and numbers.');
+    return t('This password is too weak. Please try a longer one.');
   // Supabase: "For security purposes, you can only request this after 47 seconds."
   const wait = /after (\d+) seconds?/.exec(msg)?.[1];
   if (wait) return t('Please wait {n} seconds, then try again.', { n: wait });

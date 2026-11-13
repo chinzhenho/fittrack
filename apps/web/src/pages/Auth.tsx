@@ -8,7 +8,7 @@ import {
   EmailInput,
   Notice,
   PasswordInput,
-  PasswordStrength,
+  PasswordHint,
 } from '../components/ui';
 import { authErrorMessage, clearRecovering, isRecovering, useAuth } from '../data/auth';
 import { supabase } from '../data/supabase';
@@ -478,7 +478,7 @@ export function Signup() {
                 value={f.password}
                 onChange={f.setPassword}
               />
-              <PasswordStrength value={f.password} />
+              <PasswordHint value={f.password} />
             </>
           )}
         </Field>
@@ -630,7 +630,7 @@ export function UpdatePassword() {
                 value={password}
                 onChange={setPassword}
               />
-              <PasswordStrength value={password} />
+              <PasswordHint value={password} />
             </>
           )}
         </Field>

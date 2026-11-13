@@ -331,67 +331,20 @@ export function EmailInput({
   );
 }
 
-/** The four kinds of characters, shown to the user as chips. */
-const PASSWORD_KINDS = [
-  { re: /[a-z]/, chip: 'abc', name: 'small letters' },
-  { re: /[A-Z]/, chip: 'ABC', name: 'capital letters' },
-  { re: /\d/, chip: '123', name: 'numbers' },
-  { re: /[^A-Za-z0-9]/, chip: '!@#', name: 'symbols' },
-] as const;
-
 /**
- * Three-bar password strength. Under 8 characters: too short (8 is the minimum).
- * Strong: 12+ characters, or 3 of the 4 kinds (small, capital, numbers, symbols).
+ * The one password rule, shown under the box: at least 8 characters. Ticks green once
+ * met; while too short the field's own red error says it instead.
  */
-export function passwordStrength(pw: string): 0 | 1 | 2 | 3 {
-  if (pw.length === 0) return 0;
-  if (pw.length < 8) return 1;
-  const kinds = PASSWORD_KINDS.filter((k) => k.re.test(pw)).length;
-  return pw.length >= 12 || kinds >= 3 ? 3 : 2;
-}
-
-export function PasswordStrength({ value }: { value: string }) {
-  const level = passwordStrength(value);
-  const meta = [
-    { text: t('At least 8 characters'), color: '' },
-    { text: t('Too short'), color: 'bg-rose-500 text-rose-600' },
-    { text: t('OK'), color: 'bg-amber-500 text-amber-600' },
-    { text: t('Strong'), color: 'bg-emerald-500 text-emerald-700' },
-  ][level]!;
-  const bar = meta.color.split(' ')[0] ?? '';
+export function PasswordHint({ value }: { value: string }) {
+  if (value.length > 0 && value.length < 8) return null;
+  const ok = value.length >= 8;
   return (
-    <div className="mt-2">
-      <div className="flex items-center gap-1.5" aria-live="polite">
-        {[1, 2, 3].map((i) => (
-          <span
-            key={i}
-            className={`h-1.5 flex-1 rounded-full transition-colors ${i <= level ? bar : 'bg-slate-200 dark:bg-slate-700'}`}
-          />
-        ))}
-        <span
-          className={`ml-1 shrink-0 whitespace-nowrap text-right text-xs font-semibold ${level ? (meta.color.split(' ')[1] ?? '') : 'text-slate-500'}`}
-        >
-          {level ? t('Password: {v1}', { v1: meta.text.toLowerCase() }) : meta.text}
-        </span>
-      </div>
-      <p className="mt-2 text-xs text-slate-600 dark:text-slate-300">
-        {t('To make it strong, use 12 or more characters, or mix 3 of these:')}
-      </p>
-      <ul className="mt-1.5 flex flex-wrap gap-1.5">
-        {PASSWORD_KINDS.map((k) => {
-          const used = k.re.test(value);
-          return (
-            <li
-              key={k.chip}
-              className={`rounded-full px-2.5 py-0.5 text-xs font-semibold transition-colors ${used ? 'bg-emerald-50 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200' : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300'}`}
-            >
-              {used ? '✓ ' : ''}
-              {k.chip} <span className="font-normal">{t(k.name)}</span>
-            </li>
-          );
-        })}
-      </ul>
-    </div>
+    <p
+      className={`mt-2 text-xs ${ok ? 'font-semibold text-emerald-700 dark:text-emerald-300' : 'text-slate-600 dark:text-slate-300'}`}
+    >
+      {ok ? '✓ ' : ''}
+      {t('At least 8 characters')}
+    </p>
   );
 }
 

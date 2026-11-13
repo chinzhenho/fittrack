@@ -372,16 +372,6 @@ export const ZH: Record<string, string> = {
   'Show password': '显示密码',
   'you@example.com': 'you@example.com',
   'At least 8 characters': '至少 8 个字符',
-  'To make it strong, use 12 or more characters, or mix 3 of these:':
-    '想要强密码：用 12 个或以上字符，或者混合以下其中 3 种：',
-  'small letters': '小写字母',
-  'capital letters': '大写字母',
-  numbers: '数字',
-  symbols: '符号',
-  'Too short': '太短',
-  OK: '还可以',
-  Strong: '强',
-  'Password: {v1}': '密码强度：{v1}',
   'Decrease {label}': '减少{label}',
   'Increase {label}': '增加{label}',
 
@@ -421,8 +411,7 @@ export const ZH: Record<string, string> = {
   'Please click the confirmation link in your email first, then log in.':
     '请先点击电邮里的确认链接，然后再登录。',
   'This email is already registered. Please log in.': '这个电邮已注册过。请直接登录。',
-  'Password too weak: use at least 8 characters, mixing letters and numbers.':
-    '密码太弱：请使用至少 8 个字符，并混合字母和数字。',
+  'This password is too weak. Please try a longer one.': '这个密码太弱了，请换一个长一点的。',
   'Too many emails sent. Please try again in an hour.': '发送的邮件太多了，请一小时后再试。',
   'Please wait {n} seconds, then try again.': '请等 {n} 秒后再试。',
   'The new password must be different from the old one.': '新密码必须和旧密码不同。',
