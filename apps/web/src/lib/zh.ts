@@ -372,6 +372,12 @@ export const ZH: Record<string, string> = {
   'Show password': '显示密码',
   'you@example.com': 'you@example.com',
   'At least 8 characters': '至少 8 个字符',
+  'To make it strong, use 12 or more characters, or mix 3 of these:':
+    '想要强密码：用 12 个或以上字符，或者混合以下其中 3 种：',
+  'small letters': '小写字母',
+  'capital letters': '大写字母',
+  numbers: '数字',
+  symbols: '符号',
   'Too short': '太短',
   OK: '还可以',
   Strong: '强',
